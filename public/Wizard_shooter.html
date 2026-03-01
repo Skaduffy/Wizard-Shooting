@@ -425,16 +425,22 @@ function attachSocketHandlers() {
     mpWave      = state.wave;
     mpScore     = state.score;
     mpGameTime  = state.gameTime;
-    // Sync local player from server
+    // Smooth correction: nudge toward server position rather than snapping
     const me = mpPlayers[mpMyId];
     if (me) {
-      player.wx    = me.wx;
-      player.wy    = me.wy;
-      player.angle = me.angle;
-      player.hp    = me.hp;
-      iframes      = me.iframes;
-      playerHp     = me.hp;
-      wave         = mpWave;
+      // Only hard-snap if very far off (e.g. respawn, warp)
+      const drift = Math.hypot(player.wx - me.wx, player.wy - me.wy);
+      if (drift > 120) {
+        player.wx = me.wx; player.wy = me.wy;
+      } else {
+        // Gentle lerp — barely noticeable visually but keeps in sync
+        player.wx += (me.wx - player.wx) * 0.15;
+        player.wy += (me.wy - player.wy) * 0.15;
+      }
+      player.hp = me.hp;
+      iframes   = me.iframes;
+      playerHp  = me.hp;
+      wave      = mpWave;
     }
     mpUpdateScoreboard();
     updateHUD();
@@ -517,8 +523,22 @@ function mpUpdateScoreboard() {
 let lastInputSent = 0;
 function mpSendInput() {
   if (!socket || !mpInGame) return;
+
+  // ── Client-side prediction: move locally every frame ──────
+  // This makes movement feel instant — server corrects drift.
+  let mx=0, my=0;
+  if(keys['w']||keys['ArrowUp'])    my=-1;
+  if(keys['s']||keys['ArrowDown'])  my= 1;
+  if(keys['a']||keys['ArrowLeft'])  mx=-1;
+  if(keys['d']||keys['ArrowRight']) mx= 1;
+  if(mx&&my){mx*=0.707;my*=0.707;}
+  player.wx+=mx*4; player.wy+=my*4;
+  player.angle=Math.atan2(mouseY+cam.y-player.wy, mouseX+cam.x-player.wx);
+  updateCamera();
+
+  // ── Send to server at 20/s (no need to send faster) ───────
   const now = performance.now();
-  if (now - lastInputSent < 50) return; // throttle to 20/s
+  if (now - lastInputSent < 50) return;
   lastInputSent = now;
   socket.emit('input', {
     keys: { w:!!keys['w']||!!keys['ArrowUp'], s:!!keys['s']||!!keys['ArrowDown'],
@@ -569,8 +589,8 @@ const keys={};let mouseX=0,mouseY=0;
 document.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key==='Escape'&&gameRunning)endGame();});
 document.addEventListener('keyup',e=>{keys[e.key]=false;});
 document.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
-document.addEventListener('mousedown',e=>{if(!gameRunning)return;if(e.button===0)tryShoot();});
-document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)castSpell();});
+document.addEventListener('mousedown',e=>{if(!gameRunning)return;if(e.button===0){if(mpInGame)mpShoot();else tryShoot();}});
+document.addEventListener('contextmenu',e=>{e.preventDefault();if(!gameRunning)return;if(mpInGame)mpCastSpell();else castSpell();});
 
 // ── STATE ─────────────────────────────────────────────
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
@@ -1444,9 +1464,8 @@ function drawVoidOrbs(){
 function mpLoop() {
   if (!mpInGame) return;
 
-  mpSendInput(); // send keys 20/s
-
-  updateCamera(); // camera follows MY wizard
+  mpSendInput(); // moves player locally + sends to server 20/s
+  // (updateCamera is called inside mpSendInput every frame)
 
   drawFloor();
 
