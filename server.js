@@ -180,19 +180,21 @@ function tickRoom(room) {
   if (room.waveTimer >= WAVE_INTERVAL) {
     room.waveTimer=0; room.wave++;
     broadcastToRoom(room,'wave_change',{wave:room.wave});
-    if (room.wave===5 && !room.miniBossSpawned) {
+    if (room.wave===5 && !room.miniBossSpawned && room.mode!=='pvp') {
       room.miniBossSpawned=true;
       setTimeout(()=>{ if(room.running) spawnMiniBoss(room); }, 2000);
     }
   }
 
   if (room.spawnTimer <= 0) {
-    const n = Math.ceil(room.wave*0.6+0.5);
-    for (let k=0; k<n; k++) {
-      const roll = Math.random();
-      if      (room.archerUnlocked  && roll<0.25) spawnArcher(room);
-      else if (room.armoredUnlocked && roll<0.50) spawnArmored(room);
-      else spawnGoblin(room);
+    if (room.mode !== 'pvp') {
+      const n = Math.ceil(room.wave*0.6+0.5);
+      for (let k=0; k<n; k++) {
+        const roll = Math.random();
+        if      (room.archerUnlocked  && roll<0.25) spawnArcher(room);
+        else if (room.armoredUnlocked && roll<0.50) spawnArmored(room);
+        else spawnGoblin(room);
+      }
     }
     room.spawnTimer = Math.max(0.5, 2.5-room.wave*0.12);
   }
