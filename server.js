@@ -16,9 +16,9 @@ const io     = new Server(server, {
   cors: { origin: '*', methods: ['GET','POST'] }
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 app.get('/', (req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'Wizard_shooter.html'))
+  res.sendFile(path.join(__dirname, 'Wizard Shooter.html'))
 );
 
 // ── Constants ─────────────────────────────────────────────────
@@ -369,25 +369,42 @@ function tickRoom(room) {
     }
   }
 
-  // ── Broadcast state ──────────────────────────────────────────
+  // ── Broadcast slim state ─────────────────────────────────────
+  // Round floats to 1 decimal — cuts payload ~40%
+  const r1 = n => Math.round(n*10)/10;
   const playerSnaps={};
   for(const [id,p] of Object.entries(room.players)) {
     playerSnaps[id]={
-      id:p.id,name:p.name,spell:p.spell,wx:p.wx,wy:p.wy,angle:p.angle,
-      hp:p.hp,maxHp:p.maxHp,alive:p.alive,score:p.score,iframes:p.iframes,
-      bullets:p.bullets.map(b=>({wx:b.wx,wy:b.wy,r:b.r})),
-      fireballs:p.fireballs.map(b=>({wx:b.wx,wy:b.wy,r:b.r,age:b.age})),
-      vines:p.vines.map(v=>({wx:v.wx,wy:v.wy,trail:v.trail,angle:v.angle,age:v.age})),
-      infernos:p.infernos.map(inf=>({wx:inf.wx,wy:inf.wy,angle:inf.angle,age:inf.age,duration:inf.duration})),
-      arcaneMissiles:p.arcaneMissiles.map(m=>({wx:m.wx,wy:m.wy,angle:m.angle,r:m.r})),
-      voidOrbs:p.voidOrbs.map(o=>({wx:o.wx,wy:o.wy,r:o.r,age:o.age})),
-      lightningZaps:p.lightningZaps,
-      chainBolts:p.chainBolts,
+      id:p.id, wx:r1(p.wx), wy:r1(p.wy), angle:r1(p.angle),
+      hp:p.hp, alive:p.alive, score:p.score, iframes:r1(p.iframes),
+      // Projectiles: position only, no trails (client simulates locally)
+      bl:p.bullets.map(b=>[r1(b.wx),r1(b.wy)]),
+      fb:p.fireballs.map(b=>[r1(b.wx),r1(b.wy),r1(b.age)]),
+      vn:p.vines.map(v=>[r1(v.wx),r1(v.wy),r1(v.angle),r1(v.age)]), // NO trail — client rebuilds
+      in:p.infernos.map(i=>[r1(i.wx),r1(i.wy),r1(i.angle),r1(i.age),i.duration]),
+      am:p.arcaneMissiles.map(m=>[r1(m.wx),r1(m.wy),r1(m.angle)]),
+      vo:p.voidOrbs.map(o=>[r1(o.wx),r1(o.wy),r1(o.age)]),
+      lz:p.lightningZaps.map(z=>[r1(z.x1),r1(z.y1),r1(z.x2),r1(z.y2),r1(z.age),z.life]),
+      cb:p.chainBolts.map(c=>({segs:c.segments.map(s=>[r1(s.x1),r1(s.y1),r1(s.x2),r1(s.y2)]),age:r1(c.age),life:c.life})),
     };
   }
+  // Enemies: only essential fields, rounded
+  const enemySnaps = room.enemies.map(e=>({
+    id:e.id, type:e.type,
+    wx:r1(e.wx), wy:r1(e.wy), angle:r1(e.angle),
+    hp:e.hp, maxHp:e.maxHp,
+    speed:e.speed, radius:e.radius,
+    burning:r1(e.burning||0),
+    smashing:r1(e.smashing||0), smashTimer:r1(e.smashTimer||0),
+    preferDist:e.preferDist||0,
+    armorFlash:r1(e.armorFlash||0),
+  }));
+  // Arrows: minimal
+  const arrowSnaps = room.arrows.map(a=>([r1(a.wx),r1(a.wy),r1(a.dx),r1(a.dy),r1(a.age||0)]));
+
   broadcastToRoom(room,'state',{
-    players:playerSnaps, enemies:room.enemies, arrows:room.arrows,
-    wave:room.wave, score:room.score, gameTime:room.gameTime, mode:room.mode,
+    p:playerSnaps, e:enemySnaps, a:arrowSnaps,
+    w:room.wave, s:room.score, t:r1(room.gameTime), m:room.mode,
   });
 }
 
