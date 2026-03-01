@@ -1,7 +1,7 @@
 {
-  "name": "wizard-shooter-colyseus",
-  "version": "2.0.0",
-  "description": "Wizard Shooter multiplayer server — Colyseus edition",
+  "name": "wizard-shooter",
+  "version": "1.0.0",
+  "description": "Wizard Shooter multiplayer server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,9 +11,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "colyseus": "0.15.20",
-    "@colyseus/schema": "2.0.8",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
