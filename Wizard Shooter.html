@@ -30,6 +30,8 @@
   .spell-card.fire-card.selected,.spell-card.fire-card:hover { border-color:#ff7700; box-shadow:0 0 35px rgba(255,100,0,0.4); }
   .spell-card.lightning-card.selected,.spell-card.lightning-card:hover { border-color:#88aaff; box-shadow:0 0 35px rgba(100,150,255,0.5); }
   .spell-card.arcane-card { border-color:#5a1a7a; background:linear-gradient(135deg,#160a20,#0e0615); }
+  .spell-card.ice-card { border-color:#1a4a7a; background:linear-gradient(135deg,#050d1f,#08111a); }
+  .spell-card.ice-card.selected,.spell-card.ice-card:hover { border-color:#88ddff; box-shadow:0 0 35px rgba(100,220,255,0.55); }
   .spell-card.arcane-card.selected,.spell-card.arcane-card:hover { border-color:#dd88ff; box-shadow:0 0 35px rgba(180,80,255,0.55); }
   .spell-icon { font-size:3rem; margin-bottom:0.5em; animation:bob 2.2s ease-in-out infinite; }
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
@@ -43,8 +45,11 @@
   .spell-tag.fire { background:rgba(255,100,0,0.15); color:#ff7700; border-color:rgba(255,100,0,0.3); }
   .spell-tag.lightning { background:rgba(100,150,255,0.15); color:#88aaff; border-color:rgba(100,150,255,0.3); }
   .spell-name.arcane { color:#dd88ff; }
+  .spell-name.ice    { color:#88ddff; }
   .spell-desc.arcane { color:#6a3a8a; }
+  .spell-desc.ice    { color:#2a5a7a; }
   .spell-tag.arcane { background:rgba(180,80,255,0.15); color:#dd88ff; border-color:rgba(180,80,255,0.3); }
+  .spell-tag.ice    { background:rgba(100,220,255,0.12); color:#88ddff; border-color:rgba(100,220,255,0.3); }
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
   .back-btn { position:absolute; top:18px; left:18px; background:transparent; border:1px solid #2a5a2a; color:#4a7a4a; font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:0.15em; padding:0.45em 1.1em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
@@ -58,6 +63,7 @@
   .hud-score.fire-hud { color:#ff8833; text-shadow:0 0 10px #ff4400; }
   .hud-score.lightning-hud { color:#aaccff; text-shadow:0 0 10px #4488ff; }
   .hud-score.arcane-hud { color:#dd88ff; text-shadow:0 0 10px #aa44ff; }
+  .hud-score.ice-hud    { color:#88ddff; text-shadow:0 0 10px #44bbff; }
   .hud-wave { font-family:'Cinzel',serif; color:#4a7a4a; font-size:0.85rem; letter-spacing:0.2em; }
   .hud-hp { display:flex; gap:4px; align-items:center; }
   #hint { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); color:#2a4a2a; font-size:0.68rem; letter-spacing:0.18em; pointer-events:none; z-index:15; white-space:nowrap; }
@@ -71,7 +77,7 @@
   #spellHUD.hidden { display:none; }
 </style>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <style>
   /* ── MULTIPLAYER LOBBY SCREENS ── */
   .mp-screen { position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0d1a0d,#040904);z-index:30; }
@@ -161,6 +167,12 @@
       <div class="spell-name arcane">Arcane Wizard</div>
       <div class="spell-desc arcane">Fires 3 arcane missiles per shot. Right-click: a slow unstoppable void orb that annihilates everything it touches.</div>
     </div>
+    <div class="spell-card ice-card" id="card-ice" onclick="selectSpell('ice')">
+      <div class="spell-tag ice">ICE</div>
+      <div class="spell-icon">❄️</div>
+      <div class="spell-name ice">Ice Wizard</div>
+      <div class="spell-desc ice">Shoots piercing icicles that slow enemies. Right-click: summon a Blizzard — a frozen zone that slows everything inside.</div>
+    </div>
   </div>
   <button class="enter-btn" onclick="startGame()">Enter the Arena →</button>
 </div>
@@ -199,6 +211,7 @@
     <button class="mp-mode-btn"        id="mpSpell-fire"   onclick="mpPickSpell('fire')"  >🔥 Fire</button>
     <button class="mp-mode-btn"        id="mpSpell-lightning" onclick="mpPickSpell('lightning')">⚡ Storm</button>
     <button class="mp-mode-btn"        id="mpSpell-arcane" onclick="mpPickSpell('arcane')">🔮 Arcane</button>
+    <button class="mp-mode-btn"        id="mpSpell-ice"    onclick="mpPickSpell('ice')"   >❄️ Ice</button>
   </div>
   <button class="mp-btn" onclick="mpShowCreate()">✦ Create Room</button>
   <button class="mp-btn" onclick="mpShowJoin()">⟶ Join Room</button>
@@ -256,7 +269,7 @@
 // ══════════════════════════════════════════════════════
 const SERVER_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3000'
-  : 'https://wizard-shooting.onrender.com';
+  : 'https://wizard-shooting.onrender.com'; // ← REPLACE with your Render URL
 
 // MP state
 let socket       = null;
@@ -274,7 +287,7 @@ let mpGameTime   = 0;
 let mpConnected  = false;
 let mpInGame     = false;
 
-const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮' };
+const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️' };
 
 // MP screen helper
 function showMpScreen(id) {
@@ -418,71 +431,24 @@ function attachSocketHandlers() {
   });
 
   socket.on('state', (state) => {
-    // Guard: ignore malformed packets (e.g. during reconnect)
-    if (!state || !state.p || !state.e) return;
-    // ── Unpack compact server format ──────────────────────────────
-    // Server sends short keys to save bandwidth: p/e/a/w/s/t/m
-
-    // ── Merge enemies ─────────────────────────────────────────────
-    const serverEnemyIds = new Set(state.e.map(e=>e.id));
-    mpEnemies = mpEnemies.filter(e=>serverEnemyIds.has(e.id));
-    state.e.forEach(se => {
-      const local = mpEnemies.find(e=>e.id===se.id);
-      if (local) {
-        const drift = Math.hypot(local.wx-se.wx, local.wy-se.wy);
-        if (drift > 80) { local.wx=se.wx; local.wy=se.wy; }
-        else { local.wx+=(se.wx-local.wx)*0.25; local.wy+=(se.wy-local.wy)*0.25; }
-        local.hp=se.hp; local.maxHp=se.maxHp; local.angle=se.angle;
-        local.burning=se.burning; local.smashing=se.smashing;
-        local.smashTimer=se.smashTimer; local.armorFlash=se.armorFlash||0;
-      } else {
-        mpEnemies.push({...se, wobble:Math.random()*Math.PI*2});
-      }
-    });
-
-    // ── Merge arrows (compact [wx,wy,dx,dy,age]) ──────────────────
-    if (Math.abs(mpArrows.length - state.a.length) > 3) {
-      mpArrows = state.a.map(a=>({wx:a[0],wy:a[1],dx:a[2],dy:a[3],age:a[4],r:5}));
-    }
-
-    // ── Merge other players ───────────────────────────────────────
-    Object.entries(state.p).forEach(([id, sp]) => {
-      if (id === mpMyId) return;
-      if (!mpPlayers[id]) mpPlayers[id] = { id, spell:'earth', name:'?' };
-      const lp = mpPlayers[id];
-      lp.wx=sp.wx; lp.wy=sp.wy; lp.angle=sp.angle;
-      lp.hp=sp.hp; lp.alive=sp.alive; lp.score=sp.score; lp.iframes=sp.iframes;
-      // Unpack compact projectile arrays
-      lp.bullets        = (sp.bl||[]).map(b=>({wx:b[0],wy:b[1],dx:0,dy:0,r:5}));
-      lp.fireballs      = (sp.fb||[]).map(b=>({wx:b[0],wy:b[1],age:b[2],dx:0,dy:0,r:7}));
-      lp.arcaneMissiles = (sp.am||[]).map(m=>({wx:m[0],wy:m[1],angle:m[2],dx:Math.cos(m[2])*13,dy:Math.sin(m[2])*13,r:6}));
-      lp.voidOrbs       = (sp.vo||[]).map(o=>({wx:o[0],wy:o[1],age:o[2],dx:0,dy:0,r:26}));
-      lp.lightningZaps  = (sp.lz||[]).map(z=>({x1:z[0],y1:z[1],x2:z[2],y2:z[3],age:z[4],life:z[5]}));
-      lp.chainBolts     = (sp.cb||[]).map(c=>({segments:c.segs.map(s=>({x1:s[0],y1:s[1],x2:s[2],y2:s[3]})),age:c.age,life:c.life}));
-      lp.infernos       = (sp.in||[]).map(i=>({wx:i[0],wy:i[1],angle:i[2],age:i[3],duration:i[4]}));
-      // Vines: server sends [wx,wy,angle,age] — keep local trail if same count
-      const svines = (sp.vn||[]);
-      if (!lp.vines || lp.vines.length !== svines.length) {
-        lp.vines = svines.map(v=>({wx:v[0],wy:v[1],angle:v[2],age:v[3],
-          dx:Math.cos(v[2])*7.5, dy:Math.sin(v[2])*7.5, trail:[], segT:0}));
-      } else {
-        // Just correct position, keep the rich local trail
-        svines.forEach((sv,i)=>{ lp.vines[i].wx=sv[0]; lp.vines[i].wy=sv[1]; });
-      }
-    });
-
-    // ── Sync MY player ────────────────────────────────────────────
-    const me = state.p[mpMyId];
+    // Merge server state into local
+    mpPlayers   = state.players;
+    mpEnemies   = state.enemies;
+    mpArrows    = state.arrows || [];
+    mpWave      = state.wave;
+    mpScore     = state.score;
+    mpGameTime  = state.gameTime;
+    // Sync local player from server
+    const me = mpPlayers[mpMyId];
     if (me) {
-      const drift = Math.hypot(player.wx-me.wx, player.wy-me.wy);
-      if (drift > 150) { player.wx=me.wx; player.wy=me.wy; }
-      else if (drift > 20) { player.wx+=(me.wx-player.wx)*0.1; player.wy+=(me.wy-player.wy)*0.1; }
-      player.hp=me.hp; iframes=me.iframes; playerHp=me.hp;
-      if (!mpPlayers[mpMyId]) mpPlayers[mpMyId]={};
-      Object.assign(mpPlayers[mpMyId], {hp:me.hp,alive:me.alive,score:me.score,iframes:me.iframes});
+      player.wx    = me.wx;
+      player.wy    = me.wy;
+      player.angle = me.angle;
+      player.hp    = me.hp;
+      iframes      = me.iframes;
+      playerHp     = me.hp;
+      wave         = mpWave;
     }
-
-    mpWave=state.w; mpScore=state.s; mpGameTime=state.t; wave=mpWave;
     mpUpdateScoreboard();
     updateHUD();
   });
@@ -560,94 +526,18 @@ function mpUpdateScoreboard() {
   });
 }
 
-// ── MULTIPLAYER INPUT + CLIENT PREDICTION ────────────────────
+// ── MULTIPLAYER INPUT SENDING ────────────────────────────────
 let lastInputSent = 0;
-
 function mpSendInput() {
   if (!socket || !mpInGame) return;
-
-  // Move player locally every frame — no waiting for server
-  let mx=0, my=0;
-  if(keys['w']||keys['ArrowUp'])    my=-1;
-  if(keys['s']||keys['ArrowDown'])  my= 1;
-  if(keys['a']||keys['ArrowLeft'])  mx=-1;
-  if(keys['d']||keys['ArrowRight']) mx= 1;
-  if(mx&&my){mx*=0.707;my*=0.707;}
-  player.wx+=mx*4; player.wy+=my*4;
-  player.angle=Math.atan2(mouseY+cam.y-player.wy, mouseX+cam.x-player.wx);
-  updateCamera();
-
-  // Send to server at 20/s only
   const now = performance.now();
-  if (now - lastInputSent < 50) return;
+  if (now - lastInputSent < 50) return; // throttle to 20/s
   lastInputSent = now;
   socket.emit('input', {
-    keys:{ w:!!keys['w']||!!keys['ArrowUp'], s:!!keys['s']||!!keys['ArrowDown'],
-           a:!!keys['a']||!!keys['ArrowLeft'], d:!!keys['d']||!!keys['ArrowRight'] },
-    mouseWx: mouseX+cam.x,
-    mouseWy: mouseY+cam.y,
-  });
-}
-
-// ── LOCAL SIMULATION: move mp entities at 60fps ────────────────
-// This makes everything look smooth — server corrections snap us back
-// if we drift too far, but visually it runs at full framerate.
-
-function mpSimulateLocally() {
-  // Simulate enemy movement locally (mirrors server logic, cosmetic only)
-  mpEnemies.forEach(e => {
-    e.wobble = (e.wobble||0) + DT*3.5;
-    if(e.burning>0) e.burning-=DT;
-    if(e.armorFlash>0) e.armorFlash-=DT*5;
-    if(e.smashing>0) e.smashing-=DT;
-    // Find nearest player to follow
-    let nearPx=player.wx, nearPy=player.wy;
-    let nearDist=Math.hypot(player.wx-e.wx,player.wy-e.wy);
-    Object.values(mpPlayers).forEach(p=>{
-      if(!p.alive)return;
-      const d=Math.hypot(p.wx-e.wx,p.wy-e.wy);
-      if(d<nearDist){nearDist=d;nearPx=p.wx;nearPy=p.wy;}
-    });
-    const ea=Math.atan2(nearPy-e.wy,nearPx-e.wx);
-    e.angle=ea;
-    if(e.type==='archer'){
-      const pd=e.preferDist||220;
-      if(nearDist>pd+40){e.wx+=Math.cos(ea)*e.speed;e.wy+=Math.sin(ea)*e.speed;}
-      else if(nearDist<pd-40){e.wx-=Math.cos(ea)*e.speed;e.wy-=Math.sin(ea)*e.speed;}
-      else{const perp=ea+Math.PI/2;e.wx+=Math.cos(perp)*e.speed*0.6;e.wy+=Math.sin(perp)*e.speed*0.6;}
-    } else {
-      e.wx+=Math.cos(ea)*e.speed; e.wy+=Math.sin(ea)*e.speed;
-    }
-  });
-
-  // Simulate arrows locally
-  mpArrows.forEach(ar=>{ ar.wx+=ar.dx; ar.wy+=ar.dy; ar.age=(ar.age||0)+DT; });
-  mpArrows = mpArrows.filter(ar=>(ar.age||0)<3);
-
-  // Simulate other players' projectiles locally at 60fps
-  Object.values(mpPlayers).forEach(p=>{
-    if(p.id===mpMyId) return; // my own handled server-side
-    (p.bullets||[]).forEach(b=>{b.wx+=b.dx||0;b.wy+=b.dy||0;});
-    (p.fireballs||[]).forEach(b=>{b.wx+=b.dx||0;b.wy+=b.dy||0;b.age=(b.age||0)+DT;});
-    (p.arcaneMissiles||[]).forEach(m=>{m.wx+=m.dx||0;m.wy+=m.dy||0;});
-    (p.voidOrbs||[]).forEach(o=>{o.wx+=o.dx||0;o.wy+=o.dy||0;o.age=(o.age||0)+DT;});
-    // Vines: advance position and generate trail client-side (same math as SP)
-    (p.vines||[]).forEach(v=>{
-      v.wx+=v.dx||0; v.wy+=v.dy||0; v.age=(v.age||0)+DT; v.segT=(v.segT||0)+DT;
-      if(v.segT>0.025){
-        v.segT=0;
-        if(!v.trail)v.trail=[];
-        const perp=(v.angle||0)+Math.PI/2;
-        const w=Math.sin(v.age*20)*11;
-        v.trail.push({wx:v.wx+Math.cos(perp)*w, wy:v.wy+Math.sin(perp)*w});
-        if(v.trail.length>120) v.trail.shift(); // cap trail length
-      }
-    });
-    // Lightning bolts age
-    if(p.lightningZaps) p.lightningZaps.forEach(b=>b.age=(b.age||0)+DT);
-    if(p.chainBolts)    p.chainBolts.forEach(b=>b.age=(b.age||0)+DT);
-    if(p.lightningZaps) p.lightningZaps=p.lightningZaps.filter(b=>b.age<b.life);
-    if(p.chainBolts)    p.chainBolts=p.chainBolts.filter(b=>b.age<b.life);
+    keys: { w:!!keys['w']||!!keys['ArrowUp'], s:!!keys['s']||!!keys['ArrowDown'],
+            a:!!keys['a']||!!keys['ArrowLeft'], d:!!keys['d']||!!keys['ArrowRight'] },
+    mouseWx: mouseX + cam.x,
+    mouseWy: mouseY + cam.y,
   });
 }
 
@@ -699,14 +589,15 @@ document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)ca
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
 let spawnTimer=0,waveTimer=0,shootCD=0,spellCD=0,iframes=0,gameTime=0;
 let armoredUnlocked=false,archerUnlocked=false,miniBossSpawned=false;
-const SPELL_MAXCD={earth:0.85,fire:4.0,lightning:2.5,arcane:9.0};
-const SPELL_DURATION={fire:2.0};
+const SPELL_MAXCD={earth:0.85,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18};
+const SPELL_DURATION={fire:2.0,ice:5.0};
 const player={wx:0,wy:0,speed:4,radius:18,angle:0};
 function mouseWorld(){return{wx:mouseX+cam.x,wy:mouseY+cam.y};}
 
 let bullets=[],vines=[],fireballs=[],infernos=[],arrows=[];
 let lightningBolts=[],chainBolts=[];
 let arcaneMissiles=[],voidOrbs=[];
+let icicles=[],blizzards=[];  // ice wizard projectiles
 let enemies=[],particles=[],floatTexts=[];
 
 // ── HUD ───────────────────────────────────────────────
@@ -714,9 +605,9 @@ function updateHUD(){
   document.getElementById('scoreDisplay').textContent=score;
   document.getElementById('waveDisplay').textContent=wave;
   const sl=document.getElementById('scoreLabel');
-  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':'hud-score';
+  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':'hud-score';
   const hp=document.getElementById('hpDisplay');hp.innerHTML='';
-  for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':'💚'):'🖤';hp.appendChild(s);}
+  for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':'💚'):'🖤';hp.appendChild(s);}
 }
 
 // ── START/END ─────────────────────────────────────────
@@ -725,9 +616,9 @@ function startGame(){
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('hint').classList.remove('hidden');
   document.getElementById('spellHUD').classList.remove('hidden');
-  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':'WASD · Left-click shoot · Right-click vine spell';
+  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':'WASD · Left-click shoot · Right-click vine spell';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
-  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];enemies=[];particles=[];floatTexts=[];
+  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
 }
@@ -752,6 +643,8 @@ function tryShoot(){
     shootLightningZap(a);shootCD=0.13;
   } else if(selectedSpell==='arcane'){
     shootArcaneMissiles(a);shootCD=2.0;
+  } else if(selectedSpell==='ice'){
+    shootIcicle(a);shootCD=SPELL_MAXCD.ice;
   } else {
     fireballs.push({wx:player.wx+Math.cos(a)*26,wy:player.wy+Math.sin(a)*26,dx:Math.cos(a)*10,dy:Math.sin(a)*10,r:7,age:0});
     shootCD=0.18;
@@ -784,6 +677,7 @@ function castSpell(){
   if(selectedSpell==='earth')castVine();
   else if(selectedSpell==='fire')castInferno();
   else if(selectedSpell==='arcane') castVoidOrb();
+  else if(selectedSpell==='ice') castBlizzard();
   else castChainLightning();
 }
 
@@ -811,6 +705,32 @@ function castVoidOrb(){
   // Big arcane burst on cast
   for(let p=0;p<24;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#cc66ff':'#8822dd',4+Math.random()*3,Math.cos(pa)*6,Math.sin(pa)*6,0.6);}
 }
+
+// ── ICICLE (left-click, piercing slow) ───────────────
+function shootIcicle(angle){
+  // 3 icicles in a tight spread for satisfying feel
+  const spread=0.12;
+  for(let i=-1;i<=1;i++){
+    const a=angle+i*spread;
+    icicles.push({
+      wx:player.wx+Math.cos(a)*26, wy:player.wy+Math.sin(a)*26,
+      dx:Math.cos(a)*14, dy:Math.sin(a)*14,
+      angle:a, r:5, age:0, hitSet:new Set()
+    });
+  }
+  // Small frosty puff
+  for(let p=0;p<6;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#88ddff':'#ffffff',2+Math.random()*2,Math.cos(pa)*3,Math.sin(pa)*3,0.25);}
+}
+
+// ── BLIZZARD (right-click, stationary slow zone) ─────
+function castBlizzard(){
+  const mw=mouseWorld();
+  blizzards.push({wx:mw.wx, wy:mw.wy, age:0, duration:SPELL_DURATION.ice, r:110, hitCooldowns:{}});
+  spellCD=6.5;
+  // Big icy burst at cast location
+  for(let p=0;p<30;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*80;spawnPart(mw.wx,mw.wy,p%3===0?'#ffffff':p%3===1?'#88ddff':'#44aaff',3+Math.random()*3,Math.cos(pa)*(2+Math.random()*5),Math.sin(pa)*(2+Math.random()*5),0.8+Math.random()*0.5);}
+}
+
 function castVine(){
   const mw=mouseWorld(),a=Math.atan2(mw.wy-player.wy,mw.wx-player.wx);
   vines.push({wx:player.wx,wy:player.wy,dx:Math.cos(a)*7.5,dy:Math.sin(a)*7.5,angle:a,age:0,trail:[],hitSet:new Set(),segT:0});
@@ -911,7 +831,7 @@ function damageEnemy(ei,dmg){
     for(let p=0;p<burstN;p++)spawnPart(e.wx,e.wy,c,2+Math.random()*4,(Math.random()-.5)*9,(Math.random()-.5)*9-1);
     if(e.type==='armored')for(let p=0;p<8;p++)spawnPart(e.wx,e.wy,'#aaaacc',2+Math.random()*2,(Math.random()-.5)*7,(Math.random()-.5)*7-1,0.9);
     if(e.type==='miniboss'){for(let p=0;p<20;p++)spawnPart(e.wx,e.wy,'#885500',3+Math.random()*3,(Math.random()-.5)*10,(Math.random()-.5)*10-2,1.2);}
-    floatTexts.push({wx:e.wx,wy:e.wy-20,text:e.type==='miniboss'?'💀 +'+pts*wave:'+'+(pts*wave),color:e.type==='miniboss'?'#ff4444':selectedSpell==='fire'?'#ffaa44':selectedSpell==='lightning'?'#aaddff':selectedSpell==='arcane'?'#ddaaff':'#ffdd44',life:e.type==='miniboss'?2.5:0.9,big:e.type==='miniboss'});
+    floatTexts.push({wx:e.wx,wy:e.wy-20,text:e.type==='miniboss'?'💀 +'+pts*wave:'+'+(pts*wave),color:e.type==='miniboss'?'#ff4444':selectedSpell==='fire'?'#ffaa44':selectedSpell==='lightning'?'#aaddff':selectedSpell==='arcane'?'#ddaaff':selectedSpell==='ice'?'#88ddff':'#ffdd44',life:e.type==='miniboss'?2.5:0.9,big:e.type==='miniboss'});
     enemies.splice(ei,1);score+=pts*wave;updateHUD();
   }
 }
@@ -1023,6 +943,59 @@ function update(){
       }
     }
   }
+
+  // Icicles — piercing slow projectiles
+  for(let i=icicles.length-1;i>=0;i--){
+    const ic=icicles[i];
+    ic.wx+=ic.dx; ic.wy+=ic.dy; ic.age+=DT;
+    // Frosty trail
+    if(Math.random()<0.6) spawnPart(ic.wx,ic.wy,Math.random()>0.5?'#88ddff':'#ffffff',1.5+Math.random()*1.5,(Math.random()-.5)*1.5,(Math.random()-.5)*1.5,0.2);
+    if(ic.age>1.8||Math.hypot(ic.wx-player.wx,ic.wy-player.wy)>1300){icicles.splice(i,1);continue;}
+    for(let ei=enemies.length-1;ei>=0;ei--){
+      if(ic.hitSet.has(enemies[ei].id))continue; // pierces — only hits each enemy once
+      if(Math.hypot(ic.wx-enemies[ei].wx,ic.wy-enemies[ei].wy)<enemies[ei].radius+ic.r){
+        ic.hitSet.add(enemies[ei].id);
+        // Ice shatter particles
+        for(let p=0;p<8;p++){const pa=Math.random()*Math.PI*2;spawnPart(ic.wx,ic.wy,p%2===0?'#88ddff':'#ffffff',2+Math.random()*2,Math.cos(pa)*(2+Math.random()*4),Math.sin(pa)*(2+Math.random()*4),0.3);}
+        // Slow the enemy — store slowTimer on it
+        enemies[ei].slowTimer=(enemies[ei].slowTimer||0)+2.0; // 2 seconds of slow
+        enemies[ei].slowTimer=Math.min(enemies[ei].slowTimer,4.0); // cap at 4s
+        damageEnemy(ei,1);
+      }
+    }
+  }
+
+  // Blizzards — stationary slow zone
+  for(let i=blizzards.length-1;i>=0;i--){
+    const bz=blizzards[i]; bz.age+=DT;
+    if(bz.age>=bz.duration){blizzards.splice(i,1);continue;}
+    const pct=1-(bz.age/bz.duration); // fades out at end
+    // Constant blizzard particles swirling inward
+    if(Math.random()<0.8){
+      const ba=Math.random()*Math.PI*2, br=bz.r*(0.5+Math.random()*0.5);
+      const bvx=(Math.cos(ba+Math.PI/2)*1.5-(bz.wx-(bz.wx+Math.cos(ba)*br))*0.02)*(0.3+Math.random()*0.7);
+      const bvy=(Math.sin(ba+Math.PI/2)*1.5-(bz.wy-(bz.wy+Math.sin(ba)*br))*0.02)*(0.3+Math.random()*0.7);
+      const col=['#ffffff','#88ddff','#44bbff','#aaeeff'][Math.floor(Math.random()*4)];
+      spawnPart(bz.wx+Math.cos(ba)*br, bz.wy+Math.sin(ba)*br, col, 1.5+Math.random()*2.5, bvx*0.5, bvy*0.5-0.5, 0.4+Math.random()*0.4);
+    }
+    // Slow + damage enemies inside blizzard
+    enemies.forEach((e,ei)=>{
+      if(Math.hypot(e.wx-bz.wx,e.wy-bz.wy)>bz.r)return;
+      // Heavy slow while inside
+      e.slowTimer=Math.max(e.slowTimer||0, 0.5); // keep refreshed while inside
+      // Small tick damage every ~0.3s
+      const key='bz'+i;
+      if(!bz.hitCooldowns[key+'e'+e.id]||bz.hitCooldowns[key+'e'+e.id]<=0){
+        bz.hitCooldowns[key+'e'+e.id]=0.4;
+        damageEnemy(ei,1);
+        // Freeze crystal spark on hit
+        spawnPart(e.wx+(Math.random()-.5)*20,e.wy+(Math.random()-.5)*20,'#aaeeff',2,0,-0.5,0.5);
+      } else {
+        bz.hitCooldowns[key+'e'+e.id]-=DT;
+      }
+    });
+  }
+
   // Enemies
   for(let ei=enemies.length-1;ei>=0;ei--){
     const e=enemies[ei];
@@ -1032,9 +1005,9 @@ function update(){
     if(e.flash>0)e.flash-=DT*7;if(e.burning>0)e.burning-=DT;if(e.armorFlash>0)e.armorFlash-=DT*5;
     if(e.type==='archer'){
       const pd=e.preferDist;
-      if(dist>pd+40){e.wx+=Math.cos(a)*e.speed;e.wy+=Math.sin(a)*e.speed;}
-      else if(dist<pd-40){e.wx-=Math.cos(a)*e.speed;e.wy-=Math.sin(a)*e.speed;}
-      else{const perp=a+Math.PI/2;e.wx+=Math.cos(perp)*e.speed*0.6;e.wy+=Math.sin(perp)*e.speed*0.6;}
+      if(dist>pd+40){e.wx+=Math.cos(a)*e.speed*eSpdMult;e.wy+=Math.sin(a)*e.speed*eSpdMult;}
+      else if(dist<pd-40){e.wx-=Math.cos(a)*e.speed*eSpdMult;e.wy-=Math.sin(a)*e.speed*eSpdMult;}
+      else{const perp=a+Math.PI/2;e.wx+=Math.cos(perp)*e.speed*0.6*eSpdMult;e.wy+=Math.sin(perp)*e.speed*0.6*eSpdMult;}
       e.shootTimer-=DT;
       if(e.shootTimer<=0){e.shootTimer=2.0+Math.random()*1.5;const sp=(Math.random()-.5)*0.18,aa=a+sp;arrows.push({wx:e.wx,wy:e.wy,dx:Math.cos(aa)*8,dy:Math.sin(aa)*8,angle:aa,r:5,age:0});spawnPart(e.wx,e.wy,'#cc8833',3,(Math.random()-.5)*3,(Math.random()-.5)*3,0.3);}
     } else if(e.type==='miniboss'){
@@ -1108,14 +1081,14 @@ function starPath(ctx,cx,cy,spikes,or,ir){let rot=-Math.PI/2,step=Math.PI/spikes
 
 function drawWizard(wx,wy,angle,iframesLeft){
   if(iframesLeft>0&&Math.floor(iframesLeft*8)%2===0)return;
-  const s=w2s(wx,wy),isFire=selectedSpell==='fire',isLightning=selectedSpell==='lightning',isArcane=selectedSpell==='arcane';
+  const s=w2s(wx,wy),isFire=selectedSpell==='fire',isLightning=selectedSpell==='lightning',isArcane=selectedSpell==='arcane',isIce=selectedSpell==='ice';
   ctx.save();ctx.translate(s.x,s.y);
   // Shadow
   ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(3,4,16,10,0,0,Math.PI*2);ctx.fill();
   const staffLen=30,staffX=Math.cos(angle)*staffLen,staffY=Math.sin(angle)*staffLen;
   // Staff handle
-  ctx.strokeStyle=isFire?'#4a1500':isLightning?'#1a1a3a':isArcane?'#2a0040':'#5c3010';ctx.lineWidth=3;ctx.lineCap='round';
-  ctx.shadowColor=isFire?'rgba(255,100,0,0.3)':isLightning?'rgba(100,150,255,0.4)':isArcane?'rgba(180,80,255,0.5)':'rgba(0,255,68,0.2)';ctx.shadowBlur=6;
+  ctx.strokeStyle=isFire?'#4a1500':isLightning?'#1a1a3a':isArcane?'#2a0040':isIce?'#0a2040':'#5c3010';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.shadowColor=isFire?'rgba(255,100,0,0.3)':isLightning?'rgba(100,150,255,0.4)':isArcane?'rgba(180,80,255,0.5)':isIce?'rgba(100,220,255,0.5)':'rgba(0,255,68,0.2)';ctx.shadowBlur=6;
   ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(staffX*0.55,staffY*0.55);ctx.stroke();
   // Staff orb
   if(isFire){
@@ -1136,6 +1109,13 @@ function drawWizard(wx,wy,angle,iframesLeft){
     // Orbiting micro sparks
     ctx.strokeStyle='#dd88ff';ctx.lineWidth=1.5;ctx.shadowBlur=10;
     for(let t=0;t<5;t++){const ta=t*(Math.PI*2/5)+Date.now()*0.004;ctx.beginPath();ctx.arc(staffX+Math.cos(ta)*14,staffY+Math.sin(ta)*14,2,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();}
+  } else if(isIce){
+    // Ice crystal orb — sharp, cold, glowing
+    const og=ctx.createRadialGradient(staffX,staffY,0,staffX,staffY,12);og.addColorStop(0,'#ffffff');og.addColorStop(0.2,'#ddfaff');og.addColorStop(0.55,'#44aadd');og.addColorStop(1,'transparent');
+    ctx.fillStyle=og;ctx.shadowColor='#88ddff';ctx.shadowBlur=28;ctx.beginPath();ctx.arc(staffX,staffY,11,0,Math.PI*2);ctx.fill();
+    // Snowflake spikes
+    ctx.strokeStyle='#aaeeff';ctx.lineWidth=1.2;ctx.shadowBlur=10;
+    for(let t=0;t<6;t++){const ta=t*(Math.PI*2/6)+Date.now()*0.0008;ctx.beginPath();ctx.moveTo(staffX+Math.cos(ta)*4,staffY+Math.sin(ta)*4);ctx.lineTo(staffX+Math.cos(ta)*17,staffY+Math.sin(ta)*17);ctx.stroke();}
   } else {
     const og=ctx.createRadialGradient(staffX,staffY,0,staffX,staffY,10);og.addColorStop(0,'#ccffcc');og.addColorStop(0.4,'#33cc55');og.addColorStop(1,'transparent');
     ctx.fillStyle=og;ctx.shadowColor='#00ff44';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(staffX,staffY,9,0,Math.PI*2);ctx.fill();
@@ -1149,35 +1129,83 @@ function drawWizard(wx,wy,angle,iframesLeft){
   if(isFire){ctx.fillStyle='#4a0e00';ctx.strokeStyle='#aa3300';ctx.shadowColor='#660000';}
   else if(isLightning){ctx.fillStyle='#0a0a2a';ctx.strokeStyle='#3344aa';ctx.shadowColor='#112288';}
   else if(isArcane){ctx.fillStyle='#1a0028';ctx.strokeStyle='#7722aa';ctx.shadowColor='#440066';}
+  else if(isIce){ctx.fillStyle='#020d1a';ctx.strokeStyle='#1a5a8a';ctx.shadowColor='#003355';}
   else{ctx.fillStyle='#0e4a0e';ctx.strokeStyle='#2a7a2a';ctx.shadowColor='#004400';}
   ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.beginPath();ctx.ellipse(0,0,20,20,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
   // Hat body
-  ctx.fillStyle=isFire?'#3a0800':isLightning?'#06061a':isArcane?'#0e0018':'#0a3a0a';ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#5511aa':'#1a6a1a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,12,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=isFire?'#3a0800':isLightning?'#06061a':isArcane?'#0e0018':isIce?'#020d1a':'#0a3a0a';ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#5511aa':isIce?'#1a6aaa':'#1a6a1a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,12,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   // Hat tip
-  ctx.fillStyle=isFire?'#250500':isLightning?'#030310':isArcane?'#080010':'#073507';ctx.beginPath();ctx.ellipse(0,0,4,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=isFire?'#250500':isLightning?'#030310':isArcane?'#080010':isIce?'#010810':'#073507';ctx.beginPath();ctx.ellipse(0,0,4,4,0,0,Math.PI*2);ctx.fill();
   // Hat band (lightning one glows blue)
-  ctx.strokeStyle=isFire?'#ff4400':isLightning?'#5566ff':isArcane?'#bb44ff':'#3aaa3a';ctx.lineWidth=2.5;
-  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=8;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=12;}else if(isArcane){ctx.shadowColor='#aa22ff';ctx.shadowBlur=14;}
+  ctx.strokeStyle=isFire?'#ff4400':isLightning?'#5566ff':isArcane?'#bb44ff':isIce?'#44ccff':'#3aaa3a';ctx.lineWidth=2.5;
+  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=8;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=12;}else if(isArcane){ctx.shadowColor='#aa22ff';ctx.shadowBlur=14;}else if(isIce){ctx.shadowColor='#22aaff';ctx.shadowBlur=16;}
   ctx.beginPath();ctx.ellipse(0,0,15,15,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
   // Star
-  ctx.fillStyle=isFire?'#ff8800':isLightning?'#aaccff':isArcane?'#ee88ff':'#ffe040';ctx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#cc44ff':'#ffbb00';ctx.shadowBlur=10;
+  ctx.fillStyle=isFire?'#ff8800':isLightning?'#aaccff':isArcane?'#ee88ff':isIce?'#aaeeff':'#ffe040';ctx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#cc44ff':isIce?'#44ccff':'#ffbb00';ctx.shadowBlur=10;
   starPath(ctx,0,0,5,5,2.5);ctx.fill();ctx.shadowBlur=0;
   // Robe ring
-  ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#6611aa':'#1d6b1d';ctx.lineWidth=3;
-  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=6;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=10;}else if(isArcane){ctx.shadowColor='#9922ff';ctx.shadowBlur=12;}
+  ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#6611aa':isIce?'#1166aa':'#1d6b1d';ctx.lineWidth=3;
+  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=6;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=10;}else if(isArcane){ctx.shadowColor='#9922ff';ctx.shadowBlur=12;}else if(isIce){ctx.shadowColor='#2288ff';ctx.shadowBlur=14;}
   ctx.beginPath();ctx.ellipse(0,0,22,22,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
   // Active spell glow rings
   if(infernos.length>0){const pct=1-infernos[0].age/infernos[0].duration;ctx.globalAlpha=0.4*pct;ctx.strokeStyle='#ff6600';ctx.lineWidth=4;ctx.shadowColor='#ff4400';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isLightning&&chainBolts.length>0){const pct=1-chainBolts[0].age/chainBolts[0].life;ctx.globalAlpha=0.5*pct;ctx.strokeStyle='#88aaff';ctx.lineWidth=5;ctx.shadowColor='#6677ff';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isArcane&&voidOrbs.length>0){ctx.globalAlpha=0.45;ctx.strokeStyle='#cc44ff';ctx.lineWidth=5;ctx.shadowColor='#9900cc';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
+  if(isIce&&blizzards.length>0){ctx.globalAlpha=0.5;ctx.strokeStyle='#88ddff';ctx.lineWidth=4;ctx.shadowColor='#44aaff';ctx.shadowBlur=20;ctx.setLineDash([6,4]);ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.shadowBlur=0;}
   ctx.restore();
+}
+
+
+// ── DRAW ICICLES ──────────────────────────────────────
+function drawIcicles(){
+  icicles.forEach(ic=>{
+    const s=w2s(ic.wx,ic.wy);
+    ctx.save();
+    ctx.translate(s.x,s.y);ctx.rotate(ic.angle);
+    // Glowing icicle shard
+    ctx.shadowColor='#88ddff';ctx.shadowBlur=12;
+    const g=ctx.createLinearGradient(-10,0,10,0);
+    g.addColorStop(0,'transparent');g.addColorStop(0.3,'#aaeeff');
+    g.addColorStop(0.6,'#ffffff');g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.beginPath();
+    ctx.moveTo(-10,0);ctx.lineTo(0,-3);ctx.lineTo(10,0);ctx.lineTo(0,3);ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
+// ── DRAW BLIZZARDS ────────────────────────────────────
+function drawBlizzards(){
+  blizzards.forEach(bz=>{
+    const s=w2s(bz.wx,bz.wy);
+    const pct=1-(bz.age/bz.duration);
+    ctx.save();
+    // Outer icy fog ring
+    const fog=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,bz.r);
+    fog.addColorStop(0,'rgba(136,221,255,0.18)');
+    fog.addColorStop(0.5,'rgba(68,170,255,0.12)');
+    fog.addColorStop(0.85,'rgba(136,221,255,0.06)');
+    fog.addColorStop(1,'transparent');
+    ctx.fillStyle=fog;ctx.globalAlpha=pct;
+    ctx.beginPath();ctx.arc(s.x,s.y,bz.r,0,Math.PI*2);ctx.fill();
+    // Rotating ice ring border
+    ctx.strokeStyle='rgba(136,221,255,0.4)';ctx.lineWidth=2;
+    ctx.shadowColor='#44bbff';ctx.shadowBlur=15;
+    ctx.setLineDash([12,8]);ctx.lineDashOffset=-bz.age*60;
+    ctx.beginPath();ctx.arc(s.x,s.y,bz.r,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+    // Inner glow
+    ctx.strokeStyle='rgba(200,240,255,0.3)';ctx.lineWidth=1.5;ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(s.x,s.y,bz.r*0.5,0,Math.PI*2);ctx.stroke();
+    ctx.globalAlpha=1;ctx.restore();
+  });
 }
 
 // ── DRAW GOBLINS ──────────────────────────────────────
 function drawGoblin(e){
-  if(e.type==='armored')return drawArmoredGoblin(e);
-  if(e.type==='archer')return drawArcherGoblin(e);
-  if(e.type==='miniboss')return drawMiniBoss(e);
+  if(e.type==='armored'){drawArmoredGoblin(e);drawFrostOverlay(e);return;}
+  if(e.type==='archer'){drawArcherGoblin(e);drawFrostOverlay(e);return;}
+  if(e.type==='miniboss'){drawMiniBoss(e);drawFrostOverlay(e);return;}
   const s=w2s(e.wx,e.wy),fl=Math.max(0,e.flash),burning=Math.max(0,e.burning||0);
   ctx.save();ctx.translate(s.x,s.y);
   ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(2,3,14,10,0,0,Math.PI*2);ctx.fill();
@@ -1197,6 +1225,22 @@ function drawGoblin(e){
   ctx.fillStyle='#1a5008';ctx.beginPath();ctx.ellipse(0,-7,2.5,2,0,0,Math.PI*2);ctx.fill();
   if(burning>0.3){ctx.shadowBlur=0;ctx.rotate(-(e.angle+Math.PI/2));const fp=Math.floor(Date.now()/80)%3;ctx.fillStyle=fp===0?'#ff6600':fp===1?'#ffaa00':'#ff2200';ctx.globalAlpha=burning/1.5*0.8;ctx.beginPath();ctx.arc(0,-14,4+Math.random()*2,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.rotate(e.angle+Math.PI/2);}
   if(e.hp<e.maxHp){ctx.rotate(-(e.angle+Math.PI/2));const bw=e.radius*2.5,bh=4,bx=-bw/2,by=-e.radius-14;ctx.fillStyle='#2a0000';ctx.fillRect(bx,by,bw,bh);ctx.fillStyle=burning>0?'#ff6600':'#44ff44';ctx.fillRect(bx,by,bw*(e.hp/e.maxHp),bh);ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);}
+  ctx.restore();
+}
+
+
+// ── FROST OVERLAY for slowed enemies ─────────────────
+function drawFrostOverlay(e){
+  if(!e.slowTimer||e.slowTimer<=0) return;
+  const ss=w2s(e.wx,e.wy);
+  ctx.save();
+  ctx.globalAlpha=Math.min(0.45, e.slowTimer*0.18);
+  const fg=ctx.createRadialGradient(ss.x,ss.y,0,ss.x,ss.y,e.radius+6);
+  fg.addColorStop(0,'rgba(200,240,255,0.6)');
+  fg.addColorStop(0.6,'rgba(100,200,255,0.3)');
+  fg.addColorStop(1,'transparent');
+  ctx.fillStyle=fg; ctx.shadowColor='#44bbff'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.arc(ss.x,ss.y,e.radius+6,0,Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
@@ -1250,6 +1294,8 @@ function drawArcherGoblin(e){
 }
 
 // ── DRAW MINI BOSS (Grumtusk) ─────────────────────────
+}
+
 function drawMiniBoss(e){
   const s=w2s(e.wx,e.wy);
   const fl=Math.max(0,e.flash);
@@ -1494,19 +1540,19 @@ function drawFireball(b){const s=w2s(b.wx,b.wy),flicker=0.8+Math.sin(b.age*40)*0
 
 // ── SPELL CD RING ─────────────────────────────────────
 function drawSpellCD(){
-  const isLightning=selectedSpell==='lightning',isFire=selectedSpell==='fire',isArcane=selectedSpell==='arcane';
+  const isLightning=selectedSpell==='lightning',isFire=selectedSpell==='fire',isArcane=selectedSpell==='arcane',isIce2=selectedSpell==='ice';
   const maxCD=SPELL_MAXCD[selectedSpell],pct=Math.max(0,spellCD/maxCD),cx=35,cy=35,r=28;
   cdCtx.clearRect(0,0,70,70);
-  cdCtx.strokeStyle=isFire?'rgba(255,80,0,0.15)':isLightning?'rgba(100,150,255,0.15)':isArcane?'rgba(180,80,255,0.18)':'rgba(0,255,68,0.12)';
+  cdCtx.strokeStyle=isFire?'rgba(255,80,0,0.15)':isLightning?'rgba(100,150,255,0.15)':isArcane?'rgba(180,80,255,0.18)':isIce2?'rgba(100,220,255,0.18)':'rgba(0,255,68,0.12)';
   cdCtx.lineWidth=4;cdCtx.beginPath();cdCtx.arc(cx,cy,r,0,Math.PI*2);cdCtx.stroke();
   if(pct<1){
-    cdCtx.strokeStyle=isFire?(pct<0.1?'#ff6600':'#cc3300'):isLightning?(pct<0.1?'#88aaff':'#4466cc'):isArcane?(pct<0.1?'#dd88ff':'#9933cc'):(pct<0.1?'#00ff44':'#5acc2a');
-    cdCtx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#aa44ff':'#00ff44';cdCtx.shadowBlur=10;cdCtx.lineWidth=4;
+    cdCtx.strokeStyle=isFire?(pct<0.1?'#ff6600':'#cc3300'):isLightning?(pct<0.1?'#88aaff':'#4466cc'):isArcane?(pct<0.1?'#dd88ff':'#9933cc'):isIce2?(pct<0.1?'#88ddff':'#3399cc'):(pct<0.1?'#00ff44':'#5acc2a');
+    cdCtx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#aa44ff':isIce2?'#44bbff':'#00ff44';cdCtx.shadowBlur=10;cdCtx.lineWidth=4;
     cdCtx.beginPath();cdCtx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+(1-pct)*Math.PI*2);cdCtx.stroke();
   }
   cdCtx.shadowBlur=0;cdCtx.font='1.5rem sans-serif';cdCtx.textAlign='center';cdCtx.textBaseline='middle';
   cdCtx.globalAlpha=pct<0.05?1:0.4+0.6*(1-pct);
-  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':'🌿',cx,cy);cdCtx.globalAlpha=1;
+  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':'🌿',cx,cy);cdCtx.globalAlpha=1;
 }
 
 
@@ -1567,8 +1613,9 @@ function drawVoidOrbs(){
 function mpLoop() {
   if (!mpInGame) return;
 
-  mpSendInput();       // client prediction + sends to server 20/s
-  mpSimulateLocally(); // move enemies/projectiles at 60fps locally
+  mpSendInput(); // send keys 20/s
+
+  updateCamera(); // camera follows MY wizard
 
   drawFloor();
 
@@ -1676,6 +1723,8 @@ function loop(){
   drawAllLightning();
   drawVoidOrbs();
   arcaneMissiles.forEach(drawArcaneMissile);
+  drawBlizzards();
+  drawIcicles();
   bullets.forEach(drawBullet);
   fireballs.forEach(drawFireball);
   vines.forEach(drawVineSpell);
