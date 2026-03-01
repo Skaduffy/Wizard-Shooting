@@ -4,7 +4,7 @@
 //  which is far more efficient than sending full JSON over Socket.io
 // ═══════════════════════════════════════════════════════════════
 
-const colyseus  = require('@colyseus/core');
+const colyseus  = require('colyseus');
 const schema    = require('@colyseus/schema');
 const http      = require('http');
 const express   = require('express');
