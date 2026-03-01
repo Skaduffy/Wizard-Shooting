@@ -418,24 +418,71 @@ function attachSocketHandlers() {
   });
 
   socket.on('state', (state) => {
-    // Merge server state into local
-    mpPlayers   = state.players;
-    mpEnemies   = state.enemies;
-    mpArrows    = state.arrows || [];
-    mpWave      = state.wave;
-    mpScore     = state.score;
-    mpGameTime  = state.gameTime;
-    // Sync local player from server
-    const me = mpPlayers[mpMyId];
-    if (me) {
-      player.wx    = me.wx;
-      player.wy    = me.wy;
-      player.angle = me.angle;
-      player.hp    = me.hp;
-      iframes      = me.iframes;
-      playerHp     = me.hp;
-      wave         = mpWave;
+    // Guard: ignore malformed packets (e.g. during reconnect)
+    if (!state || !state.p || !state.e) return;
+    // ── Unpack compact server format ──────────────────────────────
+    // Server sends short keys to save bandwidth: p/e/a/w/s/t/m
+
+    // ── Merge enemies ─────────────────────────────────────────────
+    const serverEnemyIds = new Set(state.e.map(e=>e.id));
+    mpEnemies = mpEnemies.filter(e=>serverEnemyIds.has(e.id));
+    state.e.forEach(se => {
+      const local = mpEnemies.find(e=>e.id===se.id);
+      if (local) {
+        const drift = Math.hypot(local.wx-se.wx, local.wy-se.wy);
+        if (drift > 80) { local.wx=se.wx; local.wy=se.wy; }
+        else { local.wx+=(se.wx-local.wx)*0.25; local.wy+=(se.wy-local.wy)*0.25; }
+        local.hp=se.hp; local.maxHp=se.maxHp; local.angle=se.angle;
+        local.burning=se.burning; local.smashing=se.smashing;
+        local.smashTimer=se.smashTimer; local.armorFlash=se.armorFlash||0;
+      } else {
+        mpEnemies.push({...se, wobble:Math.random()*Math.PI*2});
+      }
+    });
+
+    // ── Merge arrows (compact [wx,wy,dx,dy,age]) ──────────────────
+    if (Math.abs(mpArrows.length - state.a.length) > 3) {
+      mpArrows = state.a.map(a=>({wx:a[0],wy:a[1],dx:a[2],dy:a[3],age:a[4],r:5}));
     }
+
+    // ── Merge other players ───────────────────────────────────────
+    Object.entries(state.p).forEach(([id, sp]) => {
+      if (id === mpMyId) return;
+      if (!mpPlayers[id]) mpPlayers[id] = { id, spell:'earth', name:'?' };
+      const lp = mpPlayers[id];
+      lp.wx=sp.wx; lp.wy=sp.wy; lp.angle=sp.angle;
+      lp.hp=sp.hp; lp.alive=sp.alive; lp.score=sp.score; lp.iframes=sp.iframes;
+      // Unpack compact projectile arrays
+      lp.bullets        = (sp.bl||[]).map(b=>({wx:b[0],wy:b[1],dx:0,dy:0,r:5}));
+      lp.fireballs      = (sp.fb||[]).map(b=>({wx:b[0],wy:b[1],age:b[2],dx:0,dy:0,r:7}));
+      lp.arcaneMissiles = (sp.am||[]).map(m=>({wx:m[0],wy:m[1],angle:m[2],dx:Math.cos(m[2])*13,dy:Math.sin(m[2])*13,r:6}));
+      lp.voidOrbs       = (sp.vo||[]).map(o=>({wx:o[0],wy:o[1],age:o[2],dx:0,dy:0,r:26}));
+      lp.lightningZaps  = (sp.lz||[]).map(z=>({x1:z[0],y1:z[1],x2:z[2],y2:z[3],age:z[4],life:z[5]}));
+      lp.chainBolts     = (sp.cb||[]).map(c=>({segments:c.segs.map(s=>({x1:s[0],y1:s[1],x2:s[2],y2:s[3]})),age:c.age,life:c.life}));
+      lp.infernos       = (sp.in||[]).map(i=>({wx:i[0],wy:i[1],angle:i[2],age:i[3],duration:i[4]}));
+      // Vines: server sends [wx,wy,angle,age] — keep local trail if same count
+      const svines = (sp.vn||[]);
+      if (!lp.vines || lp.vines.length !== svines.length) {
+        lp.vines = svines.map(v=>({wx:v[0],wy:v[1],angle:v[2],age:v[3],
+          dx:Math.cos(v[2])*7.5, dy:Math.sin(v[2])*7.5, trail:[], segT:0}));
+      } else {
+        // Just correct position, keep the rich local trail
+        svines.forEach((sv,i)=>{ lp.vines[i].wx=sv[0]; lp.vines[i].wy=sv[1]; });
+      }
+    });
+
+    // ── Sync MY player ────────────────────────────────────────────
+    const me = state.p[mpMyId];
+    if (me) {
+      const drift = Math.hypot(player.wx-me.wx, player.wy-me.wy);
+      if (drift > 150) { player.wx=me.wx; player.wy=me.wy; }
+      else if (drift > 20) { player.wx+=(me.wx-player.wx)*0.1; player.wy+=(me.wy-player.wy)*0.1; }
+      player.hp=me.hp; iframes=me.iframes; playerHp=me.hp;
+      if (!mpPlayers[mpMyId]) mpPlayers[mpMyId]={};
+      Object.assign(mpPlayers[mpMyId], {hp:me.hp,alive:me.alive,score:me.score,iframes:me.iframes});
+    }
+
+    mpWave=state.w; mpScore=state.s; mpGameTime=state.t; wave=mpWave;
     mpUpdateScoreboard();
     updateHUD();
   });
@@ -513,18 +560,94 @@ function mpUpdateScoreboard() {
   });
 }
 
-// ── MULTIPLAYER INPUT SENDING ────────────────────────────────
+// ── MULTIPLAYER INPUT + CLIENT PREDICTION ────────────────────
 let lastInputSent = 0;
+
 function mpSendInput() {
   if (!socket || !mpInGame) return;
+
+  // Move player locally every frame — no waiting for server
+  let mx=0, my=0;
+  if(keys['w']||keys['ArrowUp'])    my=-1;
+  if(keys['s']||keys['ArrowDown'])  my= 1;
+  if(keys['a']||keys['ArrowLeft'])  mx=-1;
+  if(keys['d']||keys['ArrowRight']) mx= 1;
+  if(mx&&my){mx*=0.707;my*=0.707;}
+  player.wx+=mx*4; player.wy+=my*4;
+  player.angle=Math.atan2(mouseY+cam.y-player.wy, mouseX+cam.x-player.wx);
+  updateCamera();
+
+  // Send to server at 20/s only
   const now = performance.now();
-  if (now - lastInputSent < 50) return; // throttle to 20/s
+  if (now - lastInputSent < 50) return;
   lastInputSent = now;
   socket.emit('input', {
-    keys: { w:!!keys['w']||!!keys['ArrowUp'], s:!!keys['s']||!!keys['ArrowDown'],
-            a:!!keys['a']||!!keys['ArrowLeft'], d:!!keys['d']||!!keys['ArrowRight'] },
-    mouseWx: mouseX + cam.x,
-    mouseWy: mouseY + cam.y,
+    keys:{ w:!!keys['w']||!!keys['ArrowUp'], s:!!keys['s']||!!keys['ArrowDown'],
+           a:!!keys['a']||!!keys['ArrowLeft'], d:!!keys['d']||!!keys['ArrowRight'] },
+    mouseWx: mouseX+cam.x,
+    mouseWy: mouseY+cam.y,
+  });
+}
+
+// ── LOCAL SIMULATION: move mp entities at 60fps ────────────────
+// This makes everything look smooth — server corrections snap us back
+// if we drift too far, but visually it runs at full framerate.
+
+function mpSimulateLocally() {
+  // Simulate enemy movement locally (mirrors server logic, cosmetic only)
+  mpEnemies.forEach(e => {
+    e.wobble = (e.wobble||0) + DT*3.5;
+    if(e.burning>0) e.burning-=DT;
+    if(e.armorFlash>0) e.armorFlash-=DT*5;
+    if(e.smashing>0) e.smashing-=DT;
+    // Find nearest player to follow
+    let nearPx=player.wx, nearPy=player.wy;
+    let nearDist=Math.hypot(player.wx-e.wx,player.wy-e.wy);
+    Object.values(mpPlayers).forEach(p=>{
+      if(!p.alive)return;
+      const d=Math.hypot(p.wx-e.wx,p.wy-e.wy);
+      if(d<nearDist){nearDist=d;nearPx=p.wx;nearPy=p.wy;}
+    });
+    const ea=Math.atan2(nearPy-e.wy,nearPx-e.wx);
+    e.angle=ea;
+    if(e.type==='archer'){
+      const pd=e.preferDist||220;
+      if(nearDist>pd+40){e.wx+=Math.cos(ea)*e.speed;e.wy+=Math.sin(ea)*e.speed;}
+      else if(nearDist<pd-40){e.wx-=Math.cos(ea)*e.speed;e.wy-=Math.sin(ea)*e.speed;}
+      else{const perp=ea+Math.PI/2;e.wx+=Math.cos(perp)*e.speed*0.6;e.wy+=Math.sin(perp)*e.speed*0.6;}
+    } else {
+      e.wx+=Math.cos(ea)*e.speed; e.wy+=Math.sin(ea)*e.speed;
+    }
+  });
+
+  // Simulate arrows locally
+  mpArrows.forEach(ar=>{ ar.wx+=ar.dx; ar.wy+=ar.dy; ar.age=(ar.age||0)+DT; });
+  mpArrows = mpArrows.filter(ar=>(ar.age||0)<3);
+
+  // Simulate other players' projectiles locally at 60fps
+  Object.values(mpPlayers).forEach(p=>{
+    if(p.id===mpMyId) return; // my own handled server-side
+    (p.bullets||[]).forEach(b=>{b.wx+=b.dx||0;b.wy+=b.dy||0;});
+    (p.fireballs||[]).forEach(b=>{b.wx+=b.dx||0;b.wy+=b.dy||0;b.age=(b.age||0)+DT;});
+    (p.arcaneMissiles||[]).forEach(m=>{m.wx+=m.dx||0;m.wy+=m.dy||0;});
+    (p.voidOrbs||[]).forEach(o=>{o.wx+=o.dx||0;o.wy+=o.dy||0;o.age=(o.age||0)+DT;});
+    // Vines: advance position and generate trail client-side (same math as SP)
+    (p.vines||[]).forEach(v=>{
+      v.wx+=v.dx||0; v.wy+=v.dy||0; v.age=(v.age||0)+DT; v.segT=(v.segT||0)+DT;
+      if(v.segT>0.025){
+        v.segT=0;
+        if(!v.trail)v.trail=[];
+        const perp=(v.angle||0)+Math.PI/2;
+        const w=Math.sin(v.age*20)*11;
+        v.trail.push({wx:v.wx+Math.cos(perp)*w, wy:v.wy+Math.sin(perp)*w});
+        if(v.trail.length>120) v.trail.shift(); // cap trail length
+      }
+    });
+    // Lightning bolts age
+    if(p.lightningZaps) p.lightningZaps.forEach(b=>b.age=(b.age||0)+DT);
+    if(p.chainBolts)    p.chainBolts.forEach(b=>b.age=(b.age||0)+DT);
+    if(p.lightningZaps) p.lightningZaps=p.lightningZaps.filter(b=>b.age<b.life);
+    if(p.chainBolts)    p.chainBolts=p.chainBolts.filter(b=>b.age<b.life);
   });
 }
 
@@ -1444,9 +1567,8 @@ function drawVoidOrbs(){
 function mpLoop() {
   if (!mpInGame) return;
 
-  mpSendInput(); // send keys 20/s
-
-  updateCamera(); // camera follows MY wizard
+  mpSendInput();       // client prediction + sends to server 20/s
+  mpSimulateLocally(); // move enemies/projectiles at 60fps locally
 
   drawFloor();
 
