@@ -650,11 +650,25 @@ class WizardRoom extends Room {
 const app        = express();
 const httpServer = http.createServer(app);
 
-// Serve from both public/ and root — works regardless of where HTML is placed
+const fs = require('fs');
+
+// Serve from both public/ and root
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname)));
+
+// Serve Colyseus client JS directly from installed npm package
+// This avoids CDN issues and guarantees version compatibility with the server
+app.get('/colyseus.js', (req, res) => {
+  const candidates = [
+    path.join(__dirname, 'node_modules/@colyseus/sdk/dist/colyseus.js'),
+    path.join(__dirname, 'node_modules/colyseus.js/dist/colyseus.js'),
+  ];
+  const found = candidates.find(p => fs.existsSync(p));
+  if (found) res.sendFile(found);
+  else res.status(404).send('colyseus.js not found in node_modules');
+});
+
 app.get('/', (req, res) => {
-  const fs = require('fs');
   const inPublic = path.join(__dirname, 'public', 'Wizard Shooter.html');
   const inRoot   = path.join(__dirname, 'Wizard Shooter.html');
   if      (fs.existsSync(inPublic)) res.sendFile(inPublic);
