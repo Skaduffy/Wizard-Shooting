@@ -4,7 +4,7 @@
 //  which is far more efficient than sending full JSON over Socket.io
 // ═══════════════════════════════════════════════════════════════
 
-const colyseus  = require('colyseus');
+const colyseus  = require('@colyseus/core');
 const schema    = require('@colyseus/schema');
 const http      = require('http');
 const express   = require('express');
@@ -655,18 +655,6 @@ const fs = require('fs');
 // Serve from both public/ and root
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname)));
-
-// Serve Colyseus client JS directly from installed npm package
-// This avoids CDN issues and guarantees version compatibility with the server
-app.get('/colyseus.js', (req, res) => {
-  const candidates = [
-    path.join(__dirname, 'node_modules/@colyseus/sdk/dist/colyseus.js'),
-    path.join(__dirname, 'node_modules/colyseus.js/dist/colyseus.js'),
-  ];
-  const found = candidates.find(p => fs.existsSync(p));
-  if (found) res.sendFile(found);
-  else res.status(404).send('colyseus.js not found in node_modules');
-});
 
 app.get('/', (req, res) => {
   const inPublic = path.join(__dirname, 'public', 'Wizard Shooter.html');
