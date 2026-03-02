@@ -30,9 +30,11 @@
   .spell-card.fire-card.selected,.spell-card.fire-card:hover { border-color:#ff7700; box-shadow:0 0 35px rgba(255,100,0,0.4); }
   .spell-card.lightning-card.selected,.spell-card.lightning-card:hover { border-color:#88aaff; box-shadow:0 0 35px rgba(100,150,255,0.5); }
   .spell-card.arcane-card { border-color:#5a1a7a; background:linear-gradient(135deg,#160a20,#0e0615); }
+  .spell-card.necro-card { border-color:#1a5a1a; background:linear-gradient(135deg,#051505,#071207); }
   .spell-card.ice-card { border-color:#1a4a7a; background:linear-gradient(135deg,#050d1f,#08111a); }
   .spell-card.ice-card.selected,.spell-card.ice-card:hover { border-color:#88ddff; box-shadow:0 0 35px rgba(100,220,255,0.55); }
   .spell-card.arcane-card.selected,.spell-card.arcane-card:hover { border-color:#dd88ff; box-shadow:0 0 35px rgba(180,80,255,0.55); }
+  .spell-card.necro-card.selected,.spell-card.necro-card:hover { border-color:#aaffaa; box-shadow:0 0 35px rgba(80,255,80,0.45); }
   .spell-icon { font-size:3rem; margin-bottom:0.5em; animation:bob 2.2s ease-in-out infinite; }
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
   .spell-name { font-family:'Cinzel Decorative',cursive; font-size:0.9rem; color:#7fff7f; margin-bottom:0.5em; }
@@ -46,9 +48,13 @@
   .spell-tag.lightning { background:rgba(100,150,255,0.15); color:#88aaff; border-color:rgba(100,150,255,0.3); }
   .spell-name.arcane { color:#dd88ff; }
   .spell-name.ice    { color:#88ddff; }
+  .spell-name.necro  { color:#aaffaa; }
   .spell-desc.arcane { color:#6a3a8a; }
   .spell-desc.ice    { color:#2a5a7a; }
+  .spell-desc.necro  { color:#3a6a3a; }
   .spell-tag.arcane { background:rgba(180,80,255,0.15); color:#dd88ff; border-color:rgba(180,80,255,0.3); }
+  .spell-tag.ice    { background:rgba(100,220,255,0.12); color:#88ddff; border-color:rgba(100,220,255,0.3); }
+  .spell-tag.necro  { background:rgba(50,200,50,0.1); color:#aaffaa; border-color:rgba(80,220,80,0.3); }
   .spell-tag.ice    { background:rgba(100,220,255,0.12); color:#88ddff; border-color:rgba(100,220,255,0.3); }
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
@@ -64,6 +70,7 @@
   .hud-score.lightning-hud { color:#aaccff; text-shadow:0 0 10px #4488ff; }
   .hud-score.arcane-hud { color:#dd88ff; text-shadow:0 0 10px #aa44ff; }
   .hud-score.ice-hud    { color:#88ddff; text-shadow:0 0 10px #44bbff; }
+  .hud-score.necro-hud  { color:#aaffaa; text-shadow:0 0 10px #44ff44; }
   .hud-wave { font-family:'Cinzel',serif; color:#4a7a4a; font-size:0.85rem; letter-spacing:0.2em; }
   .hud-hp { display:flex; gap:4px; align-items:center; }
   #hint { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); color:#2a4a2a; font-size:0.68rem; letter-spacing:0.18em; pointer-events:none; z-index:15; white-space:nowrap; }
@@ -172,6 +179,12 @@
       <div class="spell-icon">❄️</div>
       <div class="spell-name ice">Ice Wizard</div>
       <div class="spell-desc ice">Shoots piercing icicles that slow enemies. Right-click: summon a Blizzard — a frozen zone that slows everything inside.</div>
+    </div>
+    <div class="spell-card necro-card" id="card-necro" onclick="selectSpell('necro')">
+      <div class="spell-tag necro">NECRO</div>
+      <div class="spell-icon">💀</div>
+      <div class="spell-name necro">Necromancer</div>
+      <div class="spell-desc necro">Hurls fast bone shards for low damage. Right-click: raise 4 skeleton warriors to fight for you.</div>
     </div>
   </div>
   <button class="enter-btn" onclick="startGame()">Enter the Arena →</button>
@@ -589,7 +602,7 @@ document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)ca
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
 let spawnTimer=0,waveTimer=0,shootCD=0,spellCD=0,iframes=0,gameTime=0;
 let armoredUnlocked=false,archerUnlocked=false,miniBossSpawned=false;
-const SPELL_MAXCD={earth:0.85,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18};
+const SPELL_MAXCD={earth:0.85,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0};
 const SPELL_DURATION={fire:2.0,ice:5.0};
 const player={wx:0,wy:0,speed:4,radius:18,angle:0};
 function mouseWorld(){return{wx:mouseX+cam.x,wy:mouseY+cam.y};}
@@ -598,6 +611,7 @@ let bullets=[],vines=[],fireballs=[],infernos=[],arrows=[];
 let lightningBolts=[],chainBolts=[];
 let arcaneMissiles=[],voidOrbs=[];
 let icicles=[],blizzards=[];  // ice wizard projectiles
+let boneShards=[];            // necromancer projectiles
 let enemies=[],particles=[],floatTexts=[];
 
 // ── HUD ───────────────────────────────────────────────
@@ -605,9 +619,9 @@ function updateHUD(){
   document.getElementById('scoreDisplay').textContent=score;
   document.getElementById('waveDisplay').textContent=wave;
   const sl=document.getElementById('scoreLabel');
-  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':'hud-score';
+  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':'hud-score';
   const hp=document.getElementById('hpDisplay');hp.innerHTML='';
-  for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':'💚'):'🖤';hp.appendChild(s);}
+  for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':selectedSpell==='necro'?'🖤':'💚'):'🖤';hp.appendChild(s);}
 }
 
 // ── START/END ─────────────────────────────────────────
@@ -616,9 +630,9 @@ function startGame(){
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('hint').classList.remove('hidden');
   document.getElementById('spellHUD').classList.remove('hidden');
-  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':'WASD · Left-click shoot · Right-click vine spell';
+  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':'WASD · Left-click shoot · Right-click vine spell';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
-  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];enemies=[];particles=[];floatTexts=[];
+  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];boneShards=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
 }
@@ -645,6 +659,8 @@ function tryShoot(){
     shootArcaneMissiles(a);shootCD=2.0;
   } else if(selectedSpell==='ice'){
     shootIcicle(a);shootCD=SPELL_MAXCD.ice;
+  } else if(selectedSpell==='necro'){
+    shootBoneShard(a);shootCD=0.08;
   } else {
     fireballs.push({wx:player.wx+Math.cos(a)*26,wy:player.wy+Math.sin(a)*26,dx:Math.cos(a)*10,dy:Math.sin(a)*10,r:7,age:0});
     shootCD=0.18;
@@ -678,6 +694,7 @@ function castSpell(){
   else if(selectedSpell==='fire')castInferno();
   else if(selectedSpell==='arcane') castVoidOrb();
   else if(selectedSpell==='ice') castBlizzard();
+  else if(selectedSpell==='necro') castRaiseSkeletons();
   else castChainLightning();
 }
 
@@ -729,6 +746,29 @@ function castBlizzard(){
   spellCD=6.5;
   // Big icy burst at cast location
   for(let p=0;p<30;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*80;spawnPart(mw.wx,mw.wy,p%3===0?'#ffffff':p%3===1?'#88ddff':'#44aaff',3+Math.random()*3,Math.cos(pa)*(2+Math.random()*5),Math.sin(pa)*(2+Math.random()*5),0.8+Math.random()*0.5);}
+}
+
+// ── BONE SHARD (left-click, fast low damage) ─────────
+function shootBoneShard(angle){
+  const sp=(Math.random()-.5)*0.1;
+  const a=angle+sp;
+  boneShards.push({wx:player.wx+Math.cos(a)*22,wy:player.wy+Math.sin(a)*22,dx:Math.cos(a)*17,dy:Math.sin(a)*17,angle:a,r:4,age:0});
+  for(let p=0;p<4;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#ccddcc':'#aabbaa',1.5+Math.random()*1.5,Math.cos(pa)*3,Math.sin(pa)*3,0.2);}
+}
+
+// ── RAISE SKELETONS (right-click, 4 skeleton allies) ─
+function castRaiseSkeletons(){
+  spellCD=SPELL_MAXCD.necro;
+  for(let i=enemies.length-1;i>=0;i--){if(enemies[i].type==='skeleton_ally')enemies.splice(i,1);}
+  const goblinHp=3+Math.floor(wave*0.6);
+  const skelHp=Math.ceil(goblinHp*1.35);
+  for(let k=0;k<4;k++){
+    const a=k*(Math.PI/2)+Math.random()*0.3;
+    const dist=40+Math.random()*30;
+    enemies.push({type:'skeleton_ally',wx:player.wx+Math.cos(a)*dist,wy:player.wy+Math.sin(a)*dist,radius:15,hp:skelHp,maxHp:skelHp,speed:1.3+Math.random()*0.4,flash:0,angle:0,wobble:Math.random()*Math.PI*2,burning:0,attackCD:0,id:Math.random()});
+  }
+  for(let p=0;p<28;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*50;spawnPart(player.wx+Math.cos(pa)*pr,player.wy+Math.sin(pa)*pr,p%3===0?'#aaffaa':p%3===1?'#55aa55':'#225522',2+Math.random()*3,Math.cos(pa)*3,Math.sin(pa)*3-1,0.7+Math.random()*0.5);}
+  floatTexts.push({wx:player.wx,wy:player.wy-50,text:'💀 ARISE!',color:'#aaffaa',life:1.8,big:true});
 }
 
 function castVine(){
@@ -825,13 +865,18 @@ function damageEnemy(ei,dmg){
   if(e.type==='miniboss'){dmg=Math.max(1,Math.ceil(dmg*0.8));} // slight damage reduction
   e.hp-=dmg;e.flash=1;
   if(e.hp<=0){
-    const c=selectedSpell==='fire'?'#ff6600':selectedSpell==='lightning'?'#aaccff':selectedSpell==='arcane'?'#cc66ff':'#44ff44';
+    if(e.type==='skeleton_ally'){
+      for(let p=0;p<8;p++)spawnPart(e.wx,e.wy,p%2===0?'#aaddaa':'#cceecc',2+Math.random()*2,(Math.random()-.5)*6,(Math.random()-.5)*6-1,0.6);
+      floatTexts.push({wx:e.wx,wy:e.wy-20,text:'💀',color:'#aaffaa',life:0.8,big:false});
+      enemies.splice(ei,1);return;
+    }
+    const c=selectedSpell==='fire'?'#ff6600':selectedSpell==='lightning'?'#aaccff':selectedSpell==='arcane'?'#cc66ff':selectedSpell==='necro'?'#aaffaa':'#44ff44';
     const pts=e.type==='miniboss'?500:e.type==='armored'?25:e.type==='archer'?15:10;
     const burstN=e.type==='miniboss'?30:10;
     for(let p=0;p<burstN;p++)spawnPart(e.wx,e.wy,c,2+Math.random()*4,(Math.random()-.5)*9,(Math.random()-.5)*9-1);
     if(e.type==='armored')for(let p=0;p<8;p++)spawnPart(e.wx,e.wy,'#aaaacc',2+Math.random()*2,(Math.random()-.5)*7,(Math.random()-.5)*7-1,0.9);
     if(e.type==='miniboss'){for(let p=0;p<20;p++)spawnPart(e.wx,e.wy,'#885500',3+Math.random()*3,(Math.random()-.5)*10,(Math.random()-.5)*10-2,1.2);}
-    floatTexts.push({wx:e.wx,wy:e.wy-20,text:e.type==='miniboss'?'💀 +'+pts*wave:'+'+(pts*wave),color:e.type==='miniboss'?'#ff4444':selectedSpell==='fire'?'#ffaa44':selectedSpell==='lightning'?'#aaddff':selectedSpell==='arcane'?'#ddaaff':selectedSpell==='ice'?'#88ddff':'#ffdd44',life:e.type==='miniboss'?2.5:0.9,big:e.type==='miniboss'});
+    floatTexts.push({wx:e.wx,wy:e.wy-20,text:e.type==='miniboss'?'💀 +'+pts*wave:'+'+(pts*wave),color:e.type==='miniboss'?'#ff4444':selectedSpell==='fire'?'#ffaa44':selectedSpell==='lightning'?'#aaddff':selectedSpell==='arcane'?'#ddaaff':selectedSpell==='ice'?'#88ddff':selectedSpell==='necro'?'#aaffaa':'#ffdd44',life:e.type==='miniboss'?2.5:0.9,big:e.type==='miniboss'});
     enemies.splice(ei,1);score+=pts*wave;updateHUD();
   }
 }
@@ -996,6 +1041,23 @@ function update(){
     });
   }
 
+  // Bone Shards
+  for(let i=boneShards.length-1;i>=0;i--){
+    const bs=boneShards[i];
+    bs.wx+=bs.dx;bs.wy+=bs.dy;bs.age+=DT;
+    if(Math.random()<0.35)spawnPart(bs.wx,bs.wy,Math.random()>0.5?'#bbccbb':'#889988',1+Math.random()*1.5,(Math.random()-.5)*1.5,(Math.random()-.5)*1.5,0.15);
+    if(bs.age>1.5||Math.hypot(bs.wx-player.wx,bs.wy-player.wy)>1400){boneShards.splice(i,1);continue;}
+    for(let ei=enemies.length-1;ei>=0;ei--){
+      const e=enemies[ei];
+      if(e.type==='skeleton_ally')continue;
+      if(Math.hypot(bs.wx-e.wx,bs.wy-e.wy)<e.radius+bs.r){
+        boneShards.splice(i,1);
+        for(let p=0;p<5;p++){const pa=Math.random()*Math.PI*2;spawnPart(bs.wx,bs.wy,'#aabbaa',1.5+Math.random()*2,Math.cos(pa)*3,Math.sin(pa)*3,0.25);}
+        damageEnemy(ei,1);break;
+      }
+    }
+  }
+
   // Enemies
   for(let ei=enemies.length-1;ei>=0;ei--){
     const e=enemies[ei];
@@ -1003,7 +1065,28 @@ function update(){
     const a=Math.atan2(player.wy-e.wy,player.wx-e.wx);
     e.angle=a;e.wobble+=DT*3.5;
     if(e.flash>0)e.flash-=DT*7;if(e.burning>0)e.burning-=DT;if(e.armorFlash>0)e.armorFlash-=DT*5;
-    if(e.type==='archer'){
+    if(e.type==='skeleton_ally'){
+      let nearestEi=-1,nearestDist=Infinity;
+      for(let oi=0;oi<enemies.length;oi++){
+        if(oi===ei)continue;
+        const oe=enemies[oi];if(oe.type==='skeleton_ally')continue;
+        const od=Math.hypot(oe.wx-e.wx,oe.wy-e.wy);
+        if(od<nearestDist){nearestDist=od;nearestEi=oi;}
+      }
+      if(nearestEi>=0){
+        const oe=enemies[nearestEi];
+        const ta=Math.atan2(oe.wy-e.wy,oe.wx-e.wx);
+        e.angle=ta;e.wobble+=DT*3.5;
+        if(nearestDist>e.radius+oe.radius){e.wx+=Math.cos(ta)*e.speed;e.wy+=Math.sin(ta)*e.speed;}
+        else{e.attackCD=(e.attackCD||0)-DT;if(e.attackCD<=0){e.attackCD=0.7;damageEnemy(nearestEi,1);for(let p=0;p<4;p++)spawnPart(oe.wx,oe.wy,'#aaffaa',2,(Math.random()-.5)*5,(Math.random()-.5)*5,0.3);}}
+      } else {
+        const ta=Math.atan2(player.wy-e.wy,player.wx-e.wx);
+        e.angle=ta;e.wobble+=DT*3.5;
+        if(dist>90){e.wx+=Math.cos(ta)*e.speed;e.wy+=Math.sin(ta)*e.speed;}
+        else if(dist<50){e.wx-=Math.cos(ta)*e.speed*0.5;e.wy-=Math.sin(ta)*e.speed*0.5;}
+      }
+      continue;
+    } else if(e.type==='archer'){
       const pd=e.preferDist;
       if(dist>pd+40){e.wx+=Math.cos(a)*e.speed*eSpdMult;e.wy+=Math.sin(a)*e.speed*eSpdMult;}
       else if(dist<pd-40){e.wx-=Math.cos(a)*e.speed*eSpdMult;e.wy-=Math.sin(a)*e.speed*eSpdMult;}
@@ -1081,14 +1164,14 @@ function starPath(ctx,cx,cy,spikes,or,ir){let rot=-Math.PI/2,step=Math.PI/spikes
 
 function drawWizard(wx,wy,angle,iframesLeft){
   if(iframesLeft>0&&Math.floor(iframesLeft*8)%2===0)return;
-  const s=w2s(wx,wy),isFire=selectedSpell==='fire',isLightning=selectedSpell==='lightning',isArcane=selectedSpell==='arcane',isIce=selectedSpell==='ice';
+  const s=w2s(wx,wy),isFire=selectedSpell==='fire',isLightning=selectedSpell==='lightning',isArcane=selectedSpell==='arcane',isIce=selectedSpell==='ice',isNecro=selectedSpell==='necro';
   ctx.save();ctx.translate(s.x,s.y);
   // Shadow
   ctx.fillStyle='rgba(0,0,0,0.35)';ctx.beginPath();ctx.ellipse(3,4,16,10,0,0,Math.PI*2);ctx.fill();
   const staffLen=30,staffX=Math.cos(angle)*staffLen,staffY=Math.sin(angle)*staffLen;
   // Staff handle
-  ctx.strokeStyle=isFire?'#4a1500':isLightning?'#1a1a3a':isArcane?'#2a0040':isIce?'#0a2040':'#5c3010';ctx.lineWidth=3;ctx.lineCap='round';
-  ctx.shadowColor=isFire?'rgba(255,100,0,0.3)':isLightning?'rgba(100,150,255,0.4)':isArcane?'rgba(180,80,255,0.5)':isIce?'rgba(100,220,255,0.5)':'rgba(0,255,68,0.2)';ctx.shadowBlur=6;
+  ctx.strokeStyle=isFire?'#4a1500':isLightning?'#1a1a3a':isArcane?'#2a0040':isIce?'#0a2040':isNecro?'#1a2a1a':'#5c3010';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.shadowColor=isFire?'rgba(255,100,0,0.3)':isLightning?'rgba(100,150,255,0.4)':isArcane?'rgba(180,80,255,0.5)':isIce?'rgba(100,220,255,0.5)':isNecro?'rgba(100,255,100,0.35)':'rgba(0,255,68,0.2)';ctx.shadowBlur=6;
   ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(staffX*0.55,staffY*0.55);ctx.stroke();
   // Staff orb
   if(isFire){
@@ -1116,6 +1199,16 @@ function drawWizard(wx,wy,angle,iframesLeft){
     // Snowflake spikes
     ctx.strokeStyle='#aaeeff';ctx.lineWidth=1.2;ctx.shadowBlur=10;
     for(let t=0;t<6;t++){const ta=t*(Math.PI*2/6)+Date.now()*0.0008;ctx.beginPath();ctx.moveTo(staffX+Math.cos(ta)*4,staffY+Math.sin(ta)*4);ctx.lineTo(staffX+Math.cos(ta)*17,staffY+Math.sin(ta)*17);ctx.stroke();}
+  } else if(isNecro){
+    const og=ctx.createRadialGradient(staffX,staffY,0,staffX,staffY,12);og.addColorStop(0,'#efffef');og.addColorStop(0.25,'#aaffaa');og.addColorStop(0.55,'#228822');og.addColorStop(1,'transparent');
+    ctx.fillStyle=og;ctx.shadowColor='#55ff55';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(staffX,staffY,11,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,20,0,0.7)';ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(staffX-2.5,staffY-1,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(staffX+2.5,staffY-1,2,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(0,20,0,0.7)';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(staffX-2,staffY+3);ctx.lineTo(staffX-2,staffY+5);ctx.moveTo(staffX,staffY+3);ctx.lineTo(staffX,staffY+5);ctx.moveTo(staffX+2,staffY+3);ctx.lineTo(staffX+2,staffY+5);ctx.stroke();
+    ctx.fillStyle='#ccffcc';ctx.shadowColor='#44ff44';ctx.shadowBlur=6;
+    for(let t=0;t<3;t++){const ta=t*(Math.PI*2/3)+Date.now()*0.003;ctx.save();ctx.translate(staffX+Math.cos(ta)*16,staffY+Math.sin(ta)*16);ctx.rotate(ta*2);ctx.fillRect(-3,-1,6,2);ctx.restore();}
   } else {
     const og=ctx.createRadialGradient(staffX,staffY,0,staffX,staffY,10);og.addColorStop(0,'#ccffcc');og.addColorStop(0.4,'#33cc55');og.addColorStop(1,'transparent');
     ctx.fillStyle=og;ctx.shadowColor='#00ff44';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(staffX,staffY,9,0,Math.PI*2);ctx.fill();
@@ -1130,28 +1223,30 @@ function drawWizard(wx,wy,angle,iframesLeft){
   else if(isLightning){ctx.fillStyle='#0a0a2a';ctx.strokeStyle='#3344aa';ctx.shadowColor='#112288';}
   else if(isArcane){ctx.fillStyle='#1a0028';ctx.strokeStyle='#7722aa';ctx.shadowColor='#440066';}
   else if(isIce){ctx.fillStyle='#020d1a';ctx.strokeStyle='#1a5a8a';ctx.shadowColor='#003355';}
+  else if(isNecro){ctx.fillStyle='#041404';ctx.strokeStyle='#226622';ctx.shadowColor='#003300';}
   else{ctx.fillStyle='#0e4a0e';ctx.strokeStyle='#2a7a2a';ctx.shadowColor='#004400';}
   ctx.lineWidth=1.5;ctx.shadowBlur=8;ctx.beginPath();ctx.ellipse(0,0,20,20,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
   // Hat body
-  ctx.fillStyle=isFire?'#3a0800':isLightning?'#06061a':isArcane?'#0e0018':isIce?'#020d1a':'#0a3a0a';ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#5511aa':isIce?'#1a6aaa':'#1a6a1a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,12,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=isFire?'#3a0800':isLightning?'#06061a':isArcane?'#0e0018':isIce?'#020d1a':isNecro?'#030e03':'#0a3a0a';ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#5511aa':isIce?'#1a6aaa':isNecro?'#226622':'#1a6a1a';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(0,0,12,12,0,0,Math.PI*2);ctx.fill();ctx.stroke();
   // Hat tip
-  ctx.fillStyle=isFire?'#250500':isLightning?'#030310':isArcane?'#080010':isIce?'#010810':'#073507';ctx.beginPath();ctx.ellipse(0,0,4,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=isFire?'#250500':isLightning?'#030310':isArcane?'#080010':isIce?'#010810':isNecro?'#020802':'#073507';ctx.beginPath();ctx.ellipse(0,0,4,4,0,0,Math.PI*2);ctx.fill();
   // Hat band (lightning one glows blue)
-  ctx.strokeStyle=isFire?'#ff4400':isLightning?'#5566ff':isArcane?'#bb44ff':isIce?'#44ccff':'#3aaa3a';ctx.lineWidth=2.5;
-  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=8;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=12;}else if(isArcane){ctx.shadowColor='#aa22ff';ctx.shadowBlur=14;}else if(isIce){ctx.shadowColor='#22aaff';ctx.shadowBlur=16;}
+  ctx.strokeStyle=isFire?'#ff4400':isLightning?'#5566ff':isArcane?'#bb44ff':isIce?'#44ccff':isNecro?'#44ff44':'#3aaa3a';ctx.lineWidth=2.5;
+  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=8;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=12;}else if(isArcane){ctx.shadowColor='#aa22ff';ctx.shadowBlur=14;}else if(isIce){ctx.shadowColor='#22aaff';ctx.shadowBlur=16;}else if(isNecro){ctx.shadowColor='#33ee33';ctx.shadowBlur=14;}
   ctx.beginPath();ctx.ellipse(0,0,15,15,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
   // Star
-  ctx.fillStyle=isFire?'#ff8800':isLightning?'#aaccff':isArcane?'#ee88ff':isIce?'#aaeeff':'#ffe040';ctx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#cc44ff':isIce?'#44ccff':'#ffbb00';ctx.shadowBlur=10;
+  ctx.fillStyle=isFire?'#ff8800':isLightning?'#aaccff':isArcane?'#ee88ff':isIce?'#aaeeff':isNecro?'#aaffaa':'#ffe040';ctx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#cc44ff':isIce?'#44ccff':isNecro?'#44ff44':'#ffbb00';ctx.shadowBlur=10;
   starPath(ctx,0,0,5,5,2.5);ctx.fill();ctx.shadowBlur=0;
   // Robe ring
-  ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#6611aa':isIce?'#1166aa':'#1d6b1d';ctx.lineWidth=3;
-  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=6;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=10;}else if(isArcane){ctx.shadowColor='#9922ff';ctx.shadowBlur=12;}else if(isIce){ctx.shadowColor='#2288ff';ctx.shadowBlur=14;}
+  ctx.strokeStyle=isFire?'#8a2000':isLightning?'#2233aa':isArcane?'#6611aa':isIce?'#1166aa':isNecro?'#226622':'#1d6b1d';ctx.lineWidth=3;
+  if(isFire){ctx.shadowColor='#ff2200';ctx.shadowBlur=6;}else if(isLightning){ctx.shadowColor='#4455ff';ctx.shadowBlur=10;}else if(isArcane){ctx.shadowColor='#9922ff';ctx.shadowBlur=12;}else if(isIce){ctx.shadowColor='#2288ff';ctx.shadowBlur=14;}else if(isNecro){ctx.shadowColor='#33ff33';ctx.shadowBlur=12;}
   ctx.beginPath();ctx.ellipse(0,0,22,22,0,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;
   // Active spell glow rings
   if(infernos.length>0){const pct=1-infernos[0].age/infernos[0].duration;ctx.globalAlpha=0.4*pct;ctx.strokeStyle='#ff6600';ctx.lineWidth=4;ctx.shadowColor='#ff4400';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isLightning&&chainBolts.length>0){const pct=1-chainBolts[0].age/chainBolts[0].life;ctx.globalAlpha=0.5*pct;ctx.strokeStyle='#88aaff';ctx.lineWidth=5;ctx.shadowColor='#6677ff';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isArcane&&voidOrbs.length>0){ctx.globalAlpha=0.45;ctx.strokeStyle='#cc44ff';ctx.lineWidth=5;ctx.shadowColor='#9900cc';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isIce&&blizzards.length>0){ctx.globalAlpha=0.5;ctx.strokeStyle='#88ddff';ctx.lineWidth=4;ctx.shadowColor='#44aaff';ctx.shadowBlur=20;ctx.setLineDash([6,4]);ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.shadowBlur=0;}
+  if(isNecro&&enemies.some(e=>e.type==='skeleton_ally')){ctx.globalAlpha=0.5;ctx.strokeStyle='#aaffaa';ctx.lineWidth=4;ctx.shadowColor='#33ff33';ctx.shadowBlur=18;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.shadowBlur=0;}
   ctx.restore();
 }
 
@@ -1534,24 +1629,74 @@ function drawInfernos(){
 }
 
 // ── DRAW BULLET / FIREBALL ────────────────────────────
+function drawBoneShard(bs){
+  const s=w2s(bs.wx,bs.wy);
+  ctx.save();ctx.translate(s.x,s.y);ctx.rotate(bs.angle+bs.age*20);
+  ctx.shadowColor='#aaffaa';ctx.shadowBlur=8;
+  ctx.fillStyle='#ccddc8';ctx.beginPath();ctx.ellipse(0,0,bs.r*2.2,bs.r*0.9,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#eeffee';ctx.beginPath();ctx.ellipse(-bs.r*0.6,0,bs.r*0.7,bs.r*0.5,0.3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawSkeletonAlly(e){
+  const s=w2s(e.wx,e.wy);
+  const fl=Math.max(0,e.flash);
+  ctx.save();ctx.translate(s.x,s.y);
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(2,5,13,8,0,0,Math.PI*2);ctx.fill();
+  ctx.rotate(e.angle+Math.PI/2);
+  const wobble=Math.sin(e.wobble)*0.12;
+  if(fl>0){ctx.globalAlpha=fl*0.6;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(0,0,e.radius,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+  ctx.strokeStyle=fl>0?'#ffffff':'#aaddaa';ctx.lineWidth=1.5;ctx.shadowColor='#44ff44';ctx.shadowBlur=6;
+  ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(0,8);ctx.stroke();
+  for(let r=-1;r<=1;r+=2){[-7,-3,2].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.quadraticCurveTo(r*10,y+1,r*8,y+5);ctx.stroke();});}
+  ctx.beginPath();ctx.ellipse(0,8,6,3,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle=fl>0?'#ffffff':'#cceebb';ctx.shadowBlur=8;
+  ctx.beginPath();ctx.arc(0,-15,7,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#000';ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(-2.5,-15.5,1.8,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(2.5,-15.5,1.8,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#aaddaa';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(-3,-11);ctx.lineTo(-3,-9);ctx.moveTo(0,-11);ctx.lineTo(0,-9);ctx.moveTo(3,-11);ctx.lineTo(3,-9);ctx.stroke();
+  ctx.rotate(wobble);
+  ctx.strokeStyle=fl>0?'#ffffff':'#88cc88';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(7,-5);ctx.lineTo(12,3);ctx.stroke();
+  ctx.strokeStyle='#ccffcc';ctx.lineWidth=1.5;ctx.shadowColor='#44ff44';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.moveTo(12,3);ctx.lineTo(18,-8);ctx.stroke();
+  ctx.rotate(-wobble*2);
+  ctx.fillStyle='#225522';ctx.strokeStyle='#44aa44';ctx.lineWidth=1.5;ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(-9,0,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#aaddaa';ctx.lineWidth=2;
+  const legA=Math.sin(e.wobble*1.2)*0.35;
+  ctx.beginPath();ctx.moveTo(-3,8);ctx.lineTo(-4+legA*5,18);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(3,8);ctx.lineTo(4-legA*5,18);ctx.stroke();
+  if(e.hp<e.maxHp){
+    ctx.rotate(-(e.angle+Math.PI/2));
+    const bw=e.radius*2.5,bh=3,bx=-bw/2,by=-e.radius-12;
+    ctx.fillStyle='#112211';ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle='#44ff44';ctx.fillRect(bx,by,bw*(e.hp/e.maxHp),bh);
+    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=0.8;ctx.strokeRect(bx,by,bw,bh);
+  }
+  ctx.restore();
+}
+
 function drawBullet(b){const s=w2s(b.wx,b.wy);ctx.save();ctx.shadowColor='#00ffcc';ctx.shadowBlur=14;const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r*2.5);g.addColorStop(0,'#efffef');g.addColorStop(0.4,'#00ffcc');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,b.r*2.5,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawFireball(b){const s=w2s(b.wx,b.wy),flicker=0.8+Math.sin(b.age*40)*0.2;ctx.save();ctx.shadowColor='#ff4400';ctx.shadowBlur=20;const og=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r*3.5*flicker);og.addColorStop(0,'rgba(255,220,100,0.9)');og.addColorStop(0.3,'rgba(255,100,0,0.7)');og.addColorStop(0.7,'rgba(200,30,0,0.3)');og.addColorStop(1,'transparent');ctx.fillStyle=og;ctx.beginPath();ctx.arc(s.x,s.y,b.r*3.5*flicker,0,Math.PI*2);ctx.fill();const cg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r);cg.addColorStop(0,'#fff');cg.addColorStop(0.4,'#ffee88');cg.addColorStop(1,'#ff6600');ctx.fillStyle=cg;ctx.beginPath();ctx.arc(s.x,s.y,b.r,0,Math.PI*2);ctx.fill();ctx.restore();}
 
 // ── SPELL CD RING ─────────────────────────────────────
 function drawSpellCD(){
-  const isLightning=selectedSpell==='lightning',isFire=selectedSpell==='fire',isArcane=selectedSpell==='arcane',isIce2=selectedSpell==='ice';
+  const isLightning=selectedSpell==='lightning',isFire=selectedSpell==='fire',isArcane=selectedSpell==='arcane',isIce2=selectedSpell==='ice',isNecro2=selectedSpell==='necro';
   const maxCD=SPELL_MAXCD[selectedSpell],pct=Math.max(0,spellCD/maxCD),cx=35,cy=35,r=28;
   cdCtx.clearRect(0,0,70,70);
-  cdCtx.strokeStyle=isFire?'rgba(255,80,0,0.15)':isLightning?'rgba(100,150,255,0.15)':isArcane?'rgba(180,80,255,0.18)':isIce2?'rgba(100,220,255,0.18)':'rgba(0,255,68,0.12)';
+  cdCtx.strokeStyle=isFire?'rgba(255,80,0,0.15)':isLightning?'rgba(100,150,255,0.15)':isArcane?'rgba(180,80,255,0.18)':isIce2?'rgba(100,220,255,0.18)':isNecro2?'rgba(100,255,100,0.15)':'rgba(0,255,68,0.12)';
   cdCtx.lineWidth=4;cdCtx.beginPath();cdCtx.arc(cx,cy,r,0,Math.PI*2);cdCtx.stroke();
   if(pct<1){
-    cdCtx.strokeStyle=isFire?(pct<0.1?'#ff6600':'#cc3300'):isLightning?(pct<0.1?'#88aaff':'#4466cc'):isArcane?(pct<0.1?'#dd88ff':'#9933cc'):isIce2?(pct<0.1?'#88ddff':'#3399cc'):(pct<0.1?'#00ff44':'#5acc2a');
-    cdCtx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#aa44ff':isIce2?'#44bbff':'#00ff44';cdCtx.shadowBlur=10;cdCtx.lineWidth=4;
+    cdCtx.strokeStyle=isFire?(pct<0.1?'#ff6600':'#cc3300'):isLightning?(pct<0.1?'#88aaff':'#4466cc'):isArcane?(pct<0.1?'#dd88ff':'#9933cc'):isIce2?(pct<0.1?'#88ddff':'#3399cc'):isNecro2?(pct<0.1?'#aaffaa':'#33aa33'):(pct<0.1?'#00ff44':'#5acc2a');
+    cdCtx.shadowColor=isFire?'#ff4400':isLightning?'#6688ff':isArcane?'#aa44ff':isIce2?'#44bbff':isNecro2?'#44ff44':'#00ff44';cdCtx.shadowBlur=10;cdCtx.lineWidth=4;
     cdCtx.beginPath();cdCtx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+(1-pct)*Math.PI*2);cdCtx.stroke();
   }
   cdCtx.shadowBlur=0;cdCtx.font='1.5rem sans-serif';cdCtx.textAlign='center';cdCtx.textBaseline='middle';
   cdCtx.globalAlpha=pct<0.05?1:0.4+0.6*(1-pct);
-  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':'🌿',cx,cy);cdCtx.globalAlpha=1;
+  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':'🌿',cx,cy);cdCtx.globalAlpha=1;
 }
 
 
@@ -1724,11 +1869,13 @@ function loop(){
   arcaneMissiles.forEach(drawArcaneMissile);
   drawBlizzards();
   drawIcicles();
+  boneShards.forEach(drawBoneShard);
   bullets.forEach(drawBullet);
   fireballs.forEach(drawFireball);
   vines.forEach(drawVineSpell);
   drawArrows();
-  enemies.forEach(drawGoblin);
+  enemies.forEach(e=>{if(e.type!=='skeleton_ally')drawGoblin(e);});
+  enemies.forEach(e=>{if(e.type==='skeleton_ally')drawSkeletonAlly(e);});
   drawWizard(player.wx,player.wy,player.angle,iframes);
   particles.forEach(p=>{const s=w2s(p.wx,p.wy);ctx.save();ctx.globalAlpha=Math.max(0,p.life/p.maxLife)*0.9;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=5;ctx.beginPath();ctx.arc(s.x,s.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();});
   floatTexts.forEach(t=>{const s=w2s(t.wx,t.wy);ctx.save();ctx.globalAlpha=Math.min(1,t.life*1.8);ctx.fillStyle=t.color;ctx.shadowColor=t.color;ctx.shadowBlur=8;ctx.font=`bold ${t.big?'2.2rem':'1.1rem'} 'Cinzel',serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.text,s.x,s.y);ctx.restore();});
