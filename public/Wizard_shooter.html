@@ -748,29 +748,24 @@ function castBlizzard(){
   for(let p=0;p<30;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*80;spawnPart(mw.wx,mw.wy,p%3===0?'#ffffff':p%3===1?'#88ddff':'#44aaff',3+Math.random()*3,Math.cos(pa)*(2+Math.random()*5),Math.sin(pa)*(2+Math.random()*5),0.8+Math.random()*0.5);}
 }
 
-// ── BONE SHARD (left-click, fast low damage) ─────────
+// ── BONE SHARD (left-click) ──────────────────────────
 function shootBoneShard(angle){
-  const sp=(Math.random()-.5)*0.1;
-  const a=angle+sp;
+  const a=angle+(Math.random()-.5)*0.1;
   boneShards.push({wx:player.wx+Math.cos(a)*22,wy:player.wy+Math.sin(a)*22,dx:Math.cos(a)*17,dy:Math.sin(a)*17,angle:a,r:4,age:0});
   for(let p=0;p<4;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#ccddcc':'#aabbaa',1.5+Math.random()*1.5,Math.cos(pa)*3,Math.sin(pa)*3,0.2);}
 }
-
-// ── RAISE SKELETONS (right-click, 4 skeleton allies) ─
+// ── RAISE SKELETONS (right-click) ────────────────────
 function castRaiseSkeletons(){
   spellCD=SPELL_MAXCD.necro;
   for(let i=enemies.length-1;i>=0;i--){if(enemies[i].type==='skeleton_ally')enemies.splice(i,1);}
-  const goblinHp=3+Math.floor(wave*0.6);
-  const skelHp=Math.ceil(goblinHp*1.35);
+  const skelHp=Math.ceil((3+Math.floor(wave*0.6))*1.35);
   for(let k=0;k<4;k++){
-    const a=k*(Math.PI/2)+Math.random()*0.3;
-    const dist=40+Math.random()*30;
+    const a=k*(Math.PI/2)+Math.random()*0.3,dist=40+Math.random()*30;
     enemies.push({type:'skeleton_ally',wx:player.wx+Math.cos(a)*dist,wy:player.wy+Math.sin(a)*dist,radius:15,hp:skelHp,maxHp:skelHp,speed:2.2+Math.random()*0.4,flash:0,angle:0,wobble:Math.random()*Math.PI*2,burning:0,attackCD:0,id:Math.random()});
   }
   for(let p=0;p<28;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*50;spawnPart(player.wx+Math.cos(pa)*pr,player.wy+Math.sin(pa)*pr,p%3===0?'#aaffaa':p%3===1?'#55aa55':'#225522',2+Math.random()*3,Math.cos(pa)*3,Math.sin(pa)*3-1,0.7+Math.random()*0.5);}
   floatTexts.push({wx:player.wx,wy:player.wy-50,text:'💀 ARISE!',color:'#aaffaa',life:1.8,big:true});
 }
-
 function castVine(){
   const mw=mouseWorld(),a=Math.atan2(mw.wy-player.wy,mw.wx-player.wx);
   vines.push({wx:player.wx,wy:player.wy,dx:Math.cos(a)*7.5,dy:Math.sin(a)*7.5,angle:a,age:0,trail:[],hitSet:new Set(),segT:0});
@@ -1043,8 +1038,7 @@ function update(){
 
   // Bone Shards
   for(let i=boneShards.length-1;i>=0;i--){
-    const bs=boneShards[i];
-    bs.wx+=bs.dx;bs.wy+=bs.dy;bs.age+=DT;
+    const bs=boneShards[i];bs.wx+=bs.dx;bs.wy+=bs.dy;bs.age+=DT;
     if(Math.random()<0.35)spawnPart(bs.wx,bs.wy,Math.random()>0.5?'#bbccbb':'#889988',1+Math.random()*1.5,(Math.random()-.5)*1.5,(Math.random()-.5)*1.5,0.15);
     if(bs.age>1.5||Math.hypot(bs.wx-player.wx,bs.wy-player.wy)>1400){boneShards.splice(i,1);continue;}
     for(let ei=enemies.length-1;ei>=0;ei--){
@@ -1057,7 +1051,6 @@ function update(){
       }
     }
   }
-
   // Enemies
   for(let ei=enemies.length-1;ei>=0;ei--){
     const e=enemies[ei];
@@ -1066,6 +1059,7 @@ function update(){
     e.angle=a;e.wobble+=DT*3.5;
     if(e.flash>0)e.flash-=DT*7;if(e.burning>0)e.burning-=DT;if(e.armorFlash>0)e.armorFlash-=DT*5;
     if(e.type==='skeleton_ally'){
+      // Find nearest non-ally enemy
       let nearestEi=-1,nearestDist=Infinity;
       for(let oi=0;oi<enemies.length;oi++){
         if(oi===ei)continue;
@@ -1077,16 +1071,30 @@ function update(){
         const oe=enemies[nearestEi];
         const ta=Math.atan2(oe.wy-e.wy,oe.wx-e.wx);
         e.angle=ta;e.wobble+=DT*3.5;
-        if(nearestDist>e.radius+oe.radius){e.wx+=Math.cos(ta)*e.speed;e.wy+=Math.sin(ta)*e.speed;}
-        else{e.attackCD=(e.attackCD||0)-DT;if(e.attackCD<=0){e.attackCD=0.7;const tx=oe.wx,ty=oe.wy,tidx=nearestEi;if(tidx>=0&&tidx<enemies.length&&enemies[tidx]===oe){damageEnemy(tidx,1);}else{const ri=enemies.indexOf(oe);if(ri>=0)damageEnemy(ri,1);}for(let p=0;p<4;p++)spawnPart(tx,ty,'#aaffaa',2,(Math.random()-.5)*5,(Math.random()-.5)*5,0.3);}}
+        if(nearestDist>e.radius+oe.radius){
+          e.wx+=Math.cos(ta)*e.speed;e.wy+=Math.sin(ta)*e.speed;
+        } else {
+          e.attackCD=(e.attackCD||0)-DT;
+          if(e.attackCD<=0){
+            e.attackCD=0.7;
+            // Snapshot position and reference BEFORE damageEnemy can splice
+            const tx=oe.wx,ty=oe.wy,targetRef=oe;
+            // Re-find index in case array shifted since loop start
+            const currentIdx=enemies.indexOf(targetRef);
+            if(currentIdx>=0) damageEnemy(currentIdx,1);
+            for(let p=0;p<4;p++)spawnPart(tx,ty,'#aaffaa',2,(Math.random()-.5)*5,(Math.random()-.5)*5,0.3);
+          }
+        }
       } else {
+        // No enemies nearby — orbit player
         const ta=Math.atan2(player.wy-e.wy,player.wx-e.wx);
         e.angle=ta;e.wobble+=DT*3.5;
         if(dist>90){e.wx+=Math.cos(ta)*e.speed;e.wy+=Math.sin(ta)*e.speed;}
         else if(dist<50){e.wx-=Math.cos(ta)*e.speed*0.5;e.wy-=Math.sin(ta)*e.speed*0.5;}
       }
-      continue;
+      continue; // skip player collision check for allies
     } else if(e.type==='archer'){
+      const eSpdMult=e.slowTimer>0?0.35:1.0;
       const pd=e.preferDist;
       if(dist>pd+40){e.wx+=Math.cos(a)*e.speed*eSpdMult;e.wy+=Math.sin(a)*e.speed*eSpdMult;}
       else if(dist<pd-40){e.wx-=Math.cos(a)*e.speed*eSpdMult;e.wy-=Math.sin(a)*e.speed*eSpdMult;}
@@ -1637,10 +1645,8 @@ function drawBoneShard(bs){
   ctx.fillStyle='#eeffee';ctx.beginPath();ctx.ellipse(-bs.r*0.6,0,bs.r*0.7,bs.r*0.5,0.3,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
-
 function drawSkeletonAlly(e){
-  const s=w2s(e.wx,e.wy);
-  const fl=Math.max(0,e.flash);
+  const s=w2s(e.wx,e.wy);const fl=Math.max(0,e.flash);
   ctx.save();ctx.translate(s.x,s.y);
   ctx.fillStyle='rgba(0,0,0,0.3)';ctx.beginPath();ctx.ellipse(2,5,13,8,0,0,Math.PI*2);ctx.fill();
   ctx.rotate(e.angle+Math.PI/2);
@@ -1678,7 +1684,6 @@ function drawSkeletonAlly(e){
   }
   ctx.restore();
 }
-
 function drawBullet(b){const s=w2s(b.wx,b.wy);ctx.save();ctx.shadowColor='#00ffcc';ctx.shadowBlur=14;const g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r*2.5);g.addColorStop(0,'#efffef');g.addColorStop(0.4,'#00ffcc');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(s.x,s.y,b.r*2.5,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawFireball(b){const s=w2s(b.wx,b.wy),flicker=0.8+Math.sin(b.age*40)*0.2;ctx.save();ctx.shadowColor='#ff4400';ctx.shadowBlur=20;const og=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r*3.5*flicker);og.addColorStop(0,'rgba(255,220,100,0.9)');og.addColorStop(0.3,'rgba(255,100,0,0.7)');og.addColorStop(0.7,'rgba(200,30,0,0.3)');og.addColorStop(1,'transparent');ctx.fillStyle=og;ctx.beginPath();ctx.arc(s.x,s.y,b.r*3.5*flicker,0,Math.PI*2);ctx.fill();const cg=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,b.r);cg.addColorStop(0,'#fff');cg.addColorStop(0.4,'#ffee88');cg.addColorStop(1,'#ff6600');ctx.fillStyle=cg;ctx.beginPath();ctx.arc(s.x,s.y,b.r,0,Math.PI*2);ctx.fill();ctx.restore();}
 
