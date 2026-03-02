@@ -1310,7 +1310,7 @@ function drawWizard(wx,wy,angle,iframesLeft){
   if(isArcane&&voidOrbs.length>0){ctx.globalAlpha=0.45;ctx.strokeStyle='#cc44ff';ctx.lineWidth=5;ctx.shadowColor='#9900cc';ctx.shadowBlur=24;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isIce&&blizzards.length>0){ctx.globalAlpha=0.5;ctx.strokeStyle='#88ddff';ctx.lineWidth=4;ctx.shadowColor='#44aaff';ctx.shadowBlur=20;ctx.setLineDash([6,4]);ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.shadowBlur=0;}
   if(isNecro&&enemies.some(e=>e.type==='skeleton_ally')){ctx.globalAlpha=0.5;ctx.strokeStyle='#aaffaa';ctx.lineWidth=4;ctx.shadowColor='#33ff33';ctx.shadowBlur=18;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;ctx.shadowBlur=0;}
-  ctx.restore;
+  ctx.restore();
 }
 
 
