@@ -2281,12 +2281,12 @@ function drawMeleeSlashes() {
     const s=w2s(player.wx,player.wy);
     ctx.save(); ctx.translate(s.x,s.y);
     const sweepEnd=sl.startA+sl.arc*Math.min(1,t*2.8);
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,sl.reach*ZOOM,sl.startA,sweepEnd); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,sl.reach,sl.startA,sweepEnd); ctx.closePath();
     ctx.globalAlpha=alpha*0.22; ctx.fillStyle=sl.color; ctx.fill();
-    ctx.beginPath(); ctx.arc(0,0,sl.reach*ZOOM,sl.startA,sweepEnd);
+    ctx.beginPath(); ctx.arc(0,0,sl.reach,sl.startA,sweepEnd);
     ctx.globalAlpha=alpha*0.9; ctx.strokeStyle=sl.color; ctx.lineWidth=sl.heavy?4:2.5;
     ctx.shadowColor=sl.color; ctx.shadowBlur=sl.heavy?22:12; ctx.stroke();
-    const tipX=Math.cos(sweepEnd)*sl.reach*ZOOM, tipY=Math.sin(sweepEnd)*sl.reach*ZOOM;
+    const tipX=Math.cos(sweepEnd)*sl.reach, tipY=Math.sin(sweepEnd)*sl.reach;
     ctx.beginPath(); ctx.arc(tipX,tipY,sl.heavy?6:4,0,Math.PI*2);
     ctx.globalAlpha=alpha; ctx.fillStyle='#ffffff'; ctx.shadowBlur=18; ctx.fill();
     ctx.restore();
