@@ -88,6 +88,23 @@
   .spell-desc.cat { color:#8a3a6a; }
   .spell-tag.cat { background:rgba(255,100,180,0.15); color:#ff88cc; border-color:rgba(255,100,180,0.35); }
   .hud-score.cat-hud { color:#ff88cc; text-shadow:0 0 10px #ff44aa; }
+  /* ── PET SHOP ── */
+  #shopScreen { justify-content:flex-start; padding-top:2.5em; align-items:center; overflow-y:auto; }
+  .pet-card {
+    background:linear-gradient(135deg,#0d1a0d,#0a120a);
+    border:1.5px solid #1a3a1a; border-radius:14px;
+    padding:14px 10px 12px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition:all 0.18s; position:relative; min-height:150px;
+    user-select:none;
+  }
+  .pet-card:hover { border-color:#44cc44; box-shadow:0 0 18px rgba(50,200,50,0.4); transform:translateY(-2px); }
+  .pet-card.owned  { border-color:#33aa33; background:linear-gradient(135deg,#0a1f0a,#0d1a0d); }
+  .pet-card.active { border-color:#88ff88; box-shadow:0 0 28px rgba(100,255,100,0.6); background:linear-gradient(135deg,#0f2a0f,#0a200a); }
+  .pet-card canvas { border-radius:8px; background:rgba(0,0,0,0.3); }
+  .pet-name  { font-family:'Cinzel',serif; font-size:0.75rem; color:#88cc88; letter-spacing:0.1em; }
+  .pet-label { font-size:0.6rem; color:#4a7a4a; letter-spacing:0.15em; }
+  .pet-badge { position:absolute; top:7px; right:8px; font-size:0.55rem; background:rgba(80,200,80,0.2); color:#88ff88; border:1px solid rgba(80,200,80,0.4); border-radius:4px; padding:1px 5px; }
   @keyframes rufusRevenge{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.35);filter:brightness(3) hue-rotate(30deg)}100%{transform:scale(1);filter:brightness(1)}}
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
@@ -283,9 +300,12 @@
   <button class="back-btn" onclick="showScreen('mainMenu')">← Back</button>
   <div class="wip-text">Settings</div><div class="wip-sub">Coming Soon</div>
 </div>
-<div class="screen hidden wip-screen" id="shopScreen">
+<div class="screen hidden" id="shopScreen">
   <button class="back-btn" onclick="showScreen('mainMenu')">← Back</button>
-  <div class="wip-text">The Shop</div><div class="wip-sub">Coming Soon</div>
+  <div style="font-family:'Cinzel Decorative',cursive;font-size:1.8rem;color:#ffdd88;text-shadow:0 0 20px #ffaa00;margin-bottom:0.2em">◈ Pet Shop ◈</div>
+  <div style="color:#666;font-size:0.75rem;letter-spacing:0.2em;margin-bottom:1.5em">ALL PETS FREE — COMPANIONS ONLY, NO COMBAT</div>
+  <div id="petGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:820px;width:100%;padding:0 10px"></div>
+  <div style="margin-top:1.2em;color:#555;font-size:0.7rem">Active pet follows you in-game. Click again to dismiss.</div>
 </div>
 <div class="screen hidden" id="gameOver">
   <div class="go-title">You Have Fallen</div>
@@ -690,7 +710,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.proto
 // ── SCREENS ──────────────────────────────────────────
 let selectedSpell='earth';
 let playerName = 'Wizard'; // ← NEW: player's chosen name
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));if(id!=='__game__')document.getElementById(id)?.classList.remove('hidden');}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));if(id!=='__game__')document.getElementById(id)?.classList.remove('hidden');if(id==='shopScreen')initPetShop();}
 function selectSpell(t){selectedSpell=t;document.querySelectorAll('.spell-card').forEach(c=>c.classList.remove('selected'));document.getElementById('card-'+t)?.classList.add('selected');}
 
 // ── CANVAS ────────────────────────────────────────────
@@ -837,6 +857,7 @@ function startGame(){
   document.getElementById('spellHUD').classList.remove('hidden');
   document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':selectedSpell==='skad'?'WASD · Left-click death wave · Right-click SMITE ALL — passive: nearby enemies get struck by lightning':selectedSpell==='cat'?'WASD · Left-click throw cat · Right-click summon 4 cat allies that pounce to instant kill':'WASD · Left-click landmine · Right-click rock turret';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
+  if(activePet){activePet.wx=0;activePet.wy=0;if(activePet.segments)activePet.segments.forEach(s=>{s.wx=0;s.wy=0;});if(activePet.dragonSegs)activePet.dragonSegs.forEach(s=>{s.wx=0;s.wy=0;});}
   bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];skadWaves=[];skadBolts=[];thrownCats=[];catAllies=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
@@ -1501,6 +1522,7 @@ function update(){
   if(selectedSpell==='melee'){ updateMeleeSlashes(); }
   if(selectedSpell==='skad'){ updateSkadPassive(); updateSkadWaves(); }
   if(selectedSpell==='cat'){ updateThrownCats(); updateCatAllies(); }
+  updatePet(DT);
   spawnTimer-=DT;waveTimer+=DT;
   if(spawnTimer<=0){
     const n=Math.ceil(wave*0.6+0.5);
@@ -2946,6 +2968,429 @@ function drawCatWizard(wx, wy, angle, iframesLeft, name) {
   drawNameTag(s.x, s.y, name || playerName, 'cat', true);
 }
 
+// ═══════════════════════════════════════════════════
+// PET SYSTEM
+// ═══════════════════════════════════════════════════
+let activePet = null; // { type, wx, wy, animFrame, orbitAngle, orbitDist, orbitSpeed, phase }
+
+const PET_DEFS = [
+  { id:'cat',     name:'Cat',          label:'Curious Companion',  color:'#f4a460' },
+  { id:'dog',     name:'Dog',          label:'Loyal Hound',        color:'#c8a060' },
+  { id:'horse',   name:'Horse',        label:'Noble Steed',        color:'#8b5c2a' },
+  { id:'snake',   name:'Snake',        label:'Slithering Friend',  color:'#44aa44' },
+  { id:'firedragon', name:'Fire Dragon', label:'Blazing Beast',    color:'#ff4400' },
+  { id:'bunny',   name:'Bunny',        label:'Fluffy Bun',         color:'#f0e0d0' },
+  { id:'voiddragon', name:'Void Dragon', label:'Skaduffy\'s Kin',  color:'#9944ff' },
+];
+
+function initPetShop() {
+  const grid = document.getElementById('petGrid');
+  if (!grid || grid.children.length > 0) return;
+  PET_DEFS.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'pet-card owned';
+    card.id = 'petcard-' + p.id;
+    card.innerHTML = `
+      <canvas id="petpreview-${p.id}" width="90" height="90"></canvas>
+      <div class="pet-name">${p.name}</div>
+      <div class="pet-label">${p.label}</div>
+      <div class="pet-badge">FREE</div>`;
+    card.onclick = () => selectPet(p.id);
+    grid.appendChild(card);
+    // Draw preview after DOM insert
+    requestAnimationFrame(() => drawPetPreview(p.id));
+  });
+}
+
+function selectPet(id) {
+  if (activePet && activePet.type === id) {
+    // Dismiss
+    activePet = null;
+    document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('active'));
+    return;
+  }
+  activePet = {
+    type: id,
+    wx: 0, wy: 0,
+    animFrame: Math.random() * 100,
+    orbitAngle: Math.random() * Math.PI * 2,
+    orbitDist: 55 + Math.random() * 15,
+    orbitSpeed: 0.6 + Math.random() * 0.4,
+    phase: 0,
+    tailPhase: 0,
+    // For snake: segmented body
+    segments: id === 'snake' ? Array(12).fill(null).map((_,i) => ({ wx:0, wy:0, delay: i * 0.08 })) : null,
+    // For void dragon: long sinuous body
+    dragonSegs: (id === 'voiddragon') ? Array(18).fill(null).map((_,i) => ({ wx:0, wy:0 })) : null,
+  };
+  document.querySelectorAll('.pet-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('petcard-' + id);
+  if (card) card.classList.add('active');
+}
+
+function updatePet(dt) {
+  if (!activePet) return;
+  const p = activePet;
+  p.animFrame += dt * 5;
+  p.tailPhase += dt * 3;
+  p.orbitAngle += p.orbitSpeed * dt;
+  // Target position: orbit around player
+  const targetX = player.wx + Math.cos(p.orbitAngle) * p.orbitDist;
+  const targetY = player.wy + Math.sin(p.orbitAngle) * p.orbitDist * 0.6;
+  // Smooth follow
+  p.wx += (targetX - p.wx) * 0.12;
+  p.wy += (targetY - p.wy) * 0.12;
+
+  // Snake: update body segments
+  if (p.segments) {
+    p.segments[0].wx = p.wx; p.segments[0].wy = p.wy;
+    for (let i = 1; i < p.segments.length; i++) {
+      p.segments[i].wx += (p.segments[i-1].wx - p.segments[i].wx) * 0.25;
+      p.segments[i].wy += (p.segments[i-1].wy - p.segments[i].wy) * 0.25;
+    }
+  }
+  // Void dragon: long chain
+  if (p.dragonSegs) {
+    p.dragonSegs[0].wx = p.wx; p.dragonSegs[0].wy = p.wy;
+    for (let i = 1; i < p.dragonSegs.length; i++) {
+      p.dragonSegs[i].wx += (p.dragonSegs[i-1].wx - p.dragonSegs[i].wx) * 0.18;
+      p.dragonSegs[i].wy += (p.dragonSegs[i-1].wy - p.dragonSegs[i].wy) * 0.18;
+    }
+  }
+}
+
+function drawPet() {
+  if (!activePet) return;
+  const p = activePet;
+  const s = w2s(p.wx, p.wy);
+  switch (p.type) {
+    case 'cat':        drawPetCat(s.x, s.y, p); break;
+    case 'dog':        drawPetDog(s.x, s.y, p); break;
+    case 'horse':      drawPetHorse(s.x, s.y, p); break;
+    case 'snake':      drawPetSnake(p); break;
+    case 'firedragon': drawPetFireDragon(s.x, s.y, p); break;
+    case 'bunny':      drawPetBunny(s.x, s.y, p); break;
+    case 'voiddragon': drawPetVoidDragon(p); break;
+  }
+}
+
+// ── PET: CAT ──
+function drawPetCat(x, y, p) {
+  const bob = Math.sin(p.animFrame) * 2;
+  ctx.save(); ctx.translate(x, y + bob);
+  const c = '#e8a868';
+  ctx.shadowColor = '#ffaaaa'; ctx.shadowBlur = 8;
+  // Body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 5, 7, 6, 0, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.arc(0, -4, 6, 0, Math.PI*2); ctx.fill();
+  // Ears
+  ctx.beginPath(); ctx.moveTo(-5,-8); ctx.lineTo(-3,-14); ctx.lineTo(-1,-8); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(5,-8); ctx.lineTo(3,-14); ctx.lineTo(1,-8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ffb8c8';
+  ctx.beginPath(); ctx.moveTo(-4.5,-9); ctx.lineTo(-3,-12.5); ctx.lineTo(-1.5,-9); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(4.5,-9); ctx.lineTo(3,-12.5); ctx.lineTo(1.5,-9); ctx.closePath(); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.ellipse(-2,-5,1.8,1.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(2,-5,1.8,1.5,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#88ff88'; ctx.beginPath(); ctx.ellipse(-2,-5,0.8,1.2,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(2,-5,0.8,1.2,0,0,Math.PI*2); ctx.fill();
+  // Nose
+  ctx.fillStyle='#ff88aa'; ctx.beginPath(); ctx.arc(0,-2.5,1,0,Math.PI*2); ctx.fill();
+  // Tail
+  ctx.strokeStyle=c; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.shadowColor='#ffaaaa'; ctx.shadowBlur=4;
+  ctx.beginPath(); ctx.moveTo(6,6); ctx.bezierCurveTo(14,2,16,-6,10,-10+Math.sin(p.tailPhase)*4); ctx.stroke();
+  ctx.restore();
+}
+
+// ── PET: DOG ──
+function drawPetDog(x, y, p) {
+  const bob = Math.sin(p.animFrame * 1.3) * 2.5;
+  const wag = Math.sin(p.tailPhase * 2) * 18;
+  ctx.save(); ctx.translate(x, y + bob);
+  const c = '#c8904a';
+  ctx.shadowColor = '#ffcc88'; ctx.shadowBlur = 8;
+  // Body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 5, 9, 7, 0, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.arc(0, -4, 8, 0, Math.PI*2); ctx.fill();
+  // Snout
+  ctx.fillStyle = '#d8a060';
+  ctx.beginPath(); ctx.ellipse(0, -1, 5, 3.5, 0, 0, Math.PI*2); ctx.fill();
+  // Nose
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.ellipse(0, -3, 2.5, 2, 0, 0, Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle='#333'; ctx.beginPath(); ctx.arc(-3.5,-5.5,1.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3.5,-5.5,1.8,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(-3,-.5+(-5.5),0.6,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4,-5,0.6,0,Math.PI*2); ctx.fill();
+  // Floppy ears
+  ctx.fillStyle = '#a06828';
+  ctx.beginPath(); ctx.ellipse(-9,-5,4,7,Math.PI*0.3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9,-5,4,7,-Math.PI*0.3,0,Math.PI*2); ctx.fill();
+  // Tail wagging
+  ctx.strokeStyle=c; ctx.lineWidth=3; ctx.lineCap='round'; ctx.shadowColor='#ffcc88'; ctx.shadowBlur=5;
+  ctx.save(); ctx.translate(8,5); ctx.rotate(wag * Math.PI/180);
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(6,-5,4,-12); ctx.stroke();
+  ctx.restore();
+  ctx.restore();
+}
+
+// ── PET: HORSE ──
+function drawPetHorse(x, y, p) {
+  const gallop = Math.abs(Math.sin(p.animFrame * 1.4)) * 3;
+  ctx.save(); ctx.translate(x, y - gallop);
+  const c = '#8b5c2a';
+  ctx.shadowColor = '#cc8844'; ctx.shadowBlur = 8;
+  // Body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 4, 12, 8, 0, 0, Math.PI*2); ctx.fill();
+  // Neck
+  ctx.beginPath(); ctx.ellipse(-5, -4, 5, 8, -Math.PI*0.15, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.ellipse(-9, -10, 5, 4, Math.PI*0.2, 0, Math.PI*2); ctx.fill();
+  // Snout
+  ctx.fillStyle = '#a06030'; ctx.beginPath(); ctx.ellipse(-12,-11,3,2.5,Math.PI*0.2,0,Math.PI*2); ctx.fill();
+  // Eye
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-8,-11,1.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(-7.4,-11.4,0.5,0,Math.PI*2); ctx.fill();
+  // Mane
+  ctx.strokeStyle = '#5a3010'; ctx.lineWidth = 3; ctx.lineCap='round';
+  for (let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(-6+i*1.5,-6-i*0.5);ctx.quadraticCurveTo(-10+i,-2+i,(-7+i*1.5),1);ctx.stroke();}
+  // Legs animated
+  const legSwing = Math.sin(p.animFrame * 1.4) * 8;
+  ctx.strokeStyle=c; ctx.lineWidth=3;
+  [[-6,1],[-3,1],[3,1],[6,1]].forEach(([lx,_],i) => {
+    const swing = (i%2===0?1:-1)*legSwing;
+    ctx.beginPath(); ctx.moveTo(lx,8); ctx.lineTo(lx+swing*0.3,14); ctx.lineTo(lx+swing*0.5,18); ctx.stroke();
+  });
+  // Tail
+  ctx.strokeStyle='#5a3010'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(11,2); ctx.bezierCurveTo(16,0,18,-5,14,-12+Math.sin(p.tailPhase)*4); ctx.stroke();
+  ctx.restore();
+}
+
+// ── PET: SNAKE ──
+function drawPetSnake(p) {
+  if (!p.segments) return;
+  ctx.save();
+  ctx.shadowColor = '#44ee44'; ctx.shadowBlur = 6;
+  // Draw body segments back to front
+  for (let i = p.segments.length - 1; i >= 0; i--) {
+    const seg = p.segments[i];
+    const s2 = w2s(seg.wx, seg.wy);
+    const t = i / p.segments.length;
+    const r = 6 - t * 3.5; // tapers toward tail
+    const g = ctx.createRadialGradient(s2.x,s2.y,0,s2.x,s2.y,r);
+    g.addColorStop(0, `hsl(${110 + i*4},70%,${45+t*20}%)`);
+    g.addColorStop(1, `hsl(${100+i*4},60%,25%)`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(s2.x, s2.y, Math.max(1, r), 0, Math.PI*2); ctx.fill();
+    // Scale pattern
+    if (i % 2 === 0 && r > 3) {
+      ctx.strokeStyle = 'rgba(0,100,0,0.4)'; ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.arc(s2.x, s2.y, r*0.7, 0, Math.PI*2); ctx.stroke();
+    }
+  }
+  // Head
+  const hs = w2s(p.wx, p.wy);
+  ctx.fillStyle = '#55cc44'; ctx.shadowColor = '#88ff44'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.ellipse(hs.x, hs.y, 8, 6, 0, 0, Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#ff4400'; ctx.beginPath(); ctx.arc(hs.x-3, hs.y-2, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hs.x+3, hs.y-2, 2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(hs.x-3,hs.y-2,0.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hs.x+3,hs.y-2,0.8,0,Math.PI*2); ctx.fill();
+  // Tongue
+  const tongue = Math.sin(p.animFrame * 4) > 0;
+  if (tongue) {
+    ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 1.2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(hs.x, hs.y+5); ctx.lineTo(hs.x, hs.y+10);
+    ctx.moveTo(hs.x, hs.y+10); ctx.lineTo(hs.x-3, hs.y+14);
+    ctx.moveTo(hs.x, hs.y+10); ctx.lineTo(hs.x+3, hs.y+14);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── PET: FIRE DRAGON ──
+function drawPetFireDragon(x, y, p) {
+  const flap = Math.sin(p.animFrame * 2) * 6;
+  const bob = Math.sin(p.animFrame * 1.2) * 3;
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 18;
+  // Fire breath puff
+  if (Math.sin(p.animFrame * 0.8) > 0.6) {
+    const fg = ctx.createRadialGradient(x-18, y+bob-5, 0, x-18, y+bob-5, 14);
+    fg.addColorStop(0, 'rgba(255,220,50,0.9)'); fg.addColorStop(0.4,'rgba(255,80,0,0.6)'); fg.addColorStop(1,'transparent');
+    ctx.fillStyle = fg; ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.arc(x-18, y+bob-5, 14, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  // Wings
+  ctx.fillStyle = 'rgba(200,30,0,0.7)';
+  ctx.beginPath(); ctx.moveTo(-2,-2); ctx.lineTo(-10,-14+flap); ctx.lineTo(0,-12+flap); ctx.lineTo(4,0); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(2,-2); ctx.lineTo(10,-14-flap); ctx.lineTo(0,-12-flap); ctx.lineTo(-4,0); ctx.closePath(); ctx.fill();
+  // Body
+  const bg = ctx.createRadialGradient(0,2,0,0,2,11);
+  bg.addColorStop(0,'#ff8844'); bg.addColorStop(0.5,'#cc2200'); bg.addColorStop(1,'#880000');
+  ctx.fillStyle = bg; ctx.shadowColor='#ff4400'; ctx.shadowBlur=18;
+  ctx.beginPath(); ctx.ellipse(0, 3, 9, 7, 0, 0, Math.PI*2); ctx.fill();
+  // Neck + head
+  ctx.fillStyle='#cc3300'; ctx.beginPath(); ctx.ellipse(-6,-4,5,4,Math.PI*0.25,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#dd4422'; ctx.beginPath(); ctx.ellipse(-10,-9,5,4,Math.PI*0.1,0,Math.PI*2); ctx.fill();
+  // Horns
+  ctx.strokeStyle='#882200'; ctx.lineWidth=2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-9,-12); ctx.lineTo(-7,-18); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-13,-11); ctx.lineTo(-12,-17); ctx.stroke();
+  // Eye
+  ctx.fillStyle='#ffff00'; ctx.shadowColor='#ffcc00'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(-10,-9,2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(-10,-9,0.9,0,Math.PI*2); ctx.fill();
+  // Tail
+  ctx.strokeStyle='#cc2200'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(8,4); ctx.bezierCurveTo(15,6,18,0,14,-6+Math.sin(p.tailPhase)*5); ctx.stroke();
+  // Tail spikes
+  ctx.strokeStyle='#ff6600'; ctx.lineWidth=1.5;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(9+i*2,3-i);ctx.lineTo(11+i*2,-1-i);ctx.stroke();}
+  ctx.restore();
+}
+
+// ── PET: BUNNY ──
+function drawPetBunny(x, y, p) {
+  const bounce = Math.abs(Math.sin(p.animFrame * 2)) * 4;
+  const earWiggle = Math.sin(p.animFrame * 3) * 3;
+  ctx.save(); ctx.translate(x, y - bounce);
+  ctx.shadowColor = '#ffccee'; ctx.shadowBlur = 8;
+  const c = '#f0e0d0';
+  // Body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 6, 8, 9, 0, 0, Math.PI*2); ctx.fill();
+  // Fluffy tail
+  ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(8, 8, 4, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, -4, 7, 0, Math.PI*2); ctx.fill();
+  // Long ears
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.ellipse(-3, -15+earWiggle, 3, 9, -Math.PI*0.1, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3, -16-earWiggle, 3, 9, Math.PI*0.1, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffaacc';
+  ctx.beginPath(); ctx.ellipse(-3, -15+earWiggle, 1.5, 6.5, -Math.PI*0.1, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3, -16-earWiggle, 1.5, 6.5, Math.PI*0.1, 0, Math.PI*2); ctx.fill();
+  // Eyes — big cute
+  ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(-2.5,-5,2.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(2.5,-5,2.2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(-2,-6,0.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3,-6,0.8,0,Math.PI*2); ctx.fill();
+  // Nose
+  ctx.fillStyle='#ff88aa'; ctx.beginPath(); ctx.arc(0,-2,1.2,0,Math.PI*2); ctx.fill();
+  // Whiskers
+  ctx.strokeStyle='rgba(200,180,170,0.8)'; ctx.lineWidth=0.8;
+  [[-2,-2],[-8,-1.5],[-8,-3]].forEach(([ex,ey])=>{ctx.beginPath();ctx.moveTo(-1,-2);ctx.lineTo(ex,ey);ctx.stroke();});
+  [[2,-2],[8,-1.5],[8,-3]].forEach(([ex,ey])=>{ctx.beginPath();ctx.moveTo(1,-2);ctx.lineTo(ex,ey);ctx.stroke();});
+  ctx.restore();
+}
+
+// ── PET: VOID DRAGON (Chinese dragon shape) ──
+function drawPetVoidDragon(p) {
+  if (!p.dragonSegs) return;
+  const segs = p.dragonSegs;
+  ctx.save();
+
+  // Draw body — sinuous Chinese dragon style
+  for (let i = segs.length - 1; i >= 0; i--) {
+    const s2 = w2s(segs[i].wx, segs[i].wy);
+    const t = i / segs.length;
+    const r = 9 - t * 6; // tapers toward tail
+    const alpha = 0.7 + t * 0.3;
+    // Void gradient per segment
+    const grad = ctx.createRadialGradient(s2.x,s2.y,0,s2.x,s2.y,r);
+    grad.addColorStop(0, `rgba(200,130,255,${alpha})`);
+    grad.addColorStop(0.4, `rgba(120,40,220,${alpha*0.8})`);
+    grad.addColorStop(1, `rgba(40,0,80,0)`);
+    ctx.fillStyle = grad;
+    ctx.shadowColor = '#7722ff'; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(s2.x, s2.y, Math.max(1.5, r), 0, Math.PI*2); ctx.fill();
+
+    // Scale ridges every 3 segments
+    if (i % 3 === 0 && r > 4 && i < segs.length - 2) {
+      const next = w2s(segs[Math.min(i+1, segs.length-1)].wx, segs[Math.min(i+1, segs.length-1)].wy);
+      const dx = s2.x - next.x, dy = s2.y - next.y;
+      const perp = Math.atan2(dy, dx) + Math.PI/2;
+      ctx.strokeStyle = `rgba(180,100,255,0.5)`; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(s2.x + Math.cos(perp)*r*0.6, s2.y + Math.sin(perp)*r*0.6);
+      ctx.lineTo(s2.x + Math.cos(perp)*r*1.4, s2.y + Math.sin(perp)*r*1.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s2.x - Math.cos(perp)*r*0.6, s2.y - Math.sin(perp)*r*0.6);
+      ctx.lineTo(s2.x - Math.cos(perp)*r*1.4, s2.y - Math.sin(perp)*r*1.4); ctx.stroke();
+    }
+  }
+
+  // Head
+  const hs = w2s(p.wx, p.wy);
+  ctx.shadowColor = '#9944ff'; ctx.shadowBlur = 22;
+  // Main head
+  const hg = ctx.createRadialGradient(hs.x,hs.y,0,hs.x,hs.y,12);
+  hg.addColorStop(0,'rgba(220,160,255,0.95)'); hg.addColorStop(0.5,'rgba(130,50,220,0.9)'); hg.addColorStop(1,'rgba(60,0,100,0.6)');
+  ctx.fillStyle=hg; ctx.beginPath(); ctx.ellipse(hs.x,hs.y,13,9,0,0,Math.PI*2); ctx.fill();
+  // Snout
+  ctx.fillStyle='rgba(160,80,255,0.9)'; ctx.beginPath(); ctx.ellipse(hs.x,hs.y+8,6,4,0,0,Math.PI*2); ctx.fill();
+  // Horns — long elegant Chinese dragon horns
+  ctx.strokeStyle='#cc88ff'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.shadowColor='#9944ff'; ctx.shadowBlur=16;
+  const hornWave = Math.sin(p.animFrame * 0.8) * 2;
+  ctx.beginPath(); ctx.moveTo(hs.x-4,hs.y-8); ctx.bezierCurveTo(hs.x-10,hs.y-18+hornWave,hs.x-14,hs.y-22,hs.x-10,hs.y-28); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hs.x+4,hs.y-8); ctx.bezierCurveTo(hs.x+10,hs.y-18-hornWave,hs.x+14,hs.y-22,hs.x+10,hs.y-28); ctx.stroke();
+  // Whiskers / tendrils (Chinese dragon feature)
+  ctx.strokeStyle='rgba(200,150,255,0.7)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(hs.x-6,hs.y+6); ctx.bezierCurveTo(hs.x-16,hs.y+8,hs.x-20,hs.y+4,hs.x-22,hs.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hs.x+6,hs.y+6); ctx.bezierCurveTo(hs.x+16,hs.y+8,hs.x+20,hs.y+4,hs.x+22,hs.y); ctx.stroke();
+  // Eyes
+  ctx.fillStyle='#9944ff'; ctx.shadowColor='#cc88ff'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(hs.x-5,hs.y-3,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hs.x+5,hs.y-3,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.arc(hs.x-5,hs.y-3,1.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hs.x+5,hs.y-3,1.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#220040'; ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.arc(hs.x-5,hs.y-3,0.7,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hs.x+5,hs.y-3,0.7,0,Math.PI*2); ctx.fill();
+  // Void particle trail from tail tip
+  if (Math.random() < 0.3) {
+    const tail = w2s(segs[segs.length-1].wx, segs[segs.length-1].wy);
+    const pa = Math.random()*Math.PI*2;
+    spawnPart(segs[segs.length-1].wx, segs[segs.length-1].wy,
+      Math.random()<0.5?'#9944ff':'#cc88ff', 1+Math.random()*2,
+      Math.cos(pa)*1.5, Math.sin(pa)*1.5, 0.5);
+  }
+  ctx.restore();
+}
+
+// ── PET PREVIEW (shop card canvas) ──
+function drawPetPreview(id) {
+  const canvas = document.getElementById('petpreview-' + id);
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+  c.clearRect(0, 0, 90, 90);
+  const fake = { animFrame: 2, tailPhase: 1.2, orbitAngle: 0,
+    segments: id==='snake' ? Array(12).fill(null).map((_,i)=>({wx:45-(i*4),wy:45+Math.sin(i*0.6)*10})) : null,
+    dragonSegs: id==='voiddragon' ? Array(18).fill(null).map((_,i)=>({wx:45-(i*4),wy:45+Math.sin(i*0.5)*12})) : null,
+    wx:45, wy:45
+  };
+  // Use a temp canvas ctx swap trick
+  const realCtx = ctx;
+  const realW2s = typeof w2s !== 'undefined' ? w2s : null;
+  // We'll draw directly with the preview canvas ctx
+  const prevCtx = c;
+  // Manually draw using preview canvas — inline simplified versions
+  prevCtx.save();
+  prevCtx.translate(45, 52);
+  prevCtx.shadowColor = PET_DEFS.find(p=>p.id===id)?.color || '#aaa';
+  prevCtx.shadowBlur = 12;
+  prevCtx.font = '44px serif';
+  prevCtx.textAlign = 'center';
+  prevCtx.textBaseline = 'middle';
+  const emojis = { cat:'🐱', dog:'🐶', horse:'🐴', snake:'🐍', firedragon:'🐉', bunny:'🐰', voiddragon:'🐲' };
+  prevCtx.fillText(emojis[id] || '?', 0, -6);
+  prevCtx.restore();
+}
+
 function loop(){
   if(!gameRunning)return;
   update();
@@ -2985,6 +3430,7 @@ function loop(){
   } else {
     drawWizard(player.wx,player.wy,player.angle,iframes);
   }
+  drawPet();
   particles.forEach(p=>{const s=w2s(p.wx,p.wy);ctx.save();ctx.globalAlpha=Math.max(0,p.life/p.maxLife)*0.9;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=5;ctx.beginPath();ctx.arc(s.x,s.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();});
   floatTexts.forEach(t=>{const s=w2s(t.wx,t.wy);ctx.save();ctx.globalAlpha=Math.min(1,t.life*1.8);ctx.fillStyle=t.color;ctx.shadowColor=t.color;ctx.shadowBlur=8;ctx.font=`bold ${t.big?'2.2rem':'1.1rem'} 'Cinzel',serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.text,s.x,s.y);ctx.restore();});
   drawSpellCD();
