@@ -72,6 +72,14 @@
   .spell-desc.melee { color:#6a3a8a; }
   .spell-tag.melee { background:rgba(180,80,255,0.15); color:#cc88ff; border-color:rgba(180,80,255,0.35); }
   .hud-score.melee-hud { color:#cc88ff; text-shadow:0 0 10px #aa44ff; }
+  /* ── SKADUFFY (secret) ── */
+  .spell-card.skad-card { border-color:#1a0a4a; background:linear-gradient(135deg,#06020f,#0a0520); display:none; }
+  .spell-card.skad-card.unlocked { display:flex; }
+  .spell-card.skad-card.selected,.spell-card.skad-card:hover { border-color:#9955ff; box-shadow:0 0 35px rgba(130,50,255,0.8); }
+  .spell-name.skad { color:#9955ff; }
+  .spell-desc.skad { color:#4a2a7a; }
+  .spell-tag.skad { background:rgba(120,40,255,0.18); color:#9955ff; border-color:rgba(130,50,255,0.4); }
+  .hud-score.skad-hud { color:#9955ff; text-shadow:0 0 10px #7722ff; }
   @keyframes rufusRevenge{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.35);filter:brightness(3) hue-rotate(30deg)}100%{transform:scale(1);filter:brightness(1)}}
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
@@ -235,6 +243,12 @@
       <div class="spell-name melee">Rufus</div>
       <div class="spell-desc melee">Left-click slashes. Right-click heavy slash. When death strikes — VENGEANCE: the killing blow bounces back.</div>
     </div>
+    <div class="spell-card skad-card" id="card-skad" onclick="selectSpell('skad')">
+      <div class="spell-tag skad">SECRET</div>
+      <div class="spell-icon" style="font-size:2.6rem">⚡</div>
+      <div class="spell-name skad">Skaduffy</div>
+      <div class="spell-desc skad">Passive: nearby enemies get instantly struck by purple lightning. Left-click: death wave. Right-click: ALL enemies on map die.</div>
+    </div>
   </div>
   <!-- Name input on spell select screen -->
   <div style="margin-top:1.5em;display:flex;align-items:center;gap:0.8em;">
@@ -245,7 +259,7 @@
       placeholder="Enter wizard name"
       value="Wizard"
       style="background:rgba(0,20,0,0.75);border:1px solid #2a5a2a;color:#afffaf;font-family:'Cinzel',serif;font-size:0.85rem;padding:0.4em 0.9em;letter-spacing:0.08em;outline:none;width:180px;text-align:center;"
-      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value); checkMeleeUnlock(this.value);"
+      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value); checkMeleeUnlock(this.value); checkSkadUnlock(this.value);"
     />
   </div>
   <button class="enter-btn" onclick="startGame()">Enter the Arena →</button>
@@ -361,7 +375,7 @@ let mpGameTime   = 0;
 let mpConnected  = false;
 let mpInGame     = false;
 
-const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴', melee:'⚔️' };
+const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴', melee:'⚔️', skad:'⚡' };
 
 // ── HORSE WIZARD UNLOCK ──────────────────────────────
 function checkHorseUnlock(name) {
@@ -688,7 +702,7 @@ document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)ca
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
 let spawnTimer=0,waveTimer=0,shootCD=0,spellCD=0,iframes=0,gameTime=0;
 let armoredUnlocked=false,archerUnlocked=false,miniBossSpawned=false;
-const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4,melee:0.28};
+const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4,melee:0.28,skad:0.35};
 const SPELL_DURATION={fire:2.0,ice:5.0};
 const player={wx:0,wy:0,speed:4,radius:18,angle:0};
 function mouseWorld(){return{wx:mouseX+cam.x,wy:mouseY+cam.y};}
@@ -705,7 +719,7 @@ function updateHUD(){
   document.getElementById('scoreDisplay').textContent=score;
   document.getElementById('waveDisplay').textContent=wave;
   const sl=document.getElementById('scoreLabel');
-  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':selectedSpell==='melee'?'hud-score melee-hud':'hud-score';
+  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':selectedSpell==='melee'?'hud-score melee-hud':selectedSpell==='skad'?'hud-score skad-hud':'hud-score';
   const hp=document.getElementById('hpDisplay');hp.innerHTML='';
   for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':selectedSpell==='necro'?'🖤':'💚'):'🖤';hp.appendChild(s);}
 }
@@ -735,6 +749,7 @@ function drawNameTag(sx, sy, name, spell, isYou=false, yOffset=0) {
     necro:     { text:'#aaffaa', glow:'#33dd33', border:'rgba(80,220,80,0.5)',  bg:'rgba(2,12,2,0.72)'  },
     horse:     { text:'#ffdd44', glow:'#ffaa00', border:'rgba(255,200,0,0.55)',  bg:'rgba(20,14,0,0.72)'  },
     melee:     { text:'#cc88ff', glow:'#aa44ff', border:'rgba(180,80,255,0.55)', bg:'rgba(12,4,20,0.78)' },
+    skad:      { text:'#9955ff', glow:'#7722ff', border:'rgba(130,50,255,0.6)',  bg:'rgba(4,0,16,0.82)'  },
   };
   const t = themes[spell] || themes.earth;
 
@@ -805,9 +820,9 @@ function startGame(){
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('hint').classList.remove('hidden');
   document.getElementById('spellHUD').classList.remove('hidden');
-  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':'WASD · Left-click landmine · Right-click rock turret';
+  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':selectedSpell==='skad'?'WASD · Left-click death wave · Right-click SMITE ALL — passive: nearby enemies get struck by lightning':'WASD · Left-click landmine · Right-click rock turret';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
-  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];enemies=[];particles=[];floatTexts=[];
+  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];skadWaves=[];skadBolts=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
 }
@@ -833,6 +848,8 @@ function tryShoot(){
     throwHorsePoop(a);shootCD=0.22;
   } else if(selectedSpell==='melee'){
     doMeleeSlash(a, false); shootCD=SPELL_MAXCD.melee;
+  } else if(selectedSpell==='skad'){
+    shootSkadWave(a); shootCD=SPELL_MAXCD.skad;
   } else if(selectedSpell==='lightning'){
     shootLightningZap(a);shootCD=0.13;
   } else if(selectedSpell==='arcane'){
@@ -875,6 +892,7 @@ function castSpell(){
   else if(selectedSpell==='necro') castRaiseSkeletons();
   else if(selectedSpell==='horse') castHorseStampede();
   else if(selectedSpell==='melee'){ doMeleeSlash(Math.atan2(mouseWorld().wy-player.wy,mouseWorld().wx-player.wx), true); spellCD=0.45; }
+  else if(selectedSpell==='skad') castSkadSmiteAll();
   else castChainLightning();
 }
 
@@ -1463,6 +1481,7 @@ function update(){
   for(let i=chainBolts.length-1;i>=0;i--){chainBolts[i].age+=DT;if(chainBolts[i].age>=chainBolts[i].life)chainBolts.splice(i,1);}
   if(selectedSpell==='horse'){ updateHorsePoop(); updateHorseStampedes(); }
   if(selectedSpell==='melee'){ updateMeleeSlashes(); }
+  if(selectedSpell==='skad'){ updateSkadPassive(); updateSkadWaves(); }
   spawnTimer-=DT;waveTimer+=DT;
   if(spawnTimer<=0){
     const n=Math.ceil(wave*0.6+0.5);
@@ -1969,7 +1988,7 @@ function drawSpellCD(){
   }
   cdCtx.shadowBlur=0;cdCtx.font='1.5rem sans-serif';cdCtx.textAlign='center';cdCtx.textBaseline='middle';
   cdCtx.globalAlpha=pct<0.05?1:0.4+0.6*(1-pct);
-  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':selectedSpell==='melee'?'⚔️':'⛰',cx,cy);cdCtx.globalAlpha=1;
+  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':selectedSpell==='melee'?'⚔️':selectedSpell==='skad'?'⚡':'⛰',cx,cy);cdCtx.globalAlpha=1;
 }
 
 // ── DRAW ARCANE MISSILES ──────────────────────────────
@@ -2336,6 +2355,182 @@ function drawRufus(wx,wy,angle,iframesLeft,name){
   drawNameTag(s.x,s.y,name||playerName,'melee',true);
 }
 
+function checkSkadUnlock(name) {
+  const card = document.getElementById('card-skad');
+  if (!card) return;
+  if (name === 'Skaduffy') {
+    if (!card.classList.contains('unlocked')) {
+      card.classList.add('unlocked');
+      card.style.boxShadow = '0 0 80px rgba(130,50,255,1)';
+      setTimeout(() => { card.style.boxShadow = ''; }, 900);
+      const notice = document.createElement('div');
+      notice.textContent = '⚡ SKADUFFY AWAKENS ⚡';
+      notice.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        font-family:'Cinzel Decorative',cursive;font-size:1.6rem;color:#9955ff;
+        text-shadow:0 0 30px #7722ff,0 0 80px #4400cc;z-index:999;pointer-events:none;
+        animation:fadeNotice 2.2s ease forwards;`;
+      document.body.appendChild(notice);
+      setTimeout(() => notice.remove(), 2200);
+    }
+  } else {
+    card.classList.remove('unlocked');
+    if (selectedSpell === 'skad') { selectedSpell = 'earth'; selectSpell('earth'); }
+  }
+}
+
+// ── SKADUFFY ──────────────────────────────────────────
+let skadWaves = [], skadBolts = [];
+const SKAD_PASSIVE_RANGE = 140;
+const SKAD_PASSIVE_CD = {};
+
+function updateSkadPassive() {
+  for (let ei = enemies.length - 1; ei >= 0; ei--) {
+    const e = enemies[ei];
+    if (!e || e.type === 'skeleton_ally') continue;
+    const dist = Math.hypot(e.wx - player.wx, e.wy - player.wy);
+    if (dist > SKAD_PASSIVE_RANGE) continue;
+    const key = 'skp' + ei;
+    if (SKAD_PASSIVE_CD[key] > 0) { SKAD_PASSIVE_CD[key] -= DT; continue; }
+    SKAD_PASSIVE_CD[key] = 0.55;
+    skadBolts.push({ x1:player.wx, y1:player.wy, x2:e.wx, y2:e.wy, age:0, life:0.18 });
+    for (let p = 0; p < 10; p++) { const pa=Math.random()*Math.PI*2; spawnPart(e.wx,e.wy,p%2===0?'#9955ff':'#cc88ff',2+Math.random()*3,Math.cos(pa)*5,Math.sin(pa)*5,0.4); }
+    damageEnemy(ei, e.maxHp + 999);
+  }
+}
+
+function shootSkadWave(angle) {
+  skadWaves.push({ wx:player.wx, wy:player.wy, angle, r:18, age:0, life:1.4, hitSet:new Set(), speed:520 });
+  for (let p=0;p<20;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#9955ff':'#ffffff',3+Math.random()*3,Math.cos(pa)*6,Math.sin(pa)*6,0.5);}
+}
+
+function castSkadSmiteAll() {
+  spellCD = 3.5;
+  const killList = enemies.slice();
+  killList.forEach((e, i) => {
+    if (!e || e.type === 'skeleton_ally') return;
+    setTimeout(() => {
+      if (!gameRunning) return;
+      const ei = enemies.indexOf(e);
+      skadBolts.push({ x1:e.wx, y1:e.wy-900, x2:e.wx, y2:e.wy, age:0, life:0.25 });
+      for (let p=0;p<16;p++){const pa=Math.random()*Math.PI*2;spawnPart(e.wx,e.wy,p%3===0?'#ffffff':p%3===1?'#9955ff':'#cc44ff',3+Math.random()*4,Math.cos(pa)*7,Math.sin(pa)*7,0.6);}
+      if (ei >= 0) damageEnemy(ei, e.maxHp + 999);
+    }, i * 60);
+  });
+  floatTexts.push({ wx:player.wx, wy:player.wy-70, text:'⚡ SMITE ALL ⚡', color:'#9955ff', life:2.0, big:true });
+  for (let p=0;p<40;p++){const pa=Math.random()*Math.PI*2,pr=Math.random()*300;spawnPart(player.wx+Math.cos(pa)*pr,player.wy+Math.sin(pa)*pr,p%2===0?'#9955ff':'#ffffff',3+Math.random()*4,Math.cos(pa)*3,Math.sin(pa)*3,0.8);}
+}
+
+function updateSkadWaves() {
+  for (let i = skadWaves.length-1; i >= 0; i--) {
+    const w = skadWaves[i];
+    w.age += DT; w.r += w.speed * DT;
+    if (w.age >= w.life) { skadWaves.splice(i,1); continue; }
+    for (let ei = enemies.length-1; ei >= 0; ei--) {
+      const e = enemies[ei];
+      if (!e || e.type==='skeleton_ally') continue;
+      if (w.hitSet.has(ei)) continue;
+      const dist = Math.hypot(e.wx-w.wx, e.wy-w.wy);
+      if (dist >= w.r-40 && dist <= w.r+40) {
+        w.hitSet.add(ei);
+        skadBolts.push({ x1:player.wx, y1:player.wy, x2:e.wx, y2:e.wy, age:0, life:0.14 });
+        for (let p=0;p<10;p++){const pa=Math.random()*Math.PI*2;spawnPart(e.wx,e.wy,p%2===0?'#9955ff':'#cc88ff',3+Math.random()*3,Math.cos(pa)*5,Math.sin(pa)*5,0.45);}
+        damageEnemy(ei, e.maxHp + 999);
+      }
+    }
+  }
+  for (let i = skadBolts.length-1; i >= 0; i--) { skadBolts[i].age += DT; if (skadBolts[i].age >= skadBolts[i].life) skadBolts.splice(i,1); }
+}
+
+function drawSkadWaves() {
+  skadWaves.forEach(w => {
+    const t = w.age / w.life, alpha = (1-t) * 0.85;
+    const s = w2s(w.wx, w.wy);
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.25;
+    ctx.strokeStyle = '#9955ff'; ctx.lineWidth = 28; ctx.shadowColor = '#7722ff'; ctx.shadowBlur = 35;
+    ctx.beginPath(); ctx.arc(s.x, s.y, w.r, 0, Math.PI*2); ctx.stroke();
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.strokeStyle = '#cc88ff'; ctx.lineWidth = 5; ctx.shadowBlur = 20;
+    ctx.beginPath(); ctx.arc(s.x, s.y, w.r, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(s.x, s.y, w.r-4, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = `rgba(180,100,255,${alpha*0.7})`; ctx.lineWidth = 1.5; ctx.shadowBlur = 12;
+    for (let i=0; i<8; i++) {
+      const a1 = (i/8)*Math.PI*2 + w.age*4, a2 = a1+0.25;
+      ctx.beginPath();
+      ctx.moveTo(s.x+Math.cos(a1)*(w.r-8), s.y+Math.sin(a1)*(w.r-8));
+      ctx.lineTo(s.x+Math.cos((a1+a2)/2)*(w.r+(Math.random()-0.5)*18), s.y+Math.sin((a1+a2)/2)*(w.r+(Math.random()-0.5)*18));
+      ctx.lineTo(s.x+Math.cos(a2)*(w.r+8), s.y+Math.sin(a2)*(w.r+8));
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+}
+
+function drawSkadBolts() {
+  skadBolts.forEach(b => {
+    const fade = 1 - b.age/b.life;
+    const s1=w2s(b.x1,b.y1), s2=w2s(b.x2,b.y2);
+    ctx.save(); ctx.globalAlpha = fade*0.9;
+    ctx.strokeStyle='rgba(80,20,180,0.5)'; ctx.lineWidth=9; ctx.lineCap='round'; ctx.shadowColor='#7722ff'; ctx.shadowBlur=25;
+    drawJaggedLine(ctx,s1.x,s1.y,s2.x,s2.y,20,10);
+    ctx.strokeStyle='#9955ff'; ctx.lineWidth=3.5; ctx.shadowBlur=12;
+    drawJaggedLine(ctx,s1.x,s1.y,s2.x,s2.y,14,10);
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.2; ctx.shadowBlur=5;
+    drawJaggedLine(ctx,s1.x,s1.y,s2.x,s2.y,7,10);
+    const ig=ctx.createRadialGradient(s2.x,s2.y,0,s2.x,s2.y,20);
+    ig.addColorStop(0,'rgba(255,255,255,0.95)'); ig.addColorStop(0.3,'rgba(180,100,255,0.6)'); ig.addColorStop(1,'transparent');
+    ctx.fillStyle=ig; ctx.shadowBlur=0; ctx.globalAlpha=fade*0.8;
+    ctx.beginPath(); ctx.arc(s2.x,s2.y,20,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawSkaduffy(wx, wy, angle, iframesLeft, name) {
+  if (iframesLeft>0 && Math.floor(iframesLeft*8)%2===0) return;
+  const s = w2s(wx, wy);
+  ctx.save(); ctx.translate(s.x, s.y);
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.beginPath(); ctx.ellipse(3,7,24,12,0,0,Math.PI*2); ctx.fill();
+  const bl=34, bx=Math.cos(angle)*bl, by=Math.sin(angle)*bl;
+  // Passive range aura ring
+  const pulse = 0.55 + Math.sin(Date.now()/200)*0.2;
+  ctx.strokeStyle=`rgba(130,50,255,${pulse*0.4})`; ctx.lineWidth=2; ctx.shadowColor='#7722ff'; ctx.shadowBlur=18;
+  ctx.setLineDash([6,5]); ctx.beginPath(); ctx.arc(0,0,SKAD_PASSIVE_RANGE,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); ctx.shadowBlur=0;
+  // Staff
+  ctx.strokeStyle='#2a0055'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.shadowColor='rgba(130,50,255,0.4)'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(bx*0.5,by*0.5); ctx.stroke();
+  ctx.strokeStyle='#9955ff'; ctx.lineWidth=2; ctx.shadowColor='#7722ff'; ctx.shadowBlur=22;
+  ctx.beginPath(); ctx.moveTo(bx*0.5,by*0.5); ctx.lineTo(bx,by); ctx.stroke();
+  // Orb at tip
+  const orbG=ctx.createRadialGradient(bx,by,0,bx,by,13);
+  orbG.addColorStop(0,'#ffffff'); orbG.addColorStop(0.2,'#cc88ff'); orbG.addColorStop(0.6,'#7722ff'); orbG.addColorStop(1,'transparent');
+  ctx.fillStyle=orbG; ctx.shadowColor='#9900ff'; ctx.shadowBlur=28;
+  ctx.beginPath(); ctx.arc(bx,by,12,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#cc88ff'; ctx.lineWidth=1.5; ctx.shadowBlur=10;
+  for(let i=0;i<4;i++){const a2=i*Math.PI/2+Date.now()*0.005;ctx.beginPath();ctx.moveTo(bx+Math.cos(a2)*8,by+Math.sin(a2)*8);ctx.lineTo(bx+Math.cos(a2+0.6)*14,by+Math.sin(a2+0.6)*14);ctx.stroke();}
+  ctx.shadowBlur=0;
+  // Robe
+  ctx.fillStyle='#080010'; ctx.strokeStyle='#5500aa'; ctx.lineWidth=2; ctx.shadowColor='rgba(100,30,200,0.4)'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.ellipse(0,0,20,20,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#04000a'; ctx.strokeStyle='#3a0077'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(0,0,12,12,0,0,Math.PI*2); ctx.fill();
+  // Void eye
+  const eyePulse = 0.5+Math.sin(Date.now()/300)*0.5;
+  ctx.fillStyle=`rgba(153,85,255,${0.6+eyePulse*0.4})`; ctx.shadowColor='#9955ff'; ctx.shadowBlur=14;
+  ctx.beginPath(); ctx.arc(0,0,4.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.shadowBlur=8; ctx.beginPath(); ctx.arc(0,0,1.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+  // Outer ring
+  ctx.strokeStyle='#7722ff'; ctx.lineWidth=3; ctx.shadowColor='#9955ff'; ctx.shadowBlur=16;
+  ctx.beginPath(); ctx.arc(0,0,23,0,Math.PI*2); ctx.stroke();
+  // Spinning rune dots
+  ctx.fillStyle='#cc88ff'; ctx.shadowColor='#9955ff'; ctx.shadowBlur=10;
+  for(let i=0;i<6;i++){const ra=(i/6)*Math.PI*2+Date.now()*0.002;ctx.beginPath();ctx.arc(Math.cos(ra)*23,Math.sin(ra)*23,2.5,0,Math.PI*2);ctx.fill();}
+  ctx.shadowBlur=0;
+  ctx.restore();
+  drawNameTag(s.x, s.y, name||playerName, 'skad', true);
+}
+
 function loop(){
   if(!gameRunning)return;
   update();
@@ -2357,6 +2552,8 @@ function loop(){
   drawHorseStampedes();
   drawHorsePoop();
   drawMeleeSlashes();
+  drawSkadWaves();
+  drawSkadBolts();
   enemies.forEach(e=>{if(e.type!=='skeleton_ally')drawGoblin(e);});
   enemies.forEach(e=>{if(e.type==='skeleton_ally')drawSkeletonAlly(e);});
   // Draw wizard — secret classes get special draw
@@ -2364,6 +2561,8 @@ function loop(){
     drawHorseWizard(player.wx,player.wy,player.angle,iframes);
   } else if(selectedSpell==='melee'){
     drawRufus(player.wx,player.wy,player.angle,iframes);
+  } else if(selectedSpell==='skad'){
+    drawSkaduffy(player.wx,player.wy,player.angle,iframes);
   } else {
     drawWizard(player.wx,player.wy,player.angle,iframes);
   }
