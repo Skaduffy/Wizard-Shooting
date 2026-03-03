@@ -80,6 +80,14 @@
   .spell-desc.skad { color:#4a2a7a; }
   .spell-tag.skad { background:rgba(120,40,255,0.18); color:#9955ff; border-color:rgba(130,50,255,0.4); }
   .hud-score.skad-hud { color:#9955ff; text-shadow:0 0 10px #7722ff; }
+  /* ── CAT WIZARD (secret) ── */
+  .spell-card.cat-card { border-color:#6a3a5a; background:linear-gradient(135deg,#180a14,#0f0710); display:none; }
+  .spell-card.cat-card.unlocked { display:flex; }
+  .spell-card.cat-card.selected,.spell-card.cat-card:hover { border-color:#ff88cc; box-shadow:0 0 35px rgba(255,100,180,0.7); }
+  .spell-name.cat { color:#ff88cc; }
+  .spell-desc.cat { color:#8a3a6a; }
+  .spell-tag.cat { background:rgba(255,100,180,0.15); color:#ff88cc; border-color:rgba(255,100,180,0.35); }
+  .hud-score.cat-hud { color:#ff88cc; text-shadow:0 0 10px #ff44aa; }
   @keyframes rufusRevenge{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.35);filter:brightness(3) hue-rotate(30deg)}100%{transform:scale(1);filter:brightness(1)}}
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
@@ -249,6 +257,12 @@
       <div class="spell-name skad">Skaduffy</div>
       <div class="spell-desc skad">Passive: nearby enemies get instantly struck by purple lightning. Left-click: death wave. Right-click: ALL enemies on map die.</div>
     </div>
+    <div class="spell-card cat-card" id="card-cat" onclick="selectSpell('cat')">
+      <div class="spell-tag cat">SECRET</div>
+      <div class="spell-icon" style="font-size:2.6rem">🐱</div>
+      <div class="spell-name cat">Cat Wizard</div>
+      <div class="spell-desc cat">Left-click throws a cat that latches on and shreds enemies. Right-click: summon 4 cat allies that pounce to instantly kill.</div>
+    </div>
   </div>
   <!-- Name input on spell select screen -->
   <div style="margin-top:1.5em;display:flex;align-items:center;gap:0.8em;">
@@ -259,7 +273,7 @@
       placeholder="Enter wizard name"
       value="Wizard"
       style="background:rgba(0,20,0,0.75);border:1px solid #2a5a2a;color:#afffaf;font-family:'Cinzel',serif;font-size:0.85rem;padding:0.4em 0.9em;letter-spacing:0.08em;outline:none;width:180px;text-align:center;"
-      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value); checkMeleeUnlock(this.value); checkSkadUnlock(this.value);"
+      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value); checkMeleeUnlock(this.value); checkSkadUnlock(this.value); checkCatUnlock(this.value);"
     />
   </div>
   <button class="enter-btn" onclick="startGame()">Enter the Arena →</button>
@@ -375,7 +389,7 @@ let mpGameTime   = 0;
 let mpConnected  = false;
 let mpInGame     = false;
 
-const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴', melee:'⚔️', skad:'⚡' };
+const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴', melee:'⚔️', skad:'⚡', cat:'🐱' };
 
 // ── HORSE WIZARD UNLOCK ──────────────────────────────
 function checkHorseUnlock(name) {
@@ -702,7 +716,7 @@ document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)ca
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
 let spawnTimer=0,waveTimer=0,shootCD=0,spellCD=0,iframes=0,gameTime=0;
 let armoredUnlocked=false,archerUnlocked=false,miniBossSpawned=false;
-const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4,melee:0.28,skad:0.35};
+const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4,melee:0.28,skad:0.35,cat:0.5};
 const SPELL_DURATION={fire:2.0,ice:5.0};
 const player={wx:0,wy:0,speed:4,radius:18,angle:0};
 function mouseWorld(){return{wx:mouseX+cam.x,wy:mouseY+cam.y};}
@@ -719,7 +733,7 @@ function updateHUD(){
   document.getElementById('scoreDisplay').textContent=score;
   document.getElementById('waveDisplay').textContent=wave;
   const sl=document.getElementById('scoreLabel');
-  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':selectedSpell==='melee'?'hud-score melee-hud':selectedSpell==='skad'?'hud-score skad-hud':'hud-score';
+  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':selectedSpell==='melee'?'hud-score melee-hud':selectedSpell==='skad'?'hud-score skad-hud':selectedSpell==='cat'?'hud-score cat-hud':'hud-score';
   const hp=document.getElementById('hpDisplay');hp.innerHTML='';
   for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':selectedSpell==='necro'?'🖤':'💚'):'🖤';hp.appendChild(s);}
 }
@@ -750,6 +764,7 @@ function drawNameTag(sx, sy, name, spell, isYou=false, yOffset=0) {
     horse:     { text:'#ffdd44', glow:'#ffaa00', border:'rgba(255,200,0,0.55)',  bg:'rgba(20,14,0,0.72)'  },
     melee:     { text:'#cc88ff', glow:'#aa44ff', border:'rgba(180,80,255,0.55)', bg:'rgba(12,4,20,0.78)' },
     skad:      { text:'#9955ff', glow:'#7722ff', border:'rgba(130,50,255,0.6)',  bg:'rgba(4,0,16,0.82)'  },
+    cat:       { text:'#ff88cc', glow:'#ff44aa', border:'rgba(255,100,180,0.5)',bg:'rgba(20,4,14,0.78)' },
   };
   const t = themes[spell] || themes.earth;
 
@@ -820,9 +835,9 @@ function startGame(){
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('hint').classList.remove('hidden');
   document.getElementById('spellHUD').classList.remove('hidden');
-  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':selectedSpell==='skad'?'WASD · Left-click death wave · Right-click SMITE ALL — passive: nearby enemies get struck by lightning':'WASD · Left-click landmine · Right-click rock turret';
+  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':selectedSpell==='skad'?'WASD · Left-click death wave · Right-click SMITE ALL — passive: nearby enemies get struck by lightning':selectedSpell==='cat'?'WASD · Left-click throw cat · Right-click summon 4 cat allies that pounce to instant kill':'WASD · Left-click landmine · Right-click rock turret';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
-  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];skadWaves=[];skadBolts=[];enemies=[];particles=[];floatTexts=[];
+  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];skadWaves=[];skadBolts=[];thrownCats=[];catAllies=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
 }
@@ -850,6 +865,8 @@ function tryShoot(){
     doMeleeSlash(a, false); shootCD=SPELL_MAXCD.melee;
   } else if(selectedSpell==='skad'){
     shootSkadWave(a); shootCD=SPELL_MAXCD.skad;
+  } else if(selectedSpell==='cat'){
+    throwCat(a); shootCD=SPELL_MAXCD.cat;
   } else if(selectedSpell==='lightning'){
     shootLightningZap(a);shootCD=0.13;
   } else if(selectedSpell==='arcane'){
@@ -893,6 +910,7 @@ function castSpell(){
   else if(selectedSpell==='horse') castHorseStampede();
   else if(selectedSpell==='melee'){ doMeleeSlash(Math.atan2(mouseWorld().wy-player.wy,mouseWorld().wx-player.wx), true); spellCD=0.45; }
   else if(selectedSpell==='skad') castSkadSmiteAll();
+  else if(selectedSpell==='cat') castSummonCats();
   else castChainLightning();
 }
 
@@ -1482,6 +1500,7 @@ function update(){
   if(selectedSpell==='horse'){ updateHorsePoop(); updateHorseStampedes(); }
   if(selectedSpell==='melee'){ updateMeleeSlashes(); }
   if(selectedSpell==='skad'){ updateSkadPassive(); updateSkadWaves(); }
+  if(selectedSpell==='cat'){ updateThrownCats(); updateCatAllies(); }
   spawnTimer-=DT;waveTimer+=DT;
   if(spawnTimer<=0){
     const n=Math.ceil(wave*0.6+0.5);
@@ -1988,7 +2007,7 @@ function drawSpellCD(){
   }
   cdCtx.shadowBlur=0;cdCtx.font='1.5rem sans-serif';cdCtx.textAlign='center';cdCtx.textBaseline='middle';
   cdCtx.globalAlpha=pct<0.05?1:0.4+0.6*(1-pct);
-  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':selectedSpell==='melee'?'⚔️':selectedSpell==='skad'?'⚡':'⛰',cx,cy);cdCtx.globalAlpha=1;
+  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':selectedSpell==='melee'?'⚔️':selectedSpell==='skad'?'⚡':selectedSpell==='cat'?'🐱':'⛰',cx,cy);cdCtx.globalAlpha=1;
 }
 
 // ── DRAW ARCANE MISSILES ──────────────────────────────
@@ -2531,6 +2550,402 @@ function drawSkaduffy(wx, wy, angle, iframesLeft, name) {
   drawNameTag(s.x, s.y, name||playerName, 'skad', true);
 }
 
+function checkCatUnlock(name) {
+  const card = document.getElementById('card-cat');
+  if (!card) return;
+  if (name === 'MeowMaster') {
+    if (!card.classList.contains('unlocked')) {
+      card.classList.add('unlocked');
+      card.style.boxShadow = '0 0 80px rgba(255,100,180,1)';
+      setTimeout(() => { card.style.boxShadow = ''; }, 900);
+      const notice = document.createElement('div');
+      notice.textContent = '🐱 CAT WIZARD UNLOCKED 🐱';
+      notice.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        font-family:'Cinzel Decorative',cursive;font-size:1.6rem;color:#ff88cc;
+        text-shadow:0 0 30px #ff44aa,0 0 80px #cc0066;z-index:999;pointer-events:none;
+        animation:fadeNotice 2.2s ease forwards;`;
+      document.body.appendChild(notice);
+      setTimeout(() => notice.remove(), 2200);
+    }
+  } else {
+    card.classList.remove('unlocked');
+    if (selectedSpell === 'cat') { selectedSpell = 'earth'; selectSpell('earth'); }
+  }
+}
+
+// ── CAT WIZARD ──────────────────────────────────────────
+let thrownCats = [], catAllies = [];
+const MAX_CAT_ALLIES = 4;
+
+function throwCat(angle) {
+  const spd = 420;
+  thrownCats.push({
+    wx: player.wx, wy: player.wy,
+    vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
+    angle,
+    age: 0,
+    attachedTo: null, // enemy index once latched
+    animFrame: 0,
+    color: ['#f4a460','#888','#ff8888','#d2691e','#aaa'][Math.floor(Math.random()*5)]
+  });
+}
+
+function updateThrownCats() {
+  for (let i = thrownCats.length - 1; i >= 0; i--) {
+    const c = thrownCats[i];
+    c.age += DT;
+    c.animFrame += DT * 8;
+
+    if (c.attachedTo !== null) {
+      // Cat is latched — follow the enemy and deal tick damage
+      const e = enemies[c.attachedTo];
+      if (!e || e.hp <= 0) { thrownCats.splice(i, 1); continue; }
+      // Ride on enemy head
+      c.wx = e.wx;
+      c.wy = e.wy - e.radius - 10;
+      // Damage tick: 1 damage every 0.4s
+      if (!c.tickTimer) c.tickTimer = 0;
+      c.tickTimer -= DT;
+      if (c.tickTimer <= 0) {
+        c.tickTimer = 0.4;
+        // Scratch particles
+        for (let p = 0; p < 4; p++) {
+          const pa = Math.random() * Math.PI * 2;
+          spawnPart(e.wx, e.wy, '#ff88cc', 2+Math.random()*2, Math.cos(pa)*4, Math.sin(pa)*4, 0.35);
+        }
+        damageEnemy(c.attachedTo, 1);
+        if (c.attachedTo >= enemies.length || !enemies[c.attachedTo]) {
+          thrownCats.splice(i, 1);
+        }
+      }
+      continue;
+    }
+
+    // Flying — move
+    c.wx += c.vx * DT;
+    c.wy += c.vy * DT;
+
+    // Check for enemy hit
+    let latched = false;
+    for (let ei = 0; ei < enemies.length; ei++) {
+      const e = enemies[ei];
+      if (!e || e.type === 'skeleton_ally') continue;
+      const dist = Math.hypot(e.wx - c.wx, e.wy - c.wy);
+      if (dist < e.radius + 14) {
+        c.attachedTo = ei;
+        c.wx = e.wx; c.wy = e.wy - e.radius - 10;
+        c.tickTimer = 0.1; // first hit fast
+        // Latch particles
+        for (let p = 0; p < 10; p++) {
+          const pa = Math.random() * Math.PI * 2;
+          spawnPart(e.wx, e.wy, '#ff88cc', 3+Math.random()*3, Math.cos(pa)*6, Math.sin(pa)*6, 0.5);
+        }
+        floatTexts.push({ wx: e.wx, wy: e.wy - 40, text: 'CAT ATTACHED!', color: '#ff88cc', life: 1.2, big: false });
+        latched = true;
+        break;
+      }
+    }
+    if (latched) continue;
+
+    // Out of range or old
+    if (c.age > 3.5) { thrownCats.splice(i, 1); }
+  }
+}
+
+function castSummonCats() {
+  spellCD = 7.0;
+  if (catAllies.length >= MAX_CAT_ALLIES) {
+    // Already at max — refresh pounce timers
+    catAllies.forEach(a => { a.pounceTimer = 0.5 + Math.random() * 1.5; });
+    floatTexts.push({ wx: player.wx, wy: player.wy - 50, text: 'CATS REFRESHED!', color: '#ff88cc', life: 1.5, big: false });
+    return;
+  }
+  const colors = ['#f4a460','#888888','#ff8888','#d2691e','#bbbbbb'];
+  const count = MAX_CAT_ALLIES - catAllies.length;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    catAllies.push({
+      wx: player.wx + Math.cos(angle) * 50,
+      wy: player.wy + Math.sin(angle) * 50,
+      vx: 0, vy: 0,
+      color: colors[i % colors.length],
+      hp: 5, maxHp: 5,
+      target: null,
+      state: 'idle', // idle | chase | pounce | pouncing
+      pounceTimer: 1 + Math.random() * 2,
+      pounceCooldown: 0,
+      animFrame: 0,
+      pounceVx: 0, pounceVy: 0
+    });
+  }
+  floatTexts.push({ wx: player.wx, wy: player.wy - 60, text: '🐱 CATS SUMMONED! 🐱', color: '#ff88cc', life: 2.0, big: true });
+}
+
+function updateCatAllies() {
+  for (let i = catAllies.length - 1; i >= 0; i--) {
+    const c = catAllies[i];
+    c.animFrame += DT * 6;
+    c.pounceCooldown = Math.max(0, c.pounceCooldown - DT);
+
+    // Find nearest enemy
+    let nearest = null, nearDist = Infinity;
+    for (let ei = 0; ei < enemies.length; ei++) {
+      const e = enemies[ei];
+      if (!e || e.type === 'skeleton_ally') continue;
+      const d = Math.hypot(e.wx - c.wx, e.wy - c.wy);
+      if (d < nearDist) { nearDist = d; nearest = ei; }
+    }
+    c.target = nearest;
+
+    if (c.state === 'pouncing') {
+      // Mid-pounce — fly at target
+      c.wx += c.pounceVx * DT;
+      c.wy += c.pounceVy * DT;
+      // Check hit
+      if (nearest !== null) {
+        const e = enemies[nearest];
+        const d = Math.hypot(e.wx - c.wx, e.wy - c.wy);
+        if (d < e.radius + 16) {
+          // POUNCE KILL
+          for (let p = 0; p < 18; p++) {
+            const pa = Math.random() * Math.PI * 2;
+            spawnPart(e.wx, e.wy, p%2===0?'#ff88cc':'#ffffff', 3+Math.random()*4, Math.cos(pa)*8, Math.sin(pa)*8, 0.6);
+          }
+          floatTexts.push({ wx: e.wx, wy: e.wy - 40, text: '😼 POUNCED!', color: '#ff88cc', life: 1.5, big: false });
+          damageEnemy(nearest, enemies[nearest].maxHp + 999);
+          c.state = 'idle';
+          c.pounceCooldown = 3 + Math.random() * 2;
+          // Land cat near where enemy was
+          c.wx = e.wx; c.wy = e.wy;
+        }
+      }
+      // If flew far enough with no hit, settle
+      c.pounceTimer -= DT;
+      if (c.pounceTimer <= 0) { c.state = 'idle'; c.pounceCooldown = 2; }
+      continue;
+    }
+
+    if (nearest !== null) {
+      const e = enemies[nearest];
+      c.state = 'chase';
+      const toEx = e.wx - c.wx, toEy = e.wy - c.wy;
+      const d2 = Math.hypot(toEx, toEy);
+      const spd = 130;
+
+      // Pounce when in range and timer ready
+      if (d2 < 180 && c.pounceCooldown <= 0) {
+        c.pounceTimer -= DT;
+        if (c.pounceTimer <= 0) {
+          // LAUNCH pounce
+          c.state = 'pouncing';
+          c.pounceTimer = 0.55; // max flight time
+          const pSpd = 480;
+          c.pounceVx = (toEx / d2) * pSpd;
+          c.pounceVy = (toEy / d2) * pSpd;
+          // Pounce wind-up particles
+          for (let p = 0; p < 8; p++) {
+            const pa = Math.random() * Math.PI * 2;
+            spawnPart(c.wx, c.wy, '#ff88cc', 2+Math.random()*2, Math.cos(pa)*5, Math.sin(pa)*5, 0.4);
+          }
+          continue;
+        }
+      } else if (d2 >= 180 || c.pounceCooldown > 0) {
+        c.pounceTimer = 0.4 + Math.random() * 1.2; // reset pounce wait
+      }
+
+      // Normal chase movement
+      if (d2 > 30) {
+        c.wx += (toEx / d2) * spd * DT;
+        c.wy += (toEy / d2) * spd * DT;
+      }
+    } else {
+      // Wander back toward player
+      c.state = 'idle';
+      const toPx = player.wx - c.wx, toPy = player.wy - c.wy;
+      const dp = Math.hypot(toPx, toPy);
+      if (dp > 80) {
+        c.wx += (toPx / dp) * 80 * DT;
+        c.wy += (toPy / dp) * 80 * DT;
+      }
+    }
+
+    // Cat dies if hp <= 0 (enemies can't directly attack them in this setup, but just in case)
+    if (c.hp <= 0) {
+      for (let p = 0; p < 8; p++) { const pa=Math.random()*Math.PI*2; spawnPart(c.wx,c.wy,'#ff88cc',2,Math.cos(pa)*4,Math.sin(pa)*4,0.4); }
+      catAllies.splice(i, 1);
+    }
+  }
+}
+
+// Draw a single cat at canvas coords (x,y), scaled by sz, with color
+function drawCatShape(ctx, x, y, sz, color, animFrame, isPouncing) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (isPouncing) {
+    const stretch = 1.4;
+    ctx.scale(stretch, 1 / stretch);
+  }
+  // Pouncing wiggle
+  const bob = isPouncing ? 0 : Math.sin(animFrame) * 2;
+  ctx.translate(0, bob);
+
+  // Body
+  ctx.fillStyle = color;
+  ctx.shadowColor = '#ff44aa'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.ellipse(0, 4*sz, 9*sz, 7*sz, 0, 0, Math.PI*2); ctx.fill();
+  // Head
+  ctx.beginPath(); ctx.arc(0, -5*sz, 8*sz, 0, Math.PI*2); ctx.fill();
+  // Ears
+  ctx.beginPath();
+  ctx.moveTo(-7*sz, -11*sz); ctx.lineTo(-4*sz, -18*sz); ctx.lineTo(-1*sz, -11*sz); ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(7*sz, -11*sz); ctx.lineTo(4*sz, -18*sz); ctx.lineTo(1*sz, -11*sz); ctx.closePath(); ctx.fill();
+  // Inner ears
+  ctx.fillStyle = '#ffb0cc';
+  ctx.beginPath();
+  ctx.moveTo(-6*sz, -12*sz); ctx.lineTo(-4*sz, -16*sz); ctx.lineTo(-2*sz, -12*sz); ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(6*sz, -12*sz); ctx.lineTo(4*sz, -16*sz); ctx.lineTo(2*sz, -12*sz); ctx.closePath(); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.ellipse(-3*sz, -6*sz, 2.5*sz, 2*sz, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3*sz, -6*sz, 2.5*sz, 2*sz, 0, 0, Math.PI*2); ctx.fill();
+  if (isPouncing) { // angry eyes when pouncing
+    ctx.strokeStyle = '#ff0000'; ctx.lineWidth = sz;
+    ctx.beginPath(); ctx.moveTo(-5*sz, -8*sz); ctx.lineTo(-1*sz, -5*sz); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(5*sz, -8*sz); ctx.lineTo(1*sz, -5*sz); ctx.stroke();
+  } else {
+    ctx.fillStyle = '#88ff88';
+    ctx.beginPath(); ctx.ellipse(-3*sz, -6*sz, 1.2*sz, 1.8*sz, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3*sz, -6*sz, 1.2*sz, 1.8*sz, 0, 0, Math.PI*2); ctx.fill();
+  }
+  // Nose
+  ctx.fillStyle = '#ff88aa'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.arc(0, -3.5*sz, 1.5*sz, 0, Math.PI*2); ctx.fill();
+  // Whiskers
+  ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = sz * 0.5; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.moveTo(-2*sz,-3.5*sz); ctx.lineTo(-10*sz,-3*sz); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-2*sz,-3.5*sz); ctx.lineTo(-10*sz,-5*sz); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(2*sz,-3.5*sz); ctx.lineTo(10*sz,-3*sz); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(2*sz,-3.5*sz); ctx.lineTo(10*sz,-5*sz); ctx.stroke();
+  // Tail (curly)
+  ctx.strokeStyle = color; ctx.lineWidth = 3*sz; ctx.lineCap = 'round'; ctx.shadowColor = '#ff44aa'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  ctx.moveTo(8*sz, 8*sz);
+  ctx.bezierCurveTo(18*sz, 6*sz, 20*sz, -4*sz, 12*sz, -8*sz + Math.sin(animFrame)*3*sz);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawThrownCats() {
+  thrownCats.forEach(c => {
+    const s = w2s(c.wx, c.wy);
+    if (c.attachedTo !== null) {
+      // Riding on enemy head - draw latched with claws out
+      drawCatShape(ctx, s.x, s.y, 1, c.color, c.animFrame, true);
+      // Scratch lines
+      ctx.save();
+      ctx.strokeStyle = '#ff4488'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+      for (let j = 0; j < 3; j++) {
+        const sx = s.x + (j-1)*6;
+        ctx.beginPath(); ctx.moveTo(sx, s.y+4); ctx.lineTo(sx+4, s.y+12); ctx.stroke();
+      }
+      ctx.restore();
+    } else {
+      // Flying through air - rotate with trajectory
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(c.angle + c.age * 10);
+      ctx.translate(-s.x, -s.y);
+      drawCatShape(ctx, s.x, s.y, 1, c.color, c.animFrame, false);
+      ctx.restore();
+    }
+  });
+}
+
+function drawCatAllies() {
+  catAllies.forEach(c => {
+    const s = w2s(c.wx, c.wy);
+    drawCatShape(ctx, s.x, s.y, 1.15, c.color, c.animFrame, c.state === 'pouncing');
+    // HP bar
+    if (c.hp < c.maxHp) {
+      ctx.save();
+      ctx.fillStyle = '#330000'; ctx.fillRect(s.x-14, s.y+16, 28, 4);
+      ctx.fillStyle = '#ff88cc'; ctx.fillRect(s.x-14, s.y+16, 28*(c.hp/c.maxHp), 4);
+      ctx.restore();
+    }
+    // Pounce charge indicator
+    if (c.pounceCooldown <= 0 && c.state === 'chase') {
+      ctx.save();
+      ctx.globalAlpha = 0.5 + Math.sin(Date.now()/100)*0.3;
+      ctx.fillStyle = '#ff44aa'; ctx.shadowColor='#ff88cc'; ctx.shadowBlur=10;
+      ctx.font = 'bold 11px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('😼', s.x, s.y - 28);
+      ctx.restore();
+    }
+  });
+}
+
+function drawCatWizard(wx, wy, angle, iframesLeft, name) {
+  if (iframesLeft > 0 && Math.floor(iframesLeft * 8) % 2 === 0) return;
+  const s = w2s(wx, wy);
+  ctx.save(); ctx.translate(s.x, s.y);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.ellipse(3, 8, 22, 10, 0, 0, Math.PI*2); ctx.fill();
+
+  const bl = 32, bx = Math.cos(angle)*bl, by = Math.sin(angle)*bl;
+
+  // Staff — pink wand with cat paw orb
+  ctx.strokeStyle = '#5a1a3a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.shadowColor = 'rgba(255,100,180,0.4)'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(bx, by); ctx.stroke();
+  // Paw orb at tip
+  ctx.fillStyle = '#ff88cc'; ctx.shadowColor = '#ff44aa'; ctx.shadowBlur = 20;
+  ctx.beginPath(); ctx.arc(bx, by, 10, 0, Math.PI*2); ctx.fill();
+  // Paw toe beans
+  ctx.fillStyle = '#ff6699'; ctx.shadowBlur = 0;
+  const toeOffsets = [[-3,-5],[3,-5],[0,-7]];
+  toeOffsets.forEach(([ox,oy]) => { ctx.beginPath(); ctx.arc(bx+ox, by+oy, 2.5, 0, Math.PI*2); ctx.fill(); });
+  ctx.shadowBlur = 0;
+
+  // Robe — deep magenta/purple
+  ctx.fillStyle = '#2a0a1a'; ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(255,100,180,0.35)'; ctx.shadowBlur = 10;
+  ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // Cat face on robe
+  ctx.fillStyle = '#ff88cc'; ctx.shadowColor = '#ff44aa'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
+  // Mini ears
+  ctx.fillStyle = '#ff88cc';
+  ctx.beginPath(); ctx.moveTo(-7, -5); ctx.lineTo(-5, -12); ctx.lineTo(-2, -5); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(7, -5); ctx.lineTo(5, -12); ctx.lineTo(2, -5); ctx.closePath(); ctx.fill();
+  // Mini cat eyes
+  ctx.fillStyle = '#222'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.ellipse(-3, -1, 2, 1.8, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3, -1, 2, 1.8, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#88ff88';
+  ctx.beginPath(); ctx.ellipse(-3,-1,0.9,1.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3,-1,0.9,1.5,0,0,Math.PI*2); ctx.fill();
+  // Mini nose
+  ctx.fillStyle = '#ff88aa';
+  ctx.beginPath(); ctx.arc(0, 2, 1.3, 0, Math.PI*2); ctx.fill();
+
+  // Outer ring with floating paw prints
+  ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 2.5; ctx.shadowColor = '#ff88cc'; ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.arc(0, 0, 23, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = '#ff88cc'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let i = 0; i < 4; i++) {
+    const ra = (i/4)*Math.PI*2 + Date.now()*0.0015;
+    ctx.fillText('🐾', Math.cos(ra)*23, Math.sin(ra)*23);
+  }
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+  drawNameTag(s.x, s.y, name || playerName, 'cat', true);
+}
+
 function loop(){
   if(!gameRunning)return;
   update();
@@ -2554,6 +2969,8 @@ function loop(){
   drawMeleeSlashes();
   drawSkadWaves();
   drawSkadBolts();
+  drawThrownCats();
+  drawCatAllies();
   enemies.forEach(e=>{if(e.type!=='skeleton_ally')drawGoblin(e);});
   enemies.forEach(e=>{if(e.type==='skeleton_ally')drawSkeletonAlly(e);});
   // Draw wizard — secret classes get special draw
@@ -2563,6 +2980,8 @@ function loop(){
     drawRufus(player.wx,player.wy,player.angle,iframes);
   } else if(selectedSpell==='skad'){
     drawSkaduffy(player.wx,player.wy,player.angle,iframes);
+  } else if(selectedSpell==='cat'){
+    drawCatWizard(player.wx,player.wy,player.angle,iframes);
   } else {
     drawWizard(player.wx,player.wy,player.angle,iframes);
   }
