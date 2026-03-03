@@ -3052,6 +3052,10 @@ const PET_DEFS = [
   { id:'sloth',      name:'Sloth',         label:'Slowest Pal',         color:'#aa9966' },
   { id:'frog',       name:'Frog',          label:'Hoppy Companion',     color:'#44bb44' },
   { id:'tarantula',  name:'Tarantula',     label:'8 Legged Bestie',     color:'#553322' },
+  { id:'fennecfox',  name:'Fennec Fox',    label:'Big Ears Big Heart',  color:'#ffcc88' },
+  { id:'ferret',     name:'Ferret',        label:'Slinky Noodle',       color:'#ccaa88' },
+  { id:'capybara',   name:'Capybara',      label:'Chill Vibes Only',    color:'#aa8855' },
+  { id:'axolotl',    name:'Axolotl',       label:'Walking Flower',      color:'#ff88cc' },
 ];
 
 function initPetShop() {
@@ -3155,6 +3159,10 @@ function drawPet() {
     case 'sloth':      drawPetSloth(s.x, s.y, p); break;
     case 'frog':       drawPetFrog(s.x, s.y, p); break;
     case 'tarantula':  drawPetTarantula(s.x, s.y, p); break;
+    case 'fennecfox':  drawPetFennecFox(s.x, s.y, p); break;
+    case 'ferret':     drawPetFerret(s.x, s.y, p); break;
+    case 'capybara':   drawPetCapybara(s.x, s.y, p); break;
+    case 'axolotl':    drawPetAxolotl(s.x, s.y, p); break;
   }
 }
 
@@ -3980,10 +3988,250 @@ function drawPetPreview(id) {
     firedragon:'🐉', bunny:'🐰', voiddragon:'🐲',
     chinchilla:'🐭', squid:'🦑', fish:'🐟', turtle:'🐢',
     hedgehog:'🦔', hamster:'🐹', parrot:'🦜', pig:'🐷',
-    goat:'🐐', raccoon:'🦝', sloth:'🦥', frog:'🐸', tarantula:'🕷️'
+    goat:'🐐', raccoon:'🦝', sloth:'🦥', frog:'🐸', tarantula:'🕷️',
+    fennecfox:'🦊', ferret:'🐾', capybara:'🐾', axolotl:'🦎'
   };
   c.fillText(emojis[id] || '?', 45, 46);
   c.restore();
+}
+
+// ── PET: FENNEC FOX ──
+function drawPetFennecFox(x, y, p) {
+  const bob = Math.sin(p.animFrame * 1.1) * 2;
+  const tailWag = Math.sin(p.tailPhase * 1.8) * 14;
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#ffcc88'; ctx.shadowBlur = 10;
+  const c = '#ffcc88', dark = '#cc8844';
+  // Big fluffy tail with white tip
+  ctx.strokeStyle = c; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(8, 4);
+  ctx.bezierCurveTo(16, 2 + tailWag * 0.4, 20, -4 + tailWag * 0.3, 17, -10 + tailWag * 0.5);
+  ctx.stroke();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(16, -7 + tailWag * 0.5);
+  ctx.lineTo(17, -10 + tailWag * 0.5);
+  ctx.stroke();
+  // Body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 5, 9, 10, 0, 0, Math.PI * 2); ctx.fill();
+  // Chest/belly — pale
+  ctx.fillStyle = '#fff8ee'; ctx.beginPath(); ctx.ellipse(0, 6, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
+  // Head
+  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, -5, 9, 0, Math.PI * 2); ctx.fill();
+  // THE ENORMOUS EARS — fennec fox signature
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(-6, -12); ctx.quadraticCurveTo(-18, -28, -10, -30); ctx.quadraticCurveTo(-2, -28, -4, -12); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(6, -12); ctx.quadraticCurveTo(18, -28, 10, -30); ctx.quadraticCurveTo(2, -28, 4, -12); ctx.closePath(); ctx.fill();
+  // Inner ear
+  ctx.fillStyle = '#ffaacc';
+  ctx.beginPath(); ctx.moveTo(-6, -13); ctx.quadraticCurveTo(-14, -26, -9, -27); ctx.quadraticCurveTo(-4, -25, -5, -13); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(6, -13); ctx.quadraticCurveTo(14, -26, 9, -27); ctx.quadraticCurveTo(4, -25, 5, -13); ctx.closePath(); ctx.fill();
+  // Big dark eyes
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-3, -6, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3, -6, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-2, -7, 1.3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4, -7, 1.3, 0, Math.PI * 2); ctx.fill();
+  // Pointy snout
+  ctx.fillStyle = '#ffddaa'; ctx.beginPath(); ctx.ellipse(0, -1, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#553322'; ctx.beginPath(); ctx.arc(0, -2, 1.5, 0, Math.PI * 2); ctx.fill();
+  // Legs
+  ctx.fillStyle = dark;
+  [[-4, 13], [4, 13]].forEach(([lx, ly]) => { ctx.beginPath(); ctx.ellipse(lx, ly, 2.5, 3.5, 0, 0, Math.PI * 2); ctx.fill(); });
+  ctx.restore();
+}
+
+// ── PET: FERRET ──
+function drawPetFerret(x, y, p) {
+  // Ferret is long and slinky — wiggles with a sine wave
+  const time = p.animFrame;
+  const slink = Math.sin(time * 1.5) * 5;
+  const bob = Math.sin(time * 1.5) * 2;
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#ddbbaa'; ctx.shadowBlur = 8;
+  const c = '#ccaa88';
+  // Long slinky body — drawn as overlapping ellipses for noodle effect
+  ctx.fillStyle = c;
+  for (let i = 0; i < 5; i++) {
+    const bx = (i - 2) * 5;
+    const by = Math.sin(time * 1.5 + i * 0.6) * 3;
+    ctx.beginPath(); ctx.ellipse(bx, by + 4, 5, 7 - i * 0.3, Math.sin(time * 1.5 + i * 0.5) * 0.2, 0, Math.PI * 2); ctx.fill();
+  }
+  // Underbelly lighter stripe
+  ctx.fillStyle = '#eeddcc';
+  for (let i = 0; i < 4; i++) {
+    const bx = (i - 1.5) * 5;
+    const by = Math.sin(time * 1.5 + i * 0.6) * 3;
+    ctx.beginPath(); ctx.ellipse(bx, by + 6, 3, 4, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  // Tail — long and tapered
+  ctx.strokeStyle = '#aa8866'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(14, 4 + slink * 0.3);
+  ctx.bezierCurveTo(20, 2 + slink, 24, -2 + slink * 0.8, 22, -6 + slink * 0.5);
+  ctx.stroke();
+  // Dark tip
+  ctx.strokeStyle = '#443322'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(21, -4 + slink * 0.5); ctx.lineTo(22, -6 + slink * 0.5); ctx.stroke();
+  // Head
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(-13, 0 + Math.sin(time * 1.5) * 2, 7, 5, -0.2, 0, Math.PI * 2); ctx.fill();
+  // Ferret mask — dark patches around eyes
+  ctx.fillStyle = '#553322';
+  ctx.beginPath(); ctx.ellipse(-15, -1 + Math.sin(time * 1.5) * 2, 3, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-10, -1 + Math.sin(time * 1.5) * 2, 3, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#aa3300'; ctx.shadowColor = '#ff4400'; ctx.shadowBlur = 5;
+  ctx.beginPath(); ctx.arc(-15, -1 + Math.sin(time * 1.5) * 2, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-10, -1 + Math.sin(time * 1.5) * 2, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.arc(-14.4, -1.5 + Math.sin(time * 1.5) * 2, 0.6, 0, Math.PI * 2); ctx.fill();
+  // Tiny nose
+  ctx.fillStyle = '#ff8877'; ctx.beginPath(); ctx.arc(-12.5, 2 + Math.sin(time * 1.5) * 2, 1.2, 0, Math.PI * 2); ctx.fill();
+  // Round ears
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.arc(-15, -5 + Math.sin(time * 1.5) * 2, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-10, -5 + Math.sin(time * 1.5) * 2, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// ── PET: CAPYBARA ──
+function drawPetCapybara(x, y, p) {
+  const bob = Math.sin(p.animFrame * 0.7) * 1.5; // very chill, barely moves
+  const earWiggle = Math.sin(p.animFrame * 0.5) * 1;
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#bb9966'; ctx.shadowBlur = 8;
+  const c = '#aa8855', light = '#ccaa77';
+  // Big chunky body
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(2, 4, 16, 11, 0, 0, Math.PI * 2); ctx.fill();
+  // Fur texture — subtle darker patches
+  ctx.fillStyle = '#997744';
+  ctx.beginPath(); ctx.ellipse(-4, 2, 6, 5, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(7, 6, 5, 4, -0.2, 0, Math.PI * 2); ctx.fill();
+  // Stubby legs
+  ctx.fillStyle = '#997744';
+  [[-8, 13], [-3, 14], [5, 14], [10, 13]].forEach(([lx, ly]) => {
+    ctx.beginPath(); ctx.ellipse(lx, ly, 3.5, 3, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  // Short stubby tail
+  ctx.fillStyle = '#997744'; ctx.beginPath(); ctx.ellipse(17, 3, 3, 2, 0.3, 0, Math.PI * 2); ctx.fill();
+  // Big square head — capybara has a very boxy head
+  ctx.fillStyle = c;
+  ctx.beginPath();
+  ctx.roundRect(-13, -12, 16, 13, 3);
+  ctx.fill();
+  // Snout area — flat and wide
+  ctx.fillStyle = light;
+  ctx.beginPath(); ctx.roundRect(-12, -7, 14, 9, 2); ctx.fill();
+  // Nostrils — big and flat on top
+  ctx.fillStyle = '#775533';
+  ctx.beginPath(); ctx.ellipse(-7, -9, 2, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-3, -9, 2, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+  // Eyes — small and calm up high
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-9, -11, 2.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-8.2, -11.8, 0.8, 0, Math.PI * 2); ctx.fill();
+  // Tiny round ears on top
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.arc(-9, -14, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-2, -14 + earWiggle, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#cc9966';
+  ctx.beginPath(); ctx.arc(-9, -14, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-2, -14 + earWiggle, 1.8, 0, Math.PI * 2); ctx.fill();
+  // Serene smile
+  ctx.strokeStyle = '#775533'; ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(-5.5, -3, 3, 0.1, Math.PI - 0.1); ctx.stroke();
+  ctx.restore();
+}
+
+// ── PET: AXOLOTL ──
+function drawPetAxolotl(x, y, p) {
+  const bob = Math.sin(p.animFrame * 0.8) * 2.5;
+  const gillWave = p.animFrame;
+  const tailWag = Math.sin(p.tailPhase * 1.2) * 10;
+  const legWiggle = Math.sin(p.animFrame * 1.4) * 4;
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#ff88cc'; ctx.shadowBlur = 14;
+  const c = '#ffaad4', dark = '#ee77bb', pale = '#ffd4ee';
+  // Tail fin — wavy
+  ctx.fillStyle = dark;
+  ctx.beginPath();
+  ctx.moveTo(12, 2);
+  ctx.bezierCurveTo(18, -2 + tailWag * 0.4, 24, 2 + tailWag * 0.6, 20, 6 + tailWag * 0.3);
+  ctx.bezierCurveTo(16, 8, 12, 6, 12, 2);
+  ctx.fill();
+  // Fin edge detail
+  ctx.strokeStyle = '#ff66bb'; ctx.lineWidth = 1; ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const fx = 14 + i * 2, fy = -1 + tailWag * 0.3 + i * 1.5;
+    ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx + 2, fy - 4); ctx.stroke();
+  }
+  // Body — rounded and cute
+  ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(2, 3, 13, 9, 0, 0, Math.PI * 2); ctx.fill();
+  // Belly spots — darker pink polka dots
+  ctx.fillStyle = dark;
+  [[0, 4], [5, 2], [-4, 6], [3, 7]].forEach(([sx, sy]) => {
+    ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI * 2); ctx.fill();
+  });
+  // 4 stubby legs with little toes
+  ctx.fillStyle = c;
+  [[-8, 9, -1], [0, 11, 0], [8, 10, 1], [-4, 10, -0.5]].forEach(([lx, ly, tilt], i) => {
+    if (i < 2) { // front legs
+      ctx.beginPath(); ctx.ellipse(lx - 6, ly - 2 + (i % 2 === 0 ? legWiggle : -legWiggle) * 0.5, 3, 5, tilt, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+  // Simpler: just 4 nubs
+  ctx.fillStyle = dark;
+  [[-9, 8], [8, 8], [-6, 12], [6, 12]].forEach(([lx, ly], i) => {
+    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(lx, ly + (i % 2 === 0 ? legWiggle * 0.3 : -legWiggle * 0.3), 3, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    // 3 tiny toes
+    ctx.fillStyle = pale;
+    for (let t = -1; t <= 1; t++) {
+      ctx.beginPath(); ctx.arc(lx + t * 2.5, ly + 4 + (i % 2 === 0 ? legWiggle * 0.3 : -legWiggle * 0.3), 1.2, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+  // Head
+  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(-8, -4, 10, 0, Math.PI * 2); ctx.fill();
+  // GILLS — the iconic axolotl feathery gills, 3 on each side
+  const gillColors = ['#ff44aa', '#ff66bb', '#ff88cc'];
+  for (let side = -1; side <= 1; side += 2) {
+    for (let g = 0; g < 3; g++) {
+      const gx = -8 + side * 8;
+      const gy = -10 - g * 4;
+      const gWave = Math.sin(gillWave + g * 0.8) * 3 * side;
+      // Gill stalk
+      ctx.strokeStyle = dark; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(gx, gy + 2); ctx.lineTo(gx + gWave, gy - 5); ctx.stroke();
+      // Feathery branches off stalk
+      ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 1;
+      for (let b = 0; b < 3; b++) {
+        const bx = gx + gWave * ((b + 1) / 4);
+        const by = gy + 2 - (b + 1) * 2.2;
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + side * 4, by - 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + side * 3, by + 1); ctx.stroke();
+      }
+      // Tip dot
+      ctx.fillStyle = '#ff22aa'; ctx.shadowColor = '#ff88cc'; ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.arc(gx + gWave, gy - 5, 2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.shadowBlur = 0;
+  // Big round eyes — very cute
+  ctx.fillStyle = pale; ctx.shadowColor = '#ff88cc'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(-11, -5, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-5, -5, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.arc(-11, -5, 2.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-5, -5, 2.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-10, -6, 1.1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-4, -6, 1.1, 0, Math.PI * 2); ctx.fill();
+  // Tiny happy smile
+  ctx.strokeStyle = '#cc5599'; ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(-8, -1.5, 3, 0.2, Math.PI - 0.2); ctx.stroke();
+  // Little round nostrils
+  ctx.fillStyle = '#ee77bb';
+  ctx.beginPath(); ctx.arc(-9.5, -3, 0.9, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-6.5, -3, 0.9, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 function loop(){
