@@ -64,6 +64,15 @@
   .spell-desc.horse { color:#7a6a20; }
   .spell-tag.horse { background:rgba(255,200,0,0.15); color:#ffdd44; border-color:rgba(255,200,0,0.35); }
   .hud-score.horse-hud { color:#ffdd44; text-shadow:0 0 10px #ffaa00; }
+  /* ── RUFUS (melee secret) ── */
+  .spell-card.melee-card { border-color:#4a2a6a; background:linear-gradient(135deg,#120818,#0c0510); display:none; }
+  .spell-card.melee-card.unlocked { display:flex; }
+  .spell-card.melee-card.selected,.spell-card.melee-card:hover { border-color:#cc88ff; box-shadow:0 0 35px rgba(180,80,255,0.7); }
+  .spell-name.melee { color:#cc88ff; }
+  .spell-desc.melee { color:#6a3a8a; }
+  .spell-tag.melee { background:rgba(180,80,255,0.15); color:#cc88ff; border-color:rgba(180,80,255,0.35); }
+  .hud-score.melee-hud { color:#cc88ff; text-shadow:0 0 10px #aa44ff; }
+  @keyframes rufusRevenge{0%{transform:scale(1);filter:brightness(1)}40%{transform:scale(1.35);filter:brightness(3) hue-rotate(30deg)}100%{transform:scale(1);filter:brightness(1)}}
   .enter-btn { margin-top:2em; background:linear-gradient(135deg,#1a4a1a,#0d2a0d); border:1px solid #4a9a4a; color:#7fff7f; font-family:'Cinzel',serif; font-size:1rem; letter-spacing:0.2em; padding:0.75em 3em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
   .enter-btn:hover { border-color:#7fff7f; box-shadow:0 0 20px rgba(0,255,68,0.3); color:#fff; }
   .back-btn { position:absolute; top:18px; left:18px; background:transparent; border:1px solid #2a5a2a; color:#4a7a4a; font-family:'Cinzel',serif; font-size:0.75rem; letter-spacing:0.15em; padding:0.45em 1.1em; cursor:pointer; transition:all 0.3s; text-transform:uppercase; }
@@ -220,6 +229,12 @@
       <div class="spell-name horse">Horse Wizard</div>
       <div class="spell-desc horse">Left-click lobs steaming horse poop. Right-click: HORSE STAMPEDE obliterates everything in its path.</div>
     </div>
+    <div class="spell-card melee-card" id="card-melee" onclick="selectSpell('melee')">
+      <div class="spell-tag melee">SECRET</div>
+      <div class="spell-icon" style="font-size:2.6rem">⚔️</div>
+      <div class="spell-name melee">Rufus</div>
+      <div class="spell-desc melee">Left-click slashes. Right-click heavy slash. When death strikes — VENGEANCE: the killing blow bounces back.</div>
+    </div>
   </div>
   <!-- Name input on spell select screen -->
   <div style="margin-top:1.5em;display:flex;align-items:center;gap:0.8em;">
@@ -230,7 +245,7 @@
       placeholder="Enter wizard name"
       value="Wizard"
       style="background:rgba(0,20,0,0.75);border:1px solid #2a5a2a;color:#afffaf;font-family:'Cinzel',serif;font-size:0.85rem;padding:0.4em 0.9em;letter-spacing:0.08em;outline:none;width:180px;text-align:center;"
-      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value);"
+      oninput="playerName=this.value||'Wizard'; checkHorseUnlock(this.value); checkMeleeUnlock(this.value);"
     />
   </div>
   <button class="enter-btn" onclick="startGame()">Enter the Arena →</button>
@@ -346,7 +361,7 @@ let mpGameTime   = 0;
 let mpConnected  = false;
 let mpInGame     = false;
 
-const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴' };
+const SPELL_ICONS = { earth:'🌿', fire:'🔥', lightning:'⚡', arcane:'🔮', ice:'❄️', horse:'🐴', melee:'⚔️' };
 
 // ── HORSE WIZARD UNLOCK ──────────────────────────────
 function checkHorseUnlock(name) {
@@ -673,7 +688,7 @@ document.addEventListener('contextmenu',e=>{e.preventDefault();if(gameRunning)ca
 let gameRunning=false,score=0,wave=1,playerHp=5,maxHp=5;
 let spawnTimer=0,waveTimer=0,shootCD=0,spellCD=0,iframes=0,gameTime=0;
 let armoredUnlocked=false,archerUnlocked=false,miniBossSpawned=false;
-const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4};
+const SPELL_MAXCD={earth:1.0,fire:4.0,lightning:2.5,arcane:9.0,ice:0.18,necro:8.0,horse:0.4,melee:0.28};
 const SPELL_DURATION={fire:2.0,ice:5.0};
 const player={wx:0,wy:0,speed:4,radius:18,angle:0};
 function mouseWorld(){return{wx:mouseX+cam.x,wy:mouseY+cam.y};}
@@ -690,7 +705,7 @@ function updateHUD(){
   document.getElementById('scoreDisplay').textContent=score;
   document.getElementById('waveDisplay').textContent=wave;
   const sl=document.getElementById('scoreLabel');
-  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':'hud-score';
+  sl.className=selectedSpell==='fire'?'hud-score fire-hud':selectedSpell==='lightning'?'hud-score lightning-hud':selectedSpell==='arcane'?'hud-score arcane-hud':selectedSpell==='ice'?'hud-score ice-hud':selectedSpell==='necro'?'hud-score necro-hud':selectedSpell==='horse'?'hud-score horse-hud':selectedSpell==='melee'?'hud-score melee-hud':'hud-score';
   const hp=document.getElementById('hpDisplay');hp.innerHTML='';
   for(let i=0;i<maxHp;i++){const s=document.createElement('span');s.style.fontSize='1.15rem';s.textContent=i<playerHp?(selectedSpell==='fire'?'❤️':selectedSpell==='ice'?'💙':selectedSpell==='necro'?'🖤':'💚'):'🖤';hp.appendChild(s);}
 }
@@ -719,6 +734,7 @@ function drawNameTag(sx, sy, name, spell, isYou=false, yOffset=0) {
     ice:       { text:'#88ddff', glow:'#22aaff', border:'rgba(100,200,255,0.5)',bg:'rgba(2,10,22,0.72)' },
     necro:     { text:'#aaffaa', glow:'#33dd33', border:'rgba(80,220,80,0.5)',  bg:'rgba(2,12,2,0.72)'  },
     horse:     { text:'#ffdd44', glow:'#ffaa00', border:'rgba(255,200,0,0.55)',  bg:'rgba(20,14,0,0.72)'  },
+    melee:     { text:'#cc88ff', glow:'#aa44ff', border:'rgba(180,80,255,0.55)', bg:'rgba(12,4,20,0.78)' },
   };
   const t = themes[spell] || themes.earth;
 
@@ -789,9 +805,9 @@ function startGame(){
   document.getElementById('hud').classList.remove('hidden');
   document.getElementById('hint').classList.remove('hidden');
   document.getElementById('spellHUD').classList.remove('hidden');
-  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':'WASD · Left-click landmine · Right-click rock turret';
+  document.getElementById('hint').textContent=selectedSpell==='fire'?'WASD · Left-click fireball · Right-click inferno':selectedSpell==='lightning'?'WASD · Left-click zap · Right-click chain lightning':selectedSpell==='arcane'?'WASD · Left-click 3x missiles · Right-click void orb':selectedSpell==='ice'?'WASD · Left-click icicle · Right-click blizzard':selectedSpell==='necro'?'WASD · Left-click bone shard · Right-click raise skeletons':selectedSpell==='horse'?'WASD · Left-click horse poop · Right-click HORSE STAMPEDE':selectedSpell==='melee'?'WASD · Left-click slash · Right-click heavy slash — near-death BOUNCES BACK':'WASD · Left-click landmine · Right-click rock turret';
   player.wx=0;player.wy=0;cam.x=-canvas.width/2;cam.y=-canvas.height/2;
-  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];enemies=[];particles=[];floatTexts=[];
+  bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;miniBossSpawned=false;
   updateHUD();gameRunning=true;requestAnimationFrame(loop);
 }
@@ -815,6 +831,8 @@ function tryShoot(){
     shootBoneShard(a);shootCD=0.08;
   } else if(selectedSpell==='horse'){
     throwHorsePoop(a);shootCD=0.22;
+  } else if(selectedSpell==='melee'){
+    doMeleeSlash(a, false); shootCD=SPELL_MAXCD.melee;
   } else if(selectedSpell==='lightning'){
     shootLightningZap(a);shootCD=0.13;
   } else if(selectedSpell==='arcane'){
@@ -856,6 +874,7 @@ function castSpell(){
   else if(selectedSpell==='ice') castBlizzard();
   else if(selectedSpell==='necro') castRaiseSkeletons();
   else if(selectedSpell==='horse') castHorseStampede();
+  else if(selectedSpell==='melee'){ doMeleeSlash(Math.atan2(mouseWorld().wy-player.wy,mouseWorld().wx-player.wx), true); spellCD=0.45; }
   else castChainLightning();
 }
 
@@ -942,7 +961,28 @@ function castRaiseSkeletons(){
   floatTexts.push({wx:player.wx,wy:player.wy-50,text:'💀 ARISE!',color:'#aaffaa',life:1.8,big:true});
 }
 
-// ── HORSE WIZARD ─────────────────────────────────────
+function checkMeleeUnlock(name) {
+  const card = document.getElementById('card-melee');
+  if (!card) return;
+  if (name === 'RufusAndHooves') {
+    if (!card.classList.contains('unlocked')) {
+      card.classList.add('unlocked');
+      card.style.boxShadow = '0 0 60px rgba(180,80,255,0.9)';
+      setTimeout(() => { card.style.boxShadow = ''; }, 800);
+      const notice = document.createElement('div');
+      notice.textContent = '⚔️ RUFUS UNLOCKED ⚔️';
+      notice.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        font-family:'Cinzel Decorative',cursive;font-size:1.6rem;color:#cc88ff;
+        text-shadow:0 0 30px #aa44ff,0 0 60px #8800ff;z-index:999;pointer-events:none;
+        animation:fadeNotice 2.2s ease forwards;`;
+      document.body.appendChild(notice);
+      setTimeout(() => notice.remove(), 2200);
+    }
+  } else {
+    card.classList.remove('unlocked');
+    if (selectedSpell === 'melee') { selectedSpell = 'earth'; selectSpell('earth'); }
+  }
+}
 let horsePoop=[], horseStampedes=[];
 
 function throwHorsePoop(angle){
@@ -1336,7 +1376,20 @@ function update(){
       const eSpdMult=e.slowTimer>0?0.35:1.0;
       e.wx+=Math.cos(a)*e.speed*eSpdMult;e.wy+=Math.sin(a)*e.speed*eSpdMult;
     }
-    if(iframes<=0&&dist<e.radius+player.radius){playerHp--;iframes=1.5;for(let p=0;p<12;p++)spawnPart(player.wx,player.wy,'#ff3333',3,(Math.random()-.5)*7,(Math.random()-.5)*7);updateHUD();if(playerHp<=0){endGame();return;}}
+    if(iframes<=0&&dist<e.radius+player.radius){
+      // ── RUFUS VENGEANCE: if this hit would kill, bounce it back ──
+      if(selectedSpell==='melee'&&playerHp<=1){
+        // Knockback the enemy away hard
+        const ang=Math.atan2(e.wy-player.wy,e.wx-player.wx);
+        e.wx+=Math.cos(ang)*120; e.wy+=Math.sin(ang)*120;
+        damageEnemy(enemies.indexOf(e), e.maxHp+999);
+        iframes=0.8;
+        // Flash + text
+        for(let p=0;p<20;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#cc88ff':'#ff44ff',4,(Math.cos(pa))*(4+Math.random()*8),(Math.sin(pa))*(4+Math.random()*8),0.7);}
+        floatTexts.push({wx:player.wx,wy:player.wy-55,text:'⚔️ VENGEANCE!',color:'#cc88ff',life:2.0,big:true});
+        continue;
+      }
+      playerHp--;iframes=1.5;for(let p=0;p<12;p++)spawnPart(player.wx,player.wy,'#ff3333',3,(Math.random()-.5)*7,(Math.random()-.5)*7);updateHUD();if(playerHp<=0){endGame();return;}}
   }
   // Bone Shards
   for(let i=boneShards.length-1;i>=0;i--){
@@ -1388,7 +1441,16 @@ function update(){
   for(let i=arrows.length-1;i>=0;i--){
     const ar=arrows[i];ar.wx+=ar.dx;ar.wy+=ar.dy;ar.age+=DT;
     if(ar.age>3||Math.hypot(ar.wx-player.wx,ar.wy-player.wy)>1800){arrows.splice(i,1);continue;}
-    if(iframes<=0&&Math.hypot(ar.wx-player.wx,ar.wy-player.wy)<player.radius+ar.r){arrows.splice(i,1);playerHp--;iframes=1.2;for(let p=0;p<8;p++)spawnPart(player.wx,player.wy,'#cc8833',2,(Math.random()-.5)*5,(Math.random()-.5)*5);updateHUD();if(playerHp<=0){endGame();return;}}
+    if(iframes<=0&&Math.hypot(ar.wx-player.wx,ar.wy-player.wy)<player.radius+ar.r){
+      if(selectedSpell==='melee'&&playerHp<=1){
+        // Reverse arrow — launch it back the way it came
+        ar.dx*=-1.5; ar.dy*=-1.5;
+        iframes=0.8;
+        for(let p=0;p<14;p++){const pa=Math.random()*Math.PI*2;spawnPart(player.wx,player.wy,p%2===0?'#cc88ff':'#ff44ff',4,(Math.cos(pa))*(4+Math.random()*7),(Math.sin(pa))*(4+Math.random()*7),0.6);}
+        floatTexts.push({wx:player.wx,wy:player.wy-55,text:'⚔️ VENGEANCE!',color:'#cc88ff',life:2.0,big:true});
+        continue;
+      }
+      arrows.splice(i,1);playerHp--;iframes=1.2;for(let p=0;p<8;p++)spawnPart(player.wx,player.wy,'#cc8833',2,(Math.random()-.5)*5,(Math.random()-.5)*5);updateHUD();if(playerHp<=0){endGame();return;}}
   }
   // Particles
   for(let i=particles.length-1;i>=0;i--){
@@ -1400,6 +1462,7 @@ function update(){
   for(let i=lightningBolts.length-1;i>=0;i--){lightningBolts[i].age+=DT;if(lightningBolts[i].age>=lightningBolts[i].life)lightningBolts.splice(i,1);}
   for(let i=chainBolts.length-1;i>=0;i--){chainBolts[i].age+=DT;if(chainBolts[i].age>=chainBolts[i].life)chainBolts.splice(i,1);}
   if(selectedSpell==='horse'){ updateHorsePoop(); updateHorseStampedes(); }
+  if(selectedSpell==='melee'){ updateMeleeSlashes(); }
   spawnTimer-=DT;waveTimer+=DT;
   if(spawnTimer<=0){
     const n=Math.ceil(wave*0.6+0.5);
@@ -1906,7 +1969,7 @@ function drawSpellCD(){
   }
   cdCtx.shadowBlur=0;cdCtx.font='1.5rem sans-serif';cdCtx.textAlign='center';cdCtx.textBaseline='middle';
   cdCtx.globalAlpha=pct<0.05?1:0.4+0.6*(1-pct);
-  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':'⛰',cx,cy);cdCtx.globalAlpha=1;
+  cdCtx.fillText(isFire?'🔥':isLightning?'⚡':isArcane?'🔮':isIce2?'❄️':isNecro2?'💀':selectedSpell==='horse'?'🐴':selectedSpell==='melee'?'⚔️':'⛰',cx,cy);cdCtx.globalAlpha=1;
 }
 
 // ── DRAW ARCANE MISSILES ──────────────────────────────
@@ -2181,6 +2244,98 @@ function drawHorseWizard(wx,wy,angle,iframesLeft,name){
   // Name tag
   drawNameTag(s.x, s.y, name||playerName, 'horse', true);
 }
+
+// ── MELEE (RUFUS) ─────────────────────────────────────
+let meleeSlashes = [];
+
+function doMeleeSlash(angle, heavy) {
+  const reach = heavy ? 72 : 52;
+  const arc   = heavy ? Math.PI * 0.9 : Math.PI * 0.65;
+  const dmg   = heavy ? 5 : 2;
+  const startA = angle - arc / 2;
+  meleeSlashes.push({ angle, startA, arc, reach, age:0, life: heavy ? 0.32 : 0.22, heavy, color: heavy ? '#ff88ff' : '#cc88ff', hitSet:new Set() });
+  for (let p = 0; p < (heavy ? 18 : 10); p++) {
+    const pa = startA + Math.random() * arc, pr = reach * (0.5 + Math.random() * 0.5);
+    spawnPart(player.wx+Math.cos(pa)*pr, player.wy+Math.sin(pa)*pr, heavy?'#ff88ff':'#cc88ff', heavy?4:2.5, (Math.random()-.5)*5,(Math.random()-.5)*5, heavy?0.5:0.3);
+  }
+  for (let ei = enemies.length-1; ei >= 0; ei--) {
+    const e = enemies[ei]; if(!e) continue;
+    const ex=e.wx-player.wx, ey=e.wy-player.wy, dist=Math.hypot(ex,ey);
+    if(dist>reach+e.radius) continue;
+    let diff=Math.atan2(ey,ex)-angle;
+    while(diff>Math.PI)diff-=Math.PI*2; while(diff<-Math.PI)diff+=Math.PI*2;
+    if(Math.abs(diff)<arc/2+0.15){
+      for(let p=0;p<8;p++){const pa=Math.random()*Math.PI*2;spawnPart(e.wx,e.wy,heavy?'#ff88ff':'#cc88ff',3,Math.cos(pa)*4,Math.sin(pa)*4,0.4);}
+      damageEnemy(ei, dmg);
+    }
+  }
+}
+
+function updateMeleeSlashes() {
+  for(let i=meleeSlashes.length-1;i>=0;i--){ meleeSlashes[i].age+=DT; if(meleeSlashes[i].age>=meleeSlashes[i].life)meleeSlashes.splice(i,1); }
+}
+
+function drawMeleeSlashes() {
+  meleeSlashes.forEach(sl=>{
+    const t=sl.age/sl.life, alpha=(1-t)*0.85;
+    const s=w2s(player.wx,player.wy);
+    ctx.save(); ctx.translate(s.x,s.y);
+    const sweepEnd=sl.startA+sl.arc*Math.min(1,t*2.8);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,sl.reach*ZOOM,sl.startA,sweepEnd); ctx.closePath();
+    ctx.globalAlpha=alpha*0.22; ctx.fillStyle=sl.color; ctx.fill();
+    ctx.beginPath(); ctx.arc(0,0,sl.reach*ZOOM,sl.startA,sweepEnd);
+    ctx.globalAlpha=alpha*0.9; ctx.strokeStyle=sl.color; ctx.lineWidth=sl.heavy?4:2.5;
+    ctx.shadowColor=sl.color; ctx.shadowBlur=sl.heavy?22:12; ctx.stroke();
+    const tipX=Math.cos(sweepEnd)*sl.reach*ZOOM, tipY=Math.sin(sweepEnd)*sl.reach*ZOOM;
+    ctx.beginPath(); ctx.arc(tipX,tipY,sl.heavy?6:4,0,Math.PI*2);
+    ctx.globalAlpha=alpha; ctx.fillStyle='#ffffff'; ctx.shadowBlur=18; ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawRufus(wx,wy,angle,iframesLeft,name){
+  if(iframesLeft>0&&Math.floor(iframesLeft*8)%2===0)return;
+  const s=w2s(wx,wy);
+  ctx.save(); ctx.translate(s.x,s.y);
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(3,7,20,10,0,0,Math.PI*2); ctx.fill();
+  const bl=36, bx=Math.cos(angle)*bl, by=Math.sin(angle)*bl;
+  // Sword
+  ctx.shadowColor='#cc88ff'; ctx.shadowBlur=18;
+  ctx.strokeStyle='#eeeeff'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(bx*0.15,by*0.15); ctx.lineTo(bx,by); ctx.stroke();
+  ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.moveTo(bx*0.2,by*0.2); ctx.lineTo(bx*0.85,by*0.85); ctx.stroke();
+  // Crossguard
+  const gx=Math.cos(angle+Math.PI/2), gy=Math.sin(angle+Math.PI/2);
+  ctx.strokeStyle='#aa66dd'; ctx.lineWidth=5; ctx.shadowColor='#aa44ff'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.moveTo(bx*0.22-gx*10,by*0.22-gy*10); ctx.lineTo(bx*0.22+gx*10,by*0.22+gy*10); ctx.stroke();
+  // Pommel
+  ctx.fillStyle='#cc88ff'; ctx.shadowColor='#cc88ff'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.arc(-bx*0.08,-by*0.08,4,0,Math.PI*2); ctx.fill();
+  // Robe body
+  ctx.shadowColor='rgba(140,60,220,0.35)'; ctx.shadowBlur=6;
+  ctx.fillStyle='#1a0035'; ctx.strokeStyle='#6a22aa'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(0,0,18,18,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#120020'; ctx.strokeStyle='#5a1a88'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(0,0,10,10,0,0,Math.PI*2); ctx.fill();
+  // Eye glow
+  ctx.fillStyle='#ff44ff'; ctx.shadowColor='#ff00ff'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(0,0,3.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+  // Rune trim
+  ctx.strokeStyle='#9933cc'; ctx.lineWidth=2.5; ctx.shadowColor='#aa44ff'; ctx.shadowBlur=8;
+  ctx.setLineDash([3,4]); ctx.beginPath(); ctx.arc(0,0,21,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); ctx.shadowBlur=0;
+  // Vengeance aura when low HP
+  if(playerHp<=1&&selectedSpell==='melee'){
+    ctx.strokeStyle='rgba(255,50,255,0.65)'; ctx.lineWidth=3; ctx.shadowColor='#ff00ff'; ctx.shadowBlur=22;
+    ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.arc(0,0,28+Math.sin(Date.now()/120)*5,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]); ctx.shadowBlur=0;
+  }
+  ctx.restore();
+  drawNameTag(s.x,s.y,name||playerName,'melee',true);
+}
+
 function loop(){
   if(!gameRunning)return;
   update();
@@ -2201,11 +2356,14 @@ function loop(){
   drawArrows();
   drawHorseStampedes();
   drawHorsePoop();
+  drawMeleeSlashes();
   enemies.forEach(e=>{if(e.type!=='skeleton_ally')drawGoblin(e);});
   enemies.forEach(e=>{if(e.type==='skeleton_ally')drawSkeletonAlly(e);});
-  // Draw wizard — horse wizard gets special draw
+  // Draw wizard — secret classes get special draw
   if(selectedSpell==='horse'){
     drawHorseWizard(player.wx,player.wy,player.angle,iframes);
+  } else if(selectedSpell==='melee'){
+    drawRufus(player.wx,player.wy,player.angle,iframes);
   } else {
     drawWizard(player.wx,player.wy,player.angle,iframes);
   }
