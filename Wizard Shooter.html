@@ -396,6 +396,260 @@ if (typeof io === 'undefined') {
 <script>
 
 // ══════════════════════════════════════════════════════
+//  AUDIO SYSTEM — Web Audio API (procedural harp/piano)
+// ══════════════════════════════════════════════════════
+let audioCtx = null;
+let musicGain = null;
+let sfxGain   = null;
+let musicPlaying = false;
+let musicTimeout = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // Master gains
+  musicGain = audioCtx.createGain(); musicGain.gain.value = 0.18;
+  sfxGain   = audioCtx.createGain(); sfxGain.gain.value   = 0.55;
+
+  // Soft reverb for music
+  const convolver = audioCtx.createConvolver();
+  const revLen = audioCtx.sampleRate * 2.2;
+  const revBuf = audioCtx.createBuffer(2, revLen, audioCtx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = revBuf.getChannelData(c);
+    for (let i = 0; i < revLen; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/revLen, 2.8);
+  }
+  convolver.buffer = revBuf;
+
+  const reverbGain = audioCtx.createGain(); reverbGain.gain.value = 0.45;
+  musicGain.connect(convolver);
+  convolver.connect(reverbGain);
+  reverbGain.connect(audioCtx.destination);
+  musicGain.connect(audioCtx.destination);
+  sfxGain.connect(audioCtx.destination);
+}
+
+// ── Pluck a harp/piano note ──────────────────────────
+function playNote(freq, dur, vol=1.0, when=0) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime + when;
+
+  // Triangle + sine blend for soft harp timbre
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  osc1.type = 'triangle'; osc1.frequency.value = freq;
+  osc2.type = 'sine';     osc2.frequency.value = freq * 2.005; // slight detune for shimmer
+
+  const env = audioCtx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(vol * 0.7, t + 0.008);  // fast attack
+  env.gain.exponentialRampToValueAtTime(vol * 0.25, t + 0.18);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+  const mix1 = audioCtx.createGain(); mix1.gain.value = 0.7;
+  const mix2 = audioCtx.createGain(); mix2.gain.value = 0.3;
+
+  osc1.connect(mix1); mix1.connect(env);
+  osc2.connect(mix2); mix2.connect(env);
+  env.connect(musicGain);
+
+  osc1.start(t); osc1.stop(t + dur + 0.05);
+  osc2.start(t); osc2.stop(t + dur + 0.05);
+}
+
+// ── Mysterious pentatonic scale in D minor ────────────
+// D3 Eb3 F3 Ab3 Bb3 D4 F4 Ab4 Bb4 D5 F5
+const MUSIC_SCALE = [
+  146.83, 155.56, 174.61, 207.65, 233.08,
+  293.66, 349.23, 415.30, 466.16,
+  587.33, 698.46
+];
+
+// Chord voicings — dreamy, sparse
+const CHORD_SETS = [
+  [0, 2, 4],   // Dm (root)
+  [1, 3, 5],   // Ebmaj7 flavour
+  [2, 4, 6],   // F
+  [0, 3, 7],   // open 5th shimmer
+  [4, 6, 8],   // Bb
+  [1, 4, 7],   // suspended
+];
+
+function scheduleMusicPhrase() {
+  if (!musicPlaying || !audioCtx) return;
+
+  const chord = CHORD_SETS[Math.floor(Math.random() * CHORD_SETS.length)];
+  const baseOct = Math.random() < 0.4 ? 0 : 1; // occasionally drop an octave
+
+  // Arpeggiate the chord with gentle timing
+  const arpPattern = [0, 1, 2, 1, 0, 2]; // up-down pattern
+  let offset = 0;
+
+  arpPattern.forEach((ci, i) => {
+    const noteIdx = chord[ci % chord.length];
+    const freq = MUSIC_SCALE[noteIdx] * (baseOct ? 1 : 0.5);
+    const jitter = (Math.random() - 0.5) * 0.04;
+    const vol = 0.6 + Math.random() * 0.4;
+    const dur = 1.8 + Math.random() * 1.4;
+    playNote(freq, dur, vol, offset + jitter);
+    offset += 0.22 + Math.random() * 0.28;
+  });
+
+  // Occasional lone low bass note for mystery
+  if (Math.random() < 0.5) {
+    const bassFreq = MUSIC_SCALE[chord[0]] * 0.25;
+    playNote(bassFreq, 3.5, 0.5, 0);
+  }
+
+  // Occasional high shimmer note
+  if (Math.random() < 0.35) {
+    const highIdx = 8 + Math.floor(Math.random() * 3);
+    playNote(MUSIC_SCALE[Math.min(highIdx, MUSIC_SCALE.length-1)], 2.5, 0.3, offset * 0.6);
+  }
+
+  // Schedule next phrase — gaps of silence make it feel spacious
+  const phraseLen = (offset + 0.8 + Math.random() * 2.5) * 1000;
+  musicTimeout = setTimeout(scheduleMusicPhrase, phraseLen);
+}
+
+function startMusic() {
+  if (musicPlaying) return;
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  musicPlaying = true;
+  scheduleMusicPhrase();
+}
+
+function stopMusic() {
+  musicPlaying = false;
+  if (musicTimeout) { clearTimeout(musicTimeout); musicTimeout = null; }
+}
+
+// ── SOUND EFFECTS ─────────────────────────────────────
+function sfxShoot(spell) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const env = audioCtx.createGain();
+  osc.connect(env); env.connect(sfxGain);
+
+  const configs = {
+    earth:     { type:'sine',     freq:180, end:90,  dur:0.12, vol:0.4 },
+    fire:      { type:'sawtooth', freq:320, end:80,  dur:0.18, vol:0.5 },
+    lightning: { type:'square',   freq:600, end:200, dur:0.08, vol:0.35},
+    arcane:    { type:'sine',     freq:520, end:800, dur:0.22, vol:0.45},
+    ice:       { type:'triangle', freq:900, end:600, dur:0.14, vol:0.4 },
+    necro:     { type:'sawtooth', freq:140, end:60,  dur:0.15, vol:0.5 },
+    horse:     { type:'sine',     freq:200, end:80,  dur:0.20, vol:0.45},
+    melee:     { type:'square',   freq:250, end:100, dur:0.10, vol:0.6 },
+    skad:      { type:'square',   freq:700, end:150, dur:0.16, vol:0.5 },
+    cat:       { type:'sine',     freq:440, end:280, dur:0.12, vol:0.35},
+  };
+  const cfg = configs[spell] || configs.earth;
+  osc.type = cfg.type;
+  osc.frequency.setValueAtTime(cfg.freq, t);
+  osc.frequency.exponentialRampToValueAtTime(cfg.end, t + cfg.dur);
+  env.gain.setValueAtTime(cfg.vol, t);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + cfg.dur);
+  osc.start(t); osc.stop(t + cfg.dur + 0.02);
+}
+
+function sfxEnemyDie(isBoss) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Short descending crunch
+  [1, 0.7, 0.5].forEach((mult, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(sfxGain);
+    o.type = isBoss ? 'sawtooth' : 'square';
+    const baseF = isBoss ? 280 : 180;
+    o.frequency.setValueAtTime(baseF * mult, t + i * 0.04);
+    o.frequency.exponentialRampToValueAtTime(40, t + i * 0.04 + 0.18);
+    g.gain.setValueAtTime(isBoss ? 0.6 : 0.3, t + i * 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.04 + 0.2);
+    o.start(t + i * 0.04); o.stop(t + i * 0.04 + 0.22);
+  });
+}
+
+function sfxPlayerHurt() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.connect(g); g.connect(sfxGain);
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(220, t);
+  o.frequency.exponentialRampToValueAtTime(80, t + 0.25);
+  g.gain.setValueAtTime(0.7, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+  o.start(t); o.stop(t + 0.3);
+}
+
+function sfxWaveStart() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Rising triumphant 3-note sting
+  [0, 0.12, 0.24].forEach((dt, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(sfxGain);
+    o.type = 'triangle';
+    const freqs = [293.66, 349.23, 440];
+    o.frequency.value = freqs[i];
+    g.gain.setValueAtTime(0.5, t + dt);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.5);
+    o.start(t + dt); o.stop(t + dt + 0.55);
+  });
+}
+
+function sfxGameOver() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Slow falling notes
+  [440, 349.23, 293.66, 220].forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(sfxGain);
+    o.type = 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.55, t + i * 0.38);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.38 + 0.7);
+    o.start(t + i * 0.38); o.stop(t + i * 0.38 + 0.8);
+  });
+}
+
+function sfxSpell(spell) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const configs = {
+    fire:      { freqs:[180,220,160], type:'sawtooth', vol:0.6, dur:0.5 },
+    earth:     { freqs:[120,100,90],  type:'sine',     vol:0.5, dur:0.4 },
+    lightning: { freqs:[800,600,1000],type:'square',   vol:0.5, dur:0.3 },
+    arcane:    { freqs:[330,440,550], type:'sine',     vol:0.55,dur:0.6 },
+    ice:       { freqs:[700,900,800], type:'triangle', vol:0.45,dur:0.5 },
+    necro:     { freqs:[80, 100,60],  type:'sawtooth', vol:0.6, dur:0.6 },
+    horse:     { freqs:[200,160,240], type:'sine',     vol:0.5, dur:0.4 },
+    melee:     { freqs:[300,200,400], type:'square',   vol:0.65,dur:0.25},
+    skad:      { freqs:[900,700,1100],type:'square',   vol:0.55,dur:0.4 },
+    cat:       { freqs:[380,480,320], type:'sine',     vol:0.4, dur:0.35},
+  };
+  const cfg = configs[spell] || configs.earth;
+  cfg.freqs.forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(sfxGain);
+    o.type = cfg.type;
+    o.frequency.setValueAtTime(freq, t + i * 0.06);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.5, t + i * 0.06 + cfg.dur);
+    g.gain.setValueAtTime(cfg.vol, t + i * 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.06 + cfg.dur + 0.05);
+    o.start(t + i * 0.06); o.stop(t + i * 0.06 + cfg.dur + 0.1);
+  });
+}
+
+// ══════════════════════════════════════════════════════
 //  MULTIPLAYER CONFIG — update SERVER_URL after deploy
 // ══════════════════════════════════════════════════════
 const SERVER_URL = window.location.hostname === 'localhost'
@@ -719,7 +973,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.proto
 // ── SCREENS ──────────────────────────────────────────
 let selectedSpell='earth';
 let playerName = 'Wizard'; // ← NEW: player's chosen name
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));if(id!=='__game__')document.getElementById(id)?.classList.remove('hidden');if(id==='shopScreen')initPetShop();}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));if(id!=='__game__')document.getElementById(id)?.classList.remove('hidden');if(id==='shopScreen')initPetShop();if(id==='mainMenu'||id==='spellSelect'||id==='shopScreen'||id==='gameOver'||id==='settingsScreen'){initAudio();startMusic();}}
 function selectSpell(t){selectedSpell=t;document.querySelectorAll('.spell-card').forEach(c=>c.classList.remove('selected'));document.getElementById('card-'+t)?.classList.add('selected');}
 
 // ── CANVAS ────────────────────────────────────────────
@@ -859,6 +1113,7 @@ function startGame(){
   // Sync name from input if present
   const nameInput = document.getElementById('playerNameInput');
   if (nameInput) playerName = nameInput.value.trim() || 'Wizard';
+  initAudio();
 
   showScreen('__game__');
   document.getElementById('hud').classList.remove('hidden');
@@ -869,10 +1124,12 @@ function startGame(){
   if(activePet){activePet.wx=0;activePet.wy=0;if(activePet.segments)activePet.segments.forEach(s=>{s.wx=0;s.wy=0;});if(activePet.dragonSegs)activePet.dragonSegs.forEach(s=>{s.wx=0;s.wy=0;});}
   bullets=[];vines=[];fireballs=[];infernos=[];arrows=[];lightningBolts=[];chainBolts=[];arcaneMissiles=[];voidOrbs=[];icicles=[];blizzards=[];landmines=[];turrets=[];rockShots=[];boneShards=[];horsePoop=[];horseStampedes=[];meleeSlashes=[];skadWaves=[];skadBolts=[];thrownCats=[];catAllies=[];enemies=[];particles=[];floatTexts=[];
   score=0;wave=1;playerHp=5;shootCD=0;spellCD=0;iframes=0;spawnTimer=0;waveTimer=0;gameTime=0;armoredUnlocked=false;archerUnlocked=false;speedUnlocked=false;miniBossSpawned=false;
-  updateHUD();gameRunning=true;requestAnimationFrame(loop);
+  updateHUD();gameRunning=true;startMusic();requestAnimationFrame(loop);
 }
 function endGame(){
   gameRunning=false;
+  stopMusic();
+  sfxGameOver();
   document.getElementById('hud').classList.add('hidden');
   document.getElementById('hint').classList.add('hidden');
   document.getElementById('spellHUD').classList.add('hidden');
@@ -883,6 +1140,8 @@ function endGame(){
 // ── SHOOT (left click) ────────────────────────────────
 function tryShoot(){
   if(shootCD>0)return;
+  initAudio();
+  sfxShoot(selectedSpell);
   const mw=mouseWorld();
   const a=Math.atan2(mw.wy-player.wy,mw.wx-player.wx);
   if(selectedSpell==='earth'){
@@ -932,6 +1191,8 @@ function shootLightningZap(angle){
 // ── RIGHT-CLICK SPELL ─────────────────────────────────
 function castSpell(){
   if(spellCD>0)return;
+  initAudio();
+  sfxSpell(selectedSpell);
   if(selectedSpell==='earth')castTurret();
   else if(selectedSpell==='fire')castInferno();
   else if(selectedSpell==='arcane') castVoidOrb();
@@ -1236,7 +1497,7 @@ function damageEnemy(ei,dmg){
     if(e.type==='armored')for(let p=0;p<8;p++)spawnPart(e.wx,e.wy,'#aaaacc',2+Math.random()*2,(Math.random()-.5)*7,(Math.random()-.5)*7-1,0.9);
     if(e.type==='miniboss'){for(let p=0;p<20;p++)spawnPart(e.wx,e.wy,'#885500',3+Math.random()*3,(Math.random()-.5)*10,(Math.random()-.5)*10-2,1.2);}
     floatTexts.push({wx:e.wx,wy:e.wy-20,text:e.type==='miniboss'?'💀 +'+pts*wave:'+'+(pts*wave),color:e.type==='miniboss'?'#ff4444':selectedSpell==='fire'?'#ffaa44':selectedSpell==='lightning'?'#aaddff':selectedSpell==='arcane'?'#ddaaff':selectedSpell==='ice'?'#88ddff':selectedSpell==='necro'?'#aaffaa':'#ffdd44',life:e.type==='miniboss'?2.5:0.9,big:e.type==='miniboss'});
-    enemies.splice(ei,1);score+=pts*wave;updateHUD();
+    enemies.splice(ei,1);score+=pts*wave;sfxEnemyDie(e.type==='miniboss');updateHUD();
   }
 }
 
@@ -1433,7 +1694,7 @@ function update(){
           e.smashTimer=2.5+Math.random()*1.5;
           e.smashing=0.55;
           if(dist<120){
-            playerHp-=2;iframes=1.8;
+            playerHp-=2;iframes=1.8;sfxPlayerHurt();
             for(let p=0;p<18;p++)spawnPart(player.wx,player.wy,'#ff3333',4,(Math.random()-.5)*9,(Math.random()-.5)*9);
             updateHUD();if(playerHp<=0){endGame();return;}
           }
@@ -1464,7 +1725,7 @@ function update(){
         floatTexts.push({wx:player.wx,wy:player.wy-55,text:'⚔️ VENGEANCE!',color:'#cc88ff',life:2.0,big:true});
         continue;
       }
-      playerHp--;iframes=1.5;for(let p=0;p<12;p++)spawnPart(player.wx,player.wy,'#ff3333',3,(Math.random()-.5)*7,(Math.random()-.5)*7);updateHUD();if(playerHp<=0){endGame();return;}}
+      playerHp--;iframes=1.5;sfxPlayerHurt();for(let p=0;p<12;p++)spawnPart(player.wx,player.wy,'#ff3333',3,(Math.random()-.5)*7,(Math.random()-.5)*7);updateHUD();if(playerHp<=0){endGame();return;}}
   }
   // Bone Shards
   for(let i=boneShards.length-1;i>=0;i--){
@@ -1525,7 +1786,7 @@ function update(){
         floatTexts.push({wx:player.wx,wy:player.wy-55,text:'⚔️ VENGEANCE!',color:'#cc88ff',life:2.0,big:true});
         continue;
       }
-      arrows.splice(i,1);playerHp--;iframes=1.2;for(let p=0;p<8;p++)spawnPart(player.wx,player.wy,'#cc8833',2,(Math.random()-.5)*5,(Math.random()-.5)*5);updateHUD();if(playerHp<=0){endGame();return;}}
+      arrows.splice(i,1);playerHp--;iframes=1.2;sfxPlayerHurt();for(let p=0;p<8;p++)spawnPart(player.wx,player.wy,'#cc8833',2,(Math.random()-.5)*5,(Math.random()-.5)*5);updateHUD();if(playerHp<=0){endGame();return;}}
   }
   // Particles
   for(let i=particles.length-1;i>=0;i--){
@@ -1547,7 +1808,7 @@ function update(){
     for(let k=0;k<n;k++){const roll=Math.random();if(speedUnlocked&&roll<0.18)spawnSpeed();else if(archerUnlocked&&roll<0.35)spawnArcher();else if(armoredUnlocked&&roll<0.55)spawnArmored();else spawnGoblin();}
     spawnTimer=Math.max(0.5,2.5-wave*0.12);
   }
-  if(waveTimer>22){waveTimer=0;wave++;floatTexts.push({wx:player.wx,wy:player.wy-60,text:'Wave '+wave+'!',color:'#ffdd00',life:2.5,big:true});updateHUD();
+  if(waveTimer>22){waveTimer=0;wave++;sfxWaveStart();floatTexts.push({wx:player.wx,wy:player.wy-60,text:'Wave '+wave+'!',color:'#ffdd00',life:2.5,big:true});updateHUD();
     if(wave===5&&!miniBossSpawned){miniBossSpawned=true;setTimeout(()=>spawnMiniBoss(),2000);}
   }
 }
@@ -3065,10 +3326,6 @@ const PET_DEFS = [
   { id:'ferret',     name:'Ferret',        label:'Slinky Noodle',       color:'#ccaa88' },
   { id:'capybara',   name:'Capybara',      label:'Chill Vibes Only',    color:'#aa8855' },
   { id:'axolotl',    name:'Axolotl',       label:'Walking Flower',      color:'#ff88cc' },
-  { id:'centaur',    name:'Centaur',       label:'Half Horse Half Heart',color:'#cc9944' },
-  { id:'minotaur',   name:'Minotaur',      label:'Gentle Giant',         color:'#8b4513' },
-  { id:'mermaid',    name:'Mermaid',       label:'Ocean\'s Child',       color:'#22ccbb' },
-  { id:'unicorn',    name:'Unicorn',       label:'Pure Magic',           color:'#ffaaee' },
 ];
 
 function initPetShop() {
@@ -3176,10 +3433,6 @@ function drawPet() {
     case 'ferret':     drawPetFerret(s.x, s.y, p); break;
     case 'capybara':   drawPetCapybara(s.x, s.y, p); break;
     case 'axolotl':    drawPetAxolotl(s.x, s.y, p); break;
-    case 'centaur':    drawPetCentaur(s.x, s.y, p); break;
-    case 'minotaur':   drawPetMinotaur(s.x, s.y, p); break;
-    case 'mermaid':    drawPetMermaid(s.x, s.y, p); break;
-    case 'unicorn':    drawPetUnicorn(s.x, s.y, p); break;
   }
 }
 
@@ -4006,8 +4259,7 @@ function drawPetPreview(id) {
     chinchilla:'🐭', squid:'🦑', fish:'🐟', turtle:'🐢',
     hedgehog:'🦔', hamster:'🐹', parrot:'🦜', pig:'🐷',
     goat:'🐐', raccoon:'🦝', sloth:'🦥', frog:'🐸', tarantula:'🕷️',
-    fennecfox:'🦊', ferret:'🐾', capybara:'🐾', axolotl:'🦎',
-    centaur:'🏇', minotaur:'🐂', mermaid:'🧜', unicorn:'🦄'
+    fennecfox:'🦊', ferret:'🐾', capybara:'🐾', axolotl:'🦎'
   };
   c.fillText(emojis[id] || '?', 45, 46);
   c.restore();
@@ -4252,486 +4504,7 @@ function drawPetAxolotl(x, y, p) {
   ctx.restore();
 }
 
-// ── PET: CENTAUR ──
-function drawPetCentaur(x, y, p) {
-  const bob = Math.abs(Math.sin(p.animFrame * 1.2)) * 3;
-  const legCycle = p.animFrame * 1.5;
-  const tailWag = Math.sin(p.tailPhase * 2) * 12;
-  ctx.save(); ctx.translate(x, y - bob);
-  ctx.shadowColor = '#cc9944'; ctx.shadowBlur = 12;
-  const coat = '#cc9944', darkCoat = '#aa7722', skin = '#f4c882', hair = '#6b3a0e';
-
-  // Horse body (rear half)
-  ctx.fillStyle = coat;
-  ctx.beginPath(); ctx.ellipse(4, 8, 16, 10, 0, 0, Math.PI * 2); ctx.fill();
-  // Horse rump
-  ctx.beginPath(); ctx.ellipse(16, 5, 8, 7, 0.4, 0, Math.PI * 2); ctx.fill();
-
-  // 4 horse legs with canter animation
-  ctx.fillStyle = darkCoat;
-  const legPairs = [
-    [-6, 16, Math.sin(legCycle) * 4],
-    [-1, 17, Math.sin(legCycle + 1) * 4],
-    [8, 16, Math.sin(legCycle + Math.PI) * 4],
-    [14, 16, Math.sin(legCycle + Math.PI + 1) * 4]
-  ];
-  legPairs.forEach(([lx, ly, swing]) => {
-    ctx.beginPath(); ctx.ellipse(lx, ly + Math.abs(swing) * 0.5, 3, 7, swing * 0.04, 0, Math.PI * 2); ctx.fill();
-    // Hoof
-    ctx.fillStyle = '#333';
-    ctx.beginPath(); ctx.ellipse(lx + swing * 0.3, ly + 6 + Math.abs(swing) * 0.5, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = darkCoat;
-  });
-
-  // Tail — flowing
-  ctx.strokeStyle = hair; ctx.lineWidth = 4; ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(22, 3);
-  ctx.bezierCurveTo(28, 0 + tailWag * 0.3, 30, 8 + tailWag * 0.5, 26, 14 + tailWag * 0.4);
-  ctx.stroke();
-  ctx.strokeStyle = '#8b5c2a'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(22, 3);
-  ctx.bezierCurveTo(27, 1 + tailWag * 0.3, 29, 8 + tailWag * 0.5, 25, 14 + tailWag * 0.4);
-  ctx.stroke();
-
-  // Human torso
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.ellipse(-4, -2, 7, 10, -0.15, 0, Math.PI * 2); ctx.fill();
-  // Chest armor/cloth
-  ctx.fillStyle = '#886622';
-  ctx.beginPath(); ctx.roundRect(-10, -8, 14, 10, 3); ctx.fill();
-  ctx.fillStyle = '#aa8833';
-  ctx.beginPath(); ctx.ellipse(-3, -5, 6, 4, 0, 0, Math.PI * 2); ctx.fill();
-
-  // Arms
-  ctx.strokeStyle = skin; ctx.lineWidth = 5; ctx.lineCap = 'round';
-  const armSwing = Math.sin(legCycle) * 10;
-  ctx.beginPath(); ctx.moveTo(-9, -5); ctx.quadraticCurveTo(-16, -4 + armSwing * 0.3, -14, 4 + armSwing * 0.2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(3, -5); ctx.quadraticCurveTo(10, -4 - armSwing * 0.3, 9, 4 - armSwing * 0.2); ctx.stroke();
-  // Hands
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.arc(-14, 4 + armSwing * 0.2, 3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(9, 4 - armSwing * 0.2, 3, 0, Math.PI * 2); ctx.fill();
-  // Spear in right hand
-  ctx.strokeStyle = '#cc9922'; ctx.lineWidth = 2; ctx.lineCap = 'butt';
-  ctx.beginPath(); ctx.moveTo(9, 4 - armSwing * 0.2); ctx.lineTo(18, -18 - armSwing * 0.1); ctx.stroke();
-  ctx.fillStyle = '#silver'; ctx.fillStyle = '#ccccff';
-  ctx.beginPath(); ctx.moveTo(18, -18 - armSwing * 0.1); ctx.lineTo(15, -22 - armSwing * 0.1); ctx.lineTo(21, -22 - armSwing * 0.1); ctx.closePath(); ctx.fill();
-
-  // Head
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(-3, -17, 8, 0, Math.PI * 2); ctx.fill();
-  // Hair — flowing warrior mane
-  ctx.fillStyle = hair;
-  ctx.beginPath(); ctx.moveTo(-10, -22); ctx.quadraticCurveTo(-14, -18, -12, -10); ctx.quadraticCurveTo(-8, -6, -10, -12); ctx.quadraticCurveTo(-16, -20, -10, -22); ctx.fill();
-  ctx.beginPath(); ctx.arc(-3, -25, 6, Math.PI, Math.PI * 2); ctx.fill();
-  // Face
-  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-6, -17, 1.5, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(0, -17, 1.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-5.5, -17.5, 0.6, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(0.5, -17.5, 0.6, 0, Math.PI * 2); ctx.fill();
-  // Nose
-  ctx.fillStyle = '#d4a070'; ctx.beginPath(); ctx.arc(-3, -14, 1.5, 0, Math.PI * 2); ctx.fill();
-  // Proud little smirk
-  ctx.strokeStyle = '#aa6644'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.arc(-2, -11.5, 3, 0.1, Math.PI * 0.9); ctx.stroke();
-  // Laurel headband
-  ctx.fillStyle = '#44aa44';
-  for (let i = -4; i <= 4; i++) {
-    ctx.beginPath(); ctx.ellipse(-3 + i * 2, -24, 1.5, 2.5, i * 0.15, 0, Math.PI * 2); ctx.fill();
-  }
-
-  ctx.restore();
-}
-
-// ── PET: MINOTAUR ──
-function drawPetMinotaur(x, y, p) {
-  const bob = Math.abs(Math.sin(p.animFrame * 0.8)) * 2;
-  const breathe = Math.sin(p.animFrame * 0.5) * 1;
-  const tailWag = Math.sin(p.tailPhase * 2.5) * 8;
-  const armSway = Math.sin(p.animFrame * 0.9) * 5;
-  ctx.save(); ctx.translate(x, y - bob);
-  ctx.shadowColor = '#8b4513'; ctx.shadowBlur = 12;
-  const fur = '#6b3010', darkFur = '#4a1e08', skin = '#c87840', horn = '#eecc88';
-
-  // Legs — massive and bovine
-  ctx.fillStyle = fur;
-  [[-7, 12], [5, 12]].forEach(([lx, ly]) => {
-    ctx.beginPath(); ctx.ellipse(lx, ly + 4, 6, 10, 0, 0, Math.PI * 2); ctx.fill();
-    // Hoof
-    ctx.fillStyle = '#222';
-    ctx.beginPath(); ctx.ellipse(lx, ly + 13, 5, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = fur;
-  });
-
-  // Tail — bovine tuft
-  ctx.strokeStyle = darkFur; ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(12, 5);
-  ctx.bezierCurveTo(18, 2 + tailWag * 0.4, 20, 8 + tailWag * 0.3, 16, 14 + tailWag * 0.3);
-  ctx.stroke();
-  // Tail tuft
-  ctx.fillStyle = '#3a1004';
-  ctx.beginPath(); ctx.arc(16, 14 + tailWag * 0.3, 4, 0, Math.PI * 2); ctx.fill();
-
-  // Massive body
-  ctx.fillStyle = fur;
-  ctx.beginPath(); ctx.ellipse(0, 4, 15, 14, 0, 0, Math.PI * 2); ctx.fill();
-  // Belly — slightly lighter
-  ctx.fillStyle = '#8b5020';
-  ctx.beginPath(); ctx.ellipse(0, 7, 9, 9, 0, 0, Math.PI * 2); ctx.fill();
-
-  // Huge arms
-  ctx.strokeStyle = fur; ctx.lineWidth = 10; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(-13, -2); ctx.quadraticCurveTo(-20, 4 + armSway, -16, 14 + armSway * 0.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(13, -2); ctx.quadraticCurveTo(20, 4 - armSway, 16, 14 - armSway * 0.5); ctx.stroke();
-  // Hands/fists
-  ctx.fillStyle = fur;
-  ctx.beginPath(); ctx.arc(-16, 14 + armSway * 0.5, 6, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(16, 14 - armSway * 0.5, 6, 0, Math.PI * 2); ctx.fill();
-  // Knuckle lines
-  ctx.strokeStyle = darkFur; ctx.lineWidth = 1;
-  [-16, 16].forEach(ax => {
-    const ay = ax < 0 ? 14 + armSway * 0.5 : 14 - armSway * 0.5;
-    for (let k = -1; k <= 1; k++) {
-      ctx.beginPath(); ctx.arc(ax + k * 2, ay, 1.5, 0, Math.PI); ctx.stroke();
-    }
-  });
-
-  // Neck — thick
-  ctx.fillStyle = fur;
-  ctx.beginPath(); ctx.ellipse(0, -10, 10, 7, 0, 0, Math.PI * 2); ctx.fill();
-
-  // Bull head — large and powerful
-  ctx.fillStyle = fur;
-  ctx.beginPath(); ctx.ellipse(0, -20, 13, 11, 0, 0, Math.PI * 2); ctx.fill();
-  // Snout — wide and flat
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.ellipse(0, -15, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
-  // Nostrils — big
-  ctx.fillStyle = darkFur;
-  ctx.beginPath(); ctx.ellipse(-4, -14, 2.5, 2, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(4, -14, 2.5, 2, 0, 0, Math.PI * 2); ctx.fill();
-  // Big bovine eyes
-  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-7, -22, 3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(7, -22, 3, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#663300'; ctx.beginPath(); ctx.arc(-7, -22, 2, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(7, -22, 2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-6, -23, 0.8, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(8, -23, 0.8, 0, Math.PI * 2); ctx.fill();
-
-  // Ears — bovine floppy
-  ctx.fillStyle = fur;
-  ctx.beginPath(); ctx.moveTo(-12, -24); ctx.quadraticCurveTo(-22, -22, -20, -14); ctx.quadraticCurveTo(-14, -12, -12, -20); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(12, -24); ctx.quadraticCurveTo(22, -22, 20, -14); ctx.quadraticCurveTo(14, -12, 12, -20); ctx.fill();
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.moveTo(-13, -23); ctx.quadraticCurveTo(-19, -21, -18, -15); ctx.quadraticCurveTo(-14, -13, -13, -19); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(13, -23); ctx.quadraticCurveTo(19, -21, 18, -15); ctx.quadraticCurveTo(14, -13, 13, -19); ctx.fill();
-
-  // HORNS — iconic curving bull horns
-  ctx.strokeStyle = horn; ctx.lineWidth = 4; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(-10, -28); ctx.bezierCurveTo(-16, -36, -8, -40, -4, -34); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(10, -28); ctx.bezierCurveTo(16, -36, 8, -40, 4, -34); ctx.stroke();
-  // Horn tips
-  ctx.fillStyle = horn;
-  ctx.beginPath(); ctx.arc(-4, -34, 2, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(4, -34, 2, 0, Math.PI * 2); ctx.fill();
-
-  // Friendly expression — a small warm smile (gentle giant!)
-  ctx.strokeStyle = '#884422'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(0, -12, 4, 0.3, Math.PI - 0.3); ctx.stroke();
-
-  // Tuft of fur on top of head
-  ctx.fillStyle = darkFur;
-  for (let i = -2; i <= 2; i++) {
-    ctx.beginPath(); ctx.ellipse(i * 3, -30, 2, 4, i * 0.2, 0, Math.PI * 2); ctx.fill();
-  }
-
-  ctx.restore();
-}
-
-// ── PET: MERMAID ──
-function drawPetMermaid(x, y, p) {
-  const time = p.animFrame;
-  const tailSweep = Math.sin(time * 1.1) * 12;
-  const finFlap = Math.sin(time * 1.3) * 6;
-  const bob = Math.sin(time * 0.7) * 3;
-  const hairFlow = Math.sin(time * 0.5) * 4;
-  ctx.save(); ctx.translate(x, y + bob);
-  ctx.shadowColor = '#22ccbb'; ctx.shadowBlur = 16;
-  const scale1 = '#22ccbb', scale2 = '#11aaaa', finCol = '#44ddcc', skin = '#f0c8a0', hair = '#1a66cc';
-
-  // TAIL — graceful sweep
-  // Main tail body
-  ctx.fillStyle = scale1;
-  ctx.beginPath();
-  ctx.moveTo(-6, 8);
-  ctx.bezierCurveTo(-8, 14 + tailSweep * 0.3, -4, 22 + tailSweep * 0.5, 0, 28 + tailSweep * 0.4);
-  ctx.bezierCurveTo(4, 22 + tailSweep * 0.5, 8, 14 + tailSweep * 0.3, 6, 8);
-  ctx.closePath(); ctx.fill();
-
-  // Scale pattern on tail
-  ctx.fillStyle = scale2;
-  for (let row = 0; row < 4; row++) {
-    for (let col = -1; col <= 1; col++) {
-      const sy2 = 10 + row * 4 + tailSweep * 0.05 * row;
-      const sx2 = col * 4 + (row % 2) * 2;
-      if (Math.abs(sx2) < 5 + row * 0.5) {
-        ctx.beginPath(); ctx.arc(sx2, sy2, 2.5, 0, Math.PI * 2); ctx.fill();
-      }
-    }
-  }
-
-  // Tail fin — bifurcated beauty
-  ctx.fillStyle = finCol;
-  const finBase = 28 + tailSweep * 0.4;
-  ctx.beginPath();
-  ctx.moveTo(0, finBase);
-  ctx.bezierCurveTo(-6, finBase + 4 + finFlap, -14, finBase + 2 + finFlap * 0.5, -12, finBase - 4 + finFlap * 0.3);
-  ctx.bezierCurveTo(-8, finBase - 2, -3, finBase + 2, 0, finBase);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(0, finBase);
-  ctx.bezierCurveTo(6, finBase + 4 - finFlap, 14, finBase + 2 - finFlap * 0.5, 12, finBase - 4 - finFlap * 0.3);
-  ctx.bezierCurveTo(8, finBase - 2, 3, finBase + 2, 0, finBase);
-  ctx.fill();
-  // Fin veins
-  ctx.strokeStyle = '#11bbaa'; ctx.lineWidth = 1; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(0, finBase); ctx.lineTo(-10, finBase + 1 + finFlap * 0.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, finBase); ctx.lineTo(10, finBase + 1 - finFlap * 0.5); ctx.stroke();
-
-  // Body — humanoid torso
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.ellipse(0, 0, 7, 10, 0, 0, Math.PI * 2); ctx.fill();
-
-  // Shell bra / top
-  ctx.fillStyle = '#ff88aa';
-  ctx.beginPath(); ctx.ellipse(-3.5, -1, 4, 3, 0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(3.5, -1, 4, 3, -0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#cc5588'; ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.arc(-3.5, -1, 4, -0.3, Math.PI + 0.3); ctx.stroke();
-  ctx.beginPath(); ctx.arc(3.5, -1, 4, -Math.PI + (-0.3), 0.3); ctx.stroke();
-
-  // Arms — floating gently
-  ctx.strokeStyle = skin; ctx.lineWidth = 5; ctx.lineCap = 'round';
-  const armFloat = Math.sin(time * 0.7) * 5;
-  ctx.beginPath(); ctx.moveTo(-7, -4); ctx.quadraticCurveTo(-14, -2 + armFloat, -12, 6 + armFloat * 0.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(7, -4); ctx.quadraticCurveTo(14, -2 - armFloat, 12, 6 - armFloat * 0.5); ctx.stroke();
-  // Hands
-  ctx.fillStyle = skin;
-  ctx.beginPath(); ctx.arc(-12, 6 + armFloat * 0.5, 3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(12, 6 - armFloat * 0.5, 3, 0, Math.PI * 2); ctx.fill();
-
-  // Head
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(0, -16, 9, 0, Math.PI * 2); ctx.fill();
-
-  // Flowing hair — waves of ocean
-  ctx.fillStyle = hair;
-  ctx.beginPath();
-  ctx.moveTo(-8, -22);
-  ctx.bezierCurveTo(-16, -20 + hairFlow * 0.3, -18, -10 + hairFlow * 0.5, -14, 0 + hairFlow * 0.3);
-  ctx.bezierCurveTo(-10, 6, -8, 2, -9, -6);
-  ctx.bezierCurveTo(-8, -14, -6, -20, -8, -22);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(8, -22);
-  ctx.bezierCurveTo(16, -20 - hairFlow * 0.3, 18, -10 - hairFlow * 0.5, 14, 0 - hairFlow * 0.3);
-  ctx.bezierCurveTo(10, 6, 8, 2, 9, -6);
-  ctx.bezierCurveTo(8, -14, 6, -20, 8, -22);
-  ctx.fill();
-  // Hair on top
-  ctx.beginPath(); ctx.arc(0, -24, 7, Math.PI, Math.PI * 2); ctx.fill();
-  // Hair highlight
-  ctx.fillStyle = '#3388ee';
-  ctx.beginPath(); ctx.ellipse(-2, -25, 3, 2, -0.3, 0, Math.PI * 2); ctx.fill();
-
-  // Pretty eyes
-  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-3, -16, 2.5, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(3, -16, 2.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(-3, -16, 1.5, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(3, -16, 1.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-2.3, -16.7, 0.7, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(3.7, -16.7, 0.7, 0, Math.PI * 2); ctx.fill();
-  // Eyelashes
-  ctx.strokeStyle = '#222'; ctx.lineWidth = 0.8;
-  [[-5,-14],[-4,-13],[-2,-13]].forEach(([ex,ey]) => {
-    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - 0.5, ey - 2); ctx.stroke();
-  });
-  [[5,-14],[4,-13],[2,-13]].forEach(([ex,ey]) => {
-    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 0.5, ey - 2); ctx.stroke();
-  });
-  // Cute nose
-  ctx.fillStyle = '#e8a888'; ctx.beginPath(); ctx.arc(0, -13, 1.2, 0, Math.PI * 2); ctx.fill();
-  // Gentle smile
-  ctx.strokeStyle = '#cc8866'; ctx.lineWidth = 1.3;
-  ctx.beginPath(); ctx.arc(0, -11, 3, 0.2, Math.PI - 0.2); ctx.stroke();
-
-  // Sparkle particles around tail
-  ctx.fillStyle = '#88ffee';
-  [[4, 18], [-8, 22], [9, 26], [-3, 30]].forEach(([sx2, sy2], i) => {
-    const sparkle = Math.sin(time * 2 + i * 1.5) * 0.5 + 0.5;
-    ctx.globalAlpha = sparkle * 0.8;
-    ctx.shadowColor = '#44ffcc'; ctx.shadowBlur = 6;
-    ctx.beginPath(); ctx.arc(sx2, sy2 + tailSweep * 0.1, 1.5, 0, Math.PI * 2); ctx.fill();
-  });
-  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-
-  ctx.restore();
-}
-
-// ── PET: UNICORN ──
-function drawPetUnicorn(x, y, p) {
-  const bob = Math.abs(Math.sin(p.animFrame * 1.1)) * 3;
-  const legCycle = p.animFrame * 1.3;
-  const tailWag = Math.sin(p.tailPhase * 1.8) * 14;
-  const maneFlow = Math.sin(p.animFrame * 0.7) * 3;
-  ctx.save(); ctx.translate(x, y - bob);
-  ctx.shadowColor = '#ffaaee'; ctx.shadowBlur = 18;
-  const white = '#f0f0ff', offWhite = '#e0e0f8', pastelPink = '#ffaaee', pastelPurple = '#cc88ff', gold = '#ffdd44';
-
-  // Magic aura glow
-  ctx.globalAlpha = 0.15 + Math.sin(p.animFrame * 0.8) * 0.05;
-  ctx.fillStyle = pastelPink;
-  ctx.beginPath(); ctx.ellipse(2, 5, 22, 14, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.globalAlpha = 1;
-
-  // Body — elegant white horse
-  ctx.fillStyle = white;
-  ctx.beginPath(); ctx.ellipse(2, 6, 15, 10, 0, 0, Math.PI * 2); ctx.fill();
-  // Body sheen
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath(); ctx.ellipse(-2, 3, 8, 6, -0.3, 0, Math.PI * 2); ctx.fill();
-
-  // 4 slender legs
-  ctx.fillStyle = offWhite;
-  const legSet = [
-    [-7, 14, Math.sin(legCycle) * 5],
-    [-2, 15, Math.sin(legCycle + 0.8) * 5],
-    [6, 15, Math.sin(legCycle + Math.PI) * 5],
-    [12, 14, Math.sin(legCycle + Math.PI + 0.8) * 5]
-  ];
-  legSet.forEach(([lx, ly, swing]) => {
-    ctx.beginPath(); ctx.ellipse(lx + swing * 0.1, ly + Math.abs(swing) * 0.3, 2.5, 7, swing * 0.04, 0, Math.PI * 2); ctx.fill();
-    // Delicate hoof with pastel color
-    ctx.fillStyle = pastelPurple;
-    ctx.beginPath(); ctx.ellipse(lx + swing * 0.2, ly + 7 + Math.abs(swing) * 0.3, 2.5, 1.8, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = offWhite;
-  });
-
-  // Rainbow tail — flowing multicolor
-  const tailColors = [pastelPink, pastelPurple, '#88aaff', '#88ffcc', '#ffffaa'];
-  tailColors.forEach((tc, i) => {
-    ctx.strokeStyle = tc;
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.8;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(16 + i * 0.2, 4);
-    ctx.bezierCurveTo(
-      22 + i, tailWag * 0.25 + i,
-      26 + i, 8 + tailWag * 0.4 + i,
-      22 + i * 0.5, 16 + tailWag * 0.3
-    );
-    ctx.stroke();
-  });
-  ctx.globalAlpha = 1;
-
-  // Neck — graceful arch
-  ctx.fillStyle = white;
-  ctx.beginPath(); ctx.ellipse(-7, -4, 7, 9, -0.25, 0, Math.PI * 2); ctx.fill();
-
-  // Rainbow mane — cascading down neck
-  const maneColors = [pastelPink, pastelPurple, '#88aaff', '#88ffcc'];
-  maneColors.forEach((mc, i) => {
-    ctx.strokeStyle = mc; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.globalAlpha = 0.9;
-    const offset = i * 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-8 + offset * 0.3, -12 + maneFlow * 0.3);
-    ctx.bezierCurveTo(
-      -12 + offset * 0.2 + maneFlow * 0.2, -6 + offset,
-      -12 + maneFlow * 0.3, 2 + offset * 0.5,
-      -10 + offset * 0.2, 8 + offset * 0.3
-    );
-    ctx.stroke();
-  });
-  ctx.globalAlpha = 1;
-
-  // Head — refined horse head
-  ctx.fillStyle = white;
-  ctx.beginPath(); ctx.ellipse(-11, -14, 8, 7, -0.3, 0, Math.PI * 2); ctx.fill();
-  // Nose bridge / snout
-  ctx.beginPath(); ctx.ellipse(-15, -10, 5, 4, 0.3, 0, Math.PI * 2); ctx.fill();
-  // Nostril
-  ctx.fillStyle = '#ddddf0';
-  ctx.beginPath(); ctx.ellipse(-17, -9, 1.5, 1, 0.3, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(-14, -8, 1.5, 1, 0.3, 0, Math.PI * 2); ctx.fill();
-
-  // THE HORN — glowing golden spiral
-  ctx.shadowColor = gold; ctx.shadowBlur = 20;
-  const hornAngle = -0.35;
-  ctx.strokeStyle = gold; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(-9, -20);
-  ctx.lineTo(-9 + Math.cos(hornAngle) * 20, -20 + Math.sin(hornAngle - Math.PI / 2) * 20);
-  ctx.stroke();
-  // Horn spiral lines
-  ctx.strokeStyle = '#fffaaa'; ctx.lineWidth = 1.2;
-  for (let s = 0; s < 4; s++) {
-    const t1 = s / 4, t2 = (s + 0.5) / 4;
-    const hx1 = -9 + Math.cos(hornAngle) * 20 * t1;
-    const hy1 = -20 + Math.sin(hornAngle - Math.PI / 2) * 20 * t1;
-    const hx2 = -9 + Math.cos(hornAngle) * 20 * t2;
-    const hy2 = -20 + Math.sin(hornAngle - Math.PI / 2) * 20 * t2;
-    ctx.beginPath();
-    ctx.moveTo(hx1 + Math.cos(hornAngle + Math.PI / 2) * 1.5, hy1 + Math.sin(hornAngle + Math.PI / 2) * 1.5);
-    ctx.lineTo(hx2 - Math.cos(hornAngle + Math.PI / 2) * 1.5, hy2 - Math.sin(hornAngle + Math.PI / 2) * 1.5);
-    ctx.stroke();
-  }
-  ctx.shadowBlur = 0;
-
-  // Ear
-  ctx.fillStyle = white;
-  ctx.beginPath(); ctx.moveTo(-7, -19); ctx.quadraticCurveTo(-4, -26, -1, -22); ctx.quadraticCurveTo(-3, -18, -7, -19); ctx.fill();
-  ctx.fillStyle = pastelPink;
-  ctx.beginPath(); ctx.moveTo(-6.5, -19); ctx.quadraticCurveTo(-4.5, -24, -2, -21); ctx.quadraticCurveTo(-3.5, -18, -6.5, -19); ctx.fill();
-
-  // Big dreamy eye
-  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(-12, -14, 3.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#6644aa'; ctx.beginPath(); ctx.arc(-12, -14, 2.2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-11, -15, 1, 0, Math.PI * 2); ctx.fill();
-  // Eyelashes — long and magical
-  ctx.strokeStyle = '#222'; ctx.lineWidth = 0.9;
-  [[-14,-17],[-12,-17],[-10,-17],[-9,-16]].forEach(([ex,ey],i) => {
-    ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - 0.5 + i * 0.3, ey - 2.5); ctx.stroke();
-  });
-
-  // Rainbow sparkles floating around
-  const sparkColors = [pastelPink, gold, pastelPurple, '#88ffcc'];
-  sparkColors.forEach((sc, i) => {
-    const angle = p.animFrame * 1.2 + i * (Math.PI / 2);
-    const dist = 20 + Math.sin(p.animFrame + i) * 4;
-    const sx2 = Math.cos(angle) * dist;
-    const sy2 = Math.sin(angle) * dist * 0.6 - 5;
-    const sparkPulse = Math.sin(p.animFrame * 2 + i) * 0.4 + 0.6;
-    ctx.globalAlpha = sparkPulse * 0.9;
-    ctx.fillStyle = sc; ctx.shadowColor = sc; ctx.shadowBlur = 8;
-    // 4-pointed star
-    ctx.save(); ctx.translate(sx2, sy2); ctx.rotate(p.animFrame * 0.5 + i);
-    ctx.beginPath();
-    for (let pt = 0; pt < 8; pt++) {
-      const r = pt % 2 === 0 ? 3 : 1.2;
-      const a = (pt / 8) * Math.PI * 2;
-      pt === 0 ? ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-    }
-    ctx.closePath(); ctx.fill();
-    ctx.restore();
-  });
-  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-
-  ctx.restore();
-}
-
-
+function loop(){
   if(!gameRunning)return;
   update();
   drawFloor();
