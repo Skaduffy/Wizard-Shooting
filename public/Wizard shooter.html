@@ -3688,9 +3688,8 @@ const PET_DEFS = [
   { id:'capybara',   name:'Capybara',      label:'Chill Vibes Only',    color:'#aa8855' },
   { id:'axolotl',    name:'Axolotl',       label:'Walking Flower',      color:'#ff88cc' },
   { id:'minotaur',   name:'Minotaur',      label:'Horned Guardian',     color:'#884422' },
-  { id:'mermaid',    name:'Mermaid',       label:'Ocean Enchantress',   color:'#44aaff' },
+  { id:'centaur',    name:'Centaur',       label:'Half Man Half Horse', color:'#8b5c2a' },
   { id:'unicorn',    name:'Unicorn',       label:'Magical Steed',       color:'#ffaaff' },
-  { id:'cyclops',    name:'Cyclops',       label:'One-Eyed Buddy',      color:'#88aa44' },
 ];
 
 function initPetShop() {
@@ -3707,7 +3706,6 @@ function initPetShop() {
       <div class="pet-badge">FREE</div>`;
     card.onclick = () => selectPet(p.id);
     grid.appendChild(card);
-    // Draw preview after DOM insert
     requestAnimationFrame(() => drawPetPreview(p.id));
   });
 }
@@ -3799,9 +3797,8 @@ function drawPet() {
     case 'capybara':   drawPetCapybara(s.x, s.y, p); break;
     case 'axolotl':    drawPetAxolotl(s.x, s.y, p); break;
     case 'minotaur':   drawPetMinotaur(s.x, s.y, p); break;
-    case 'mermaid':    drawPetMermaid(s.x, s.y, p); break;
+    case 'centaur':    drawPetCentaur(s.x, s.y, p); break;
     case 'unicorn':    drawPetUnicorn(s.x, s.y, p); break;
-    case 'cyclops':    drawPetCyclops(s.x, s.y, p); break;
   }
 }
 
@@ -4629,7 +4626,7 @@ function drawPetPreview(id) {
     hedgehog:'🦔', hamster:'🐹', parrot:'🦜', pig:'🐷',
     goat:'🐐', raccoon:'🦝', sloth:'🦥', frog:'🐸', tarantula:'🕷️',
     fennecfox:'🦊', ferret:'🐾', capybara:'🐾', axolotl:'🦎',
-    minotaur:'🐂', mermaid:'🧜', unicorn:'🦄', cyclops:'👁️'
+    minotaur:'🐂', centaur:'🏇', unicorn:'🦄'
   };
   c.fillText(emojis[id] || '?', 45, 46);
   c.restore();
@@ -4984,6 +4981,72 @@ function drawPetMermaid(x, y, p) {
     const sa=p.animFrame*2+s2*1.57, sr=16+s2*4;
     ctx.beginPath(); ctx.arc(Math.cos(sa)*sr*0.6, 10+Math.sin(sa)*4, 1.5, 0, Math.PI*2); ctx.fill();
   }
+  ctx.restore();
+}
+
+// ── PET: CENTAUR ──
+function drawPetCentaur(x, y, p) {
+  const bob = Math.sin(p.animFrame * 1.1) * 2;
+  const gallop = Math.sin(p.animFrame * 2.4);
+  const g2 = Math.sin(p.animFrame * 2.4 + Math.PI);
+  ctx.save(); ctx.translate(x, y + bob);
+  ctx.shadowColor = '#aa7744'; ctx.shadowBlur = 10;
+  const horseC = '#8b5c2a', horseDark = '#5a3a10', skinC = '#f0c090';
+  // Horse body
+  ctx.fillStyle = horseC;
+  ctx.beginPath(); ctx.ellipse(4, 6, 13, 8, 0, 0, Math.PI*2); ctx.fill();
+  // Horse legs — 4 with gallop
+  ctx.fillStyle = horseDark;
+  ctx.beginPath(); ctx.ellipse(-5, 13+gallop*4, 3, 5, -0.1, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 14+g2*3, 3, 5, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(8, 13+gallop*3, 3, 5, 0.1, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(13, 14+g2*4, 3, 5, 0.15, 0, Math.PI*2); ctx.fill();
+  // Hooves
+  ctx.fillStyle = '#333';
+  [[-5,18+gallop*4],[0,19+g2*3],[8,18+gallop*3],[13,19+g2*4]].forEach(([lx,ly])=>{
+    ctx.beginPath(); ctx.ellipse(lx, ly, 2.5, 1.8, 0, 0, Math.PI*2); ctx.fill();
+  });
+  // Horse tail
+  ctx.strokeStyle = horseDark; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  const tWag = Math.sin(p.animFrame * 1.5) * 6;
+  ctx.beginPath(); ctx.moveTo(16, 2); ctx.quadraticCurveTo(22, 4+tWag, 20, 12); ctx.stroke();
+  ctx.strokeStyle = '#aa7733'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(17, 1); ctx.quadraticCurveTo(24, 5+tWag, 21, 13); ctx.stroke();
+  // Human torso rising from horse body
+  ctx.fillStyle = skinC;
+  ctx.beginPath(); ctx.ellipse(-4, -4, 7, 9, 0, 0, Math.PI*2); ctx.fill();
+  // Chest muscles
+  ctx.fillStyle = 'rgba(180,120,60,0.3)';
+  ctx.beginPath(); ctx.ellipse(-6, -3, 3, 4, 0.2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-2, -3, 3, 4, -0.2, 0, Math.PI*2); ctx.fill();
+  // Arms — muscular
+  ctx.fillStyle = skinC;
+  ctx.beginPath(); ctx.ellipse(-12, -4, 3, 6, -0.4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(4, -4, 3, 6, 0.4, 0, Math.PI*2); ctx.fill();
+  // Hands gripping a spear/bow
+  ctx.fillStyle = '#cc9955';
+  ctx.strokeStyle = '#886633'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-12, 2); ctx.lineTo(-8, -18); ctx.stroke();
+  ctx.fillStyle = '#aaaaaa'; ctx.beginPath(); ctx.arc(-8, -19, 2, 0, Math.PI*2); ctx.fill(); // spear tip
+  // Head
+  ctx.fillStyle = skinC; ctx.beginPath(); ctx.arc(-4, -14, 7, 0, Math.PI*2); ctx.fill();
+  // Hair — wild warrior
+  ctx.fillStyle = horseDark;
+  ctx.beginPath(); ctx.ellipse(-4, -19, 6, 4, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-8, -17, 3, 5, -0.4, 0, Math.PI*2); ctx.fill();
+  // Beard
+  ctx.fillStyle = '#6a3a10';
+  ctx.beginPath(); ctx.ellipse(-4, -10, 3.5, 2.5, 0, 0, Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#222';
+  ctx.beginPath(); ctx.arc(-6.5, -15, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-1.5, -15, 2, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-5.8, -15.5, 0.8, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-0.8, -15.5, 0.8, 0, Math.PI*2); ctx.fill();
+  // Nose
+  ctx.fillStyle = 'rgba(180,100,60,0.6)';
+  ctx.beginPath(); ctx.arc(-4, -12.5, 2, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
