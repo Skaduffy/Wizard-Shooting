@@ -36,6 +36,44 @@
   }
   #controls-hint { display: none; }
 
+  /* ── Virtual Joystick (mobile only) ── */
+  #joystick-zone {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    width: 110px;
+    height: 110px;
+    z-index: 30;
+    pointer-events: none; /* touches handled via JS */
+  }
+  #joystick-base {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.35);
+    border: 2.5px solid rgba(255,255,255,0.25);
+    backdrop-filter: blur(4px);
+  }
+  #joystick-nub {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.55);
+    border: 2px solid rgba(255,255,255,0.8);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    transition: background 0.1s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  #joystick-zone.active #joystick-nub {
+    background: rgba(255,255,255,0.8);
+  }
+  @media (pointer: coarse) {
+    #joystick-zone { display: block; }
+  }
+
   /* ── STORE button — top-left of game ── */
   #store-btn {
     position: absolute;
@@ -689,6 +727,11 @@
     <div class="hud-box"        id="stageDisplay">🌲 STAGE 2</div>
   </div>
   <div id="controls-hint"></div>
+  <!-- Virtual joystick for mobile -->
+  <div id="joystick-zone">
+    <div id="joystick-base"></div>
+    <div id="joystick-nub"></div>
+  </div>
 </div>
 
 <div id="shop">
@@ -2527,7 +2570,8 @@ function drawFriendSquirrel(f) {
 function drawSquirrel() {
   const {x,y,angle}=squirrel, t=frame/12;
   const moving=keys['w']||keys['W']||keys['s']||keys['S']||keys['a']||keys['A']||keys['d']||keys['D']||
-               keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight']||mouseTarget;
+               keys['ArrowUp']||keys['ArrowDown']||keys['ArrowLeft']||keys['ArrowRight']||mouseTarget||
+               (joy.active && Math.hypot(joy.dx,joy.dy)>0.08);
   const leg=moving?Math.sin(t)*.5:Math.sin(t*.3)*.08;
   const bob=moving?Math.sin(t*2)*1.2:Math.sin(t*.6)*.4;
   const tailSway = Math.sin(frame/22)*.18 + (moving?Math.sin(t*1.8)*.1:0);
@@ -2850,6 +2894,69 @@ let mouseDown   = false;   // left button held
 let mouseTarget = null;    // {x,y} destination, or null if none
 let mouseDragging = false; // true once mouse moved while held
 
+// ── Virtual Joystick ──────────────────────────────────────
+const joystickZone = document.getElementById('joystick-zone');
+const joystickNub  = document.getElementById('joystick-nub');
+const JOY_R = 33; // max nub travel radius in CSS px
+let joy = { active: false, touchId: null, dx: 0, dy: 0 };
+
+function joystickRect() { return joystickZone.getBoundingClientRect(); }
+
+function joyStart(e) {
+  // Find a touch that started inside the joystick zone
+  for (const t of e.changedTouches) {
+    const r = joystickRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    if (Math.hypot(t.clientX - cx, t.clientY - cy) <= r.width/2 + 10) {
+      joy.active = true;
+      joy.touchId = t.identifier;
+      joystickZone.classList.add('active');
+      joyMove(e);
+      e.stopPropagation();
+      e.preventDefault();
+      return true; // consumed
+    }
+  }
+  return false;
+}
+
+function joyMove(e) {
+  if (!joy.active) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier !== joy.touchId) continue;
+    const r = joystickRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height/2;
+    let ox = t.clientX - cx, oy = t.clientY - cy;
+    const d = Math.hypot(ox, oy);
+    if (d > JOY_R) { ox = ox/d*JOY_R; oy = oy/d*JOY_R; }
+    joy.dx = ox / JOY_R;
+    joy.dy = oy / JOY_R;
+    // Move nub visually
+    joystickNub.style.transform = `translate(calc(-50% + ${ox}px), calc(-50% + ${oy}px))`;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}
+
+function joyEnd(e) {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joy.touchId) {
+      joy.active = false; joy.touchId = null; joy.dx = 0; joy.dy = 0;
+      joystickZone.classList.remove('active');
+      joystickNub.style.transform = 'translate(-50%,-50%)';
+      e.stopPropagation();
+      return;
+    }
+  }
+}
+
+// Joystick gets first crack at touches — must be on the zone element itself
+joystickZone.style.pointerEvents = 'auto';
+joystickZone.addEventListener('touchstart', joyStart, { passive: false });
+document.addEventListener('touchmove',  joyMove,  { passive: false });
+document.addEventListener('touchend',   joyEnd,   { passive: false });
+document.addEventListener('touchcancel',joyEnd,   { passive: false });
+
 function getCanvasPos(e) {
   const r = canvas.getBoundingClientRect();
   const scaleX = canvas.width  / r.width;
@@ -2951,7 +3058,7 @@ let clickMarker = null; // {x,y,age}
 function update() {
   frame++;
 
-  // Player movement — WASD OR mouse target
+  // Player movement — WASD / mouse target / joystick
   let dx=0, dy=0;
   const usingKeys =
     keys['w']||keys['W']||keys['ArrowUp']||
@@ -2960,7 +3067,7 @@ function update() {
     keys['d']||keys['D']||keys['ArrowRight'];
 
   if (usingKeys) {
-    mouseTarget = null; // keyboard overrides mouse
+    mouseTarget = null;
     if(keys['w']||keys['W']||keys['ArrowUp'])    dy=-1;
     if(keys['s']||keys['S']||keys['ArrowDown'])  dy= 1;
     if(keys['a']||keys['A']||keys['ArrowLeft'])  dx=-1;
@@ -2970,6 +3077,17 @@ function update() {
     squirrel.angle+=angleDiff(squirrel.angle,squirrel.targetAngle)*.12;
     squirrel.x=Math.max(sqW()/2,Math.min(W-sqW()/2,squirrel.x+dx*playerSpeed()));
     squirrel.y=Math.max(sqH()/2,Math.min(H-sqH()/2,squirrel.y+dy*playerSpeed()));
+
+  } else if (joy.active && (Math.abs(joy.dx) > 0.08 || Math.abs(joy.dy) > 0.08)) {
+    // Joystick input — direct velocity control, feels snappy on mobile
+    mouseTarget = null;
+    dx = joy.dx; dy = joy.dy;
+    const jLen = Math.hypot(dx, dy);
+    if (jLen > 1) { dx /= jLen; dy /= jLen; }
+    squirrel.targetAngle = Math.atan2(dy, dx);
+    squirrel.angle += angleDiff(squirrel.angle, squirrel.targetAngle) * .15;
+    squirrel.x = Math.max(sqW()/2, Math.min(W-sqW()/2, squirrel.x + dx*playerSpeed()));
+    squirrel.y = Math.max(sqH()/2, Math.min(H-sqH()/2, squirrel.y + dy*playerSpeed()));
 
   } else if (mouseTarget) {
     const tdx = mouseTarget.x - squirrel.x;
