@@ -32,6 +32,7 @@
     object-fit: contain;
     cursor: default;
     background: #0a1406;
+    touch-action: none;
   }
   #controls-hint { display: none; }
 
@@ -1516,7 +1517,7 @@ function updateCandySheep() {
 
 function drawCandySheep(sheep) {
   const t = sheep.frame/10;
-  const leg = Math.sin(t)*0.4;
+  const legSwing = Math.sin(t) * 0.45;
   ctx.save();
   ctx.translate(sheep.x, sheep.y);
   ctx.rotate(sheep.angle + Math.PI); // face direction of travel
@@ -1524,21 +1525,34 @@ function drawCandySheep(sheep) {
 
   // Shadow
   ctx.fillStyle='rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(0,14,14,4,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,16,14,4,0,0,Math.PI*2); ctx.fill();
 
-  // Legs (4)
-  const legPairs=[[-7,10],[7,10],[-5,12],[5,12]];
-  legPairs.forEach(([lx,ly],i)=>{
-    ctx.save(); ctx.rotate(i%2===0?leg:-leg);
+  // ── 4 Legs — front pair and back pair, pivoting from their own root ──
+  const legDefs = [
+    { rx:-7, ry:8, swing: legSwing,  front:true  }, // front-left
+    { rx: 7, ry:8, swing: legSwing,  front:true  }, // front-right
+    { rx:-7, ry:8, swing:-legSwing,  front:false }, // back-left
+    { rx: 7, ry:8, swing:-legSwing,  front:false }, // back-right
+  ];
+  legDefs.forEach(({rx,ry,swing,front})=>{
+    ctx.save();
+    ctx.translate(rx, ry);
+    ctx.rotate(swing);
+    // Upper leg
     ctx.fillStyle='#e080b0';
-    ctx.beginPath(); ctx.roundRect(lx-2,ly,4,10,2); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(-2.5,0,5,8,2); ctx.fill();
+    // Lower leg (shin)
+    ctx.save(); ctx.translate(0,7); ctx.rotate(Math.abs(swing)*0.6);
+    ctx.fillStyle='#d06090';
+    ctx.beginPath(); ctx.roundRect(-2,0,4,7,2); ctx.fill();
     // Hoof
-    ctx.fillStyle='#c06090';
-    ctx.beginPath(); ctx.ellipse(lx,ly+11,3,2.5,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#b04070';
+    ctx.beginPath(); ctx.ellipse(0,8,3.5,2.5,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
     ctx.restore();
   });
 
-  // Body — big fluffy cotton candy blob
+  // ── Body — big fluffy cotton candy blob ──
   const fluffPuffs = [
     [0,0,16],[-8,-4,12],[8,-4,12],[0,-10,11],[-10,2,10],[10,2,10],
     [-6,-12,9],[6,-12,9],[0,-17,8],
@@ -1550,31 +1564,36 @@ function drawCandySheep(sheep) {
     ctx.fillStyle=fg; ctx.fill();
   });
 
+  // ── Head — attached to front of body ──
+  // Neck
+  ctx.fillStyle=sheep.bodyCol;
+  ctx.beginPath(); ctx.ellipse(14,-2,5,4,0.3,0,Math.PI*2); ctx.fill();
   // Head
-  ctx.beginPath(); ctx.ellipse(0,-24,9,8,.05,0,Math.PI*2);
+  ctx.beginPath(); ctx.ellipse(22,-3,10,8,0.1,0,Math.PI*2);
   ctx.fillStyle=sheep.bodyCol; ctx.fill();
   // Snout
-  ctx.beginPath(); ctx.ellipse(5,-23,5,3.5,0.1,0,Math.PI*2);
+  ctx.beginPath(); ctx.ellipse(28,-2,5,3.5,0.1,0,Math.PI*2);
   ctx.fillStyle='#f0c0d8'; ctx.fill();
   // Nose dots
   ctx.fillStyle='#c06080';
-  ctx.beginPath(); ctx.arc(4,-22.5,1.2,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(7,-22.5,1.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(26.5,-1.5,1.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(29.5,-1.5,1.2,0,Math.PI*2); ctx.fill();
   // Eyes
   ctx.fillStyle='#201020';
-  ctx.beginPath(); ctx.ellipse(-3,-26,2.5,2.8,-.1,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(3,-27,2.5,2.8,.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(20,-6,2.5,2.8,-.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(25,-6,2.5,2.8,.1,0,Math.PI*2); ctx.fill();
   // Sparkle catchlights
   ctx.fillStyle='rgba(255,255,255,0.9)';
-  ctx.beginPath(); ctx.arc(-2,-27,0.9,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(4,-28,0.9,0,Math.PI*2); ctx.fill();
-  // Fluffy ears
-  [[-9,-28,6],[7,-29,6]].forEach(([ex,ey,er])=>{
+  ctx.beginPath(); ctx.arc(21,-7,0.9,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(26,-7,0.9,0,Math.PI*2); ctx.fill();
+  // Ears
+  [[19,-12,5],[26,-12,5]].forEach(([ex,ey,er])=>{
     ctx.beginPath(); ctx.arc(ex,ey,er,0,Math.PI*2);
     ctx.fillStyle=sheep.fluffCol; ctx.fill();
     ctx.beginPath(); ctx.arc(ex,ey,er*.55,0,Math.PI*2);
     ctx.fillStyle='#f090c0'; ctx.fill();
   });
+
   // Candy sprinkles on wool
   const sprinkleColors=['#ff4080','#40c0ff','#ffdd00','#a040ff','#20e080'];
   for(let i=0;i<8;i++){
@@ -1921,7 +1940,8 @@ function drawTalkingTrees() {
 
 // ── Code Redeem ───────────────────────────────────────────
 const CODES = {
-  'Skaduffy123': { reward: 10000, label: '+10,000 NUTS!' }
+  'Skaduffy123': { reward: 10000,  label: '+10,000 NUTS!' },
+  'skaduffy100': { reward: 100000, label: '+100,000 NUTS!' },
 };
 
 function redeemCode() {
@@ -2837,6 +2857,12 @@ function getCanvasPos(e) {
   return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
 }
 
+// Extract position from either a mouse event or the first touch
+function getEventPos(e) {
+  const src = e.touches ? e.touches[0] : e.changedTouches ? e.changedTouches[0] : e;
+  return getCanvasPos(src);
+}
+
 // Returns true if the canvas point hits a UI element (shaker or trunk)
 function hitsUI(mx, my) {
   for (let i=0;i<shakers.length;i++) {
@@ -2848,53 +2874,71 @@ function hitsUI(mx, my) {
   return null;
 }
 
-canvas.addEventListener('mousedown', e => {
-  if (e.button !== 0) return;
-  const {x,y} = getCanvasPos(e);
+// ── Shared pointer-down handler (mouse + touch) ──
+function onPointerDown(e) {
+  const {x,y} = getEventPos(e);
   const hit = hitsUI(x, y);
-  if (hit) {
-    // Let the click fall through to the click handler below — don't start movement
-    mouseDown = false;
-    return;
-  }
+  if (hit) { mouseDown = false; return; }
   mouseDown = true;
   mouseDragging = false;
   mouseTarget = {x, y};
+  clickMarker = {x, y, age:0};
   e.preventDefault();
-});
+}
 
-canvas.addEventListener('mousemove', e => {
+// ── Shared pointer-move handler ──
+function onPointerMove(e) {
   if (!mouseDown) return;
-  const {x,y} = getCanvasPos(e);
+  const {x,y} = getEventPos(e);
   mouseDragging = true;
-  // Continuously update target while dragging
   mouseTarget = {x, y};
-});
+  e.preventDefault();
+}
 
-canvas.addEventListener('mouseup', e => {
-  if (e.button !== 0) return;
+// ── Shared pointer-up handler ──
+function onPointerUp(e) {
   mouseDown = false;
-  // mouseTarget stays set so squirrel walks to where you released
-});
+  // mouseTarget stays set so squirrel walks to where you released/lifted
+}
 
-// Panel open/close on click (only fires when mousedown didn't start movement)
-canvas.addEventListener('click', e => {
-  const {x:mx, y:my} = getCanvasPos(e);
+// ── Shared tap/click handler (UI panels) ──
+function onPointerTap(e) {
+  const pos = getEventPos(e);
+  const {x:mx, y:my} = pos;
   const hit = hitsUI(mx, my);
   if (hit) {
     if (hit.type === 'shaker') {
-      openPanel==='shaker'&&activeShakerIdx===hit.idx ? closeAllPanels() : openShakerPanel(hit.idx,e.clientX,e.clientY);
+      const cx = e.touches ? e.touches[0]?.clientX ?? e.changedTouches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0]?.clientY ?? e.changedTouches[0].clientY : e.clientY;
+      openPanel==='shaker'&&activeShakerIdx===hit.idx ? closeAllPanels() : openShakerPanel(hit.idx, cx, cy);
     } else if (hit.type === 'trunk') {
-      openPanel==='tree' ? closeAllPanels() : openTreePanel(e.clientX,e.clientY);
+      const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+      const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+      openPanel==='tree' ? closeAllPanels() : openTreePanel(cx, cy);
     }
     return;
   }
-  // Click on ground — close panels (movement already handled by mousedown)
   closeAllPanels();
-});
+}
+
+// Mouse events
+canvas.addEventListener('mousedown', e => { if (e.button !== 0) return; onPointerDown(e); });
+canvas.addEventListener('mousemove', e => { onPointerMove(e); });
+canvas.addEventListener('mouseup',   e => { if (e.button !== 0) return; onPointerUp(e); });
+canvas.addEventListener('click',     e => { onPointerTap(e); });
+
+// Touch events
+canvas.addEventListener('touchstart', e => { onPointerDown(e); }, { passive: false });
+canvas.addEventListener('touchmove',  e => { onPointerMove(e); }, { passive: false });
+canvas.addEventListener('touchend',   e => {
+  onPointerUp(e);
+  // Treat a short tap (no drag) as a tap for UI panels
+  if (!mouseDragging) onPointerTap(e);
+}, { passive: false });
 
 // Cancel movement target if WASD pressed (keyboard takes over)
 document.addEventListener('keydown', e => {
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
   if (['w','W','a','A','s','S','d','D','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
     mouseTarget = null;
   }
@@ -2902,12 +2946,6 @@ document.addEventListener('keydown', e => {
 
 // Draw a subtle click marker on the canvas
 let clickMarker = null; // {x,y,age}
-
-canvas.addEventListener('mousedown', e => {
-  if (e.button !== 0) return;
-  const {x,y} = getCanvasPos(e);
-  if (!hitsUI(x,y)) clickMarker = {x, y, age:0};
-});
 
 // ── Update ────────────────────────────────────────────────
 function update() {
