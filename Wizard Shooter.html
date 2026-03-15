@@ -492,6 +492,8 @@
   body.stage6 #shop h2 { color: #ff90e0; border-bottom-color: #3a1040; }
   body.stage7 #shop { background: rgba(4,12,4,0.99); border-left-color: #50c060; }
   body.stage7 #shop h2 { color: #80e890; border-bottom-color: #1a3a1a; }
+  body.stage8 #shop { background: rgba(2,6,18,0.99); border-left-color: #40a0e0; }
+  body.stage8 #shop h2 { color: #80d0ff; border-bottom-color: #0a2040; }
   body.stage6 #gameCanvas { border-color: #8030a0; box-shadow: 0 0 60px rgba(220,80,200,0.5); }
   body.stage6 .hud-box { border-color: #c040a0; color: #ff90e0; }
   body.stage6 .hud-box.green { border-color: #8060c0; color: #c090ff; }
@@ -942,6 +944,20 @@
     <button class="upg-btn" id="btn-nextstage7" style="display:none"></button>
   </div>
 
+  <div class="upg-card" id="nextstage8-card" style="border-color:#0a2040;display:none;" onclick="openNextStage8()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#80d0ff;">🧊 ICE FLOOR</div>
+        <span class="upg-level" style="color:#2070a0;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#1a3a60;">Stage 8 — frost acorns 80x. Brr!</div>
+        <div class="upg-card-price" style="color:#80d0ff;">🧊 <span id="cost-nextstage8">400000</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-nextstage8" style="display:none"></button>
+  </div>
+
   <div id="code-bar">
     <label>🔑 REDEEM CODE</label>
     <div id="code-input-row">
@@ -1125,6 +1141,29 @@
     </div>
   </div>
 </div>
+
+<div id="nextstage8-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,10,0.92);z-index:60;align-items:center;justify-content:center;">
+  <div style="background:#040818;border:2px solid #40a0e0;border-radius:14px;padding:26px 28px 24px;width:420px;max-width:96vw;box-shadow:0 0 70px rgba(60,160,240,0.6);font-family:'Press Start 2P',monospace;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div style="font-size:48px;">🧊</div>
+    <h2 style="color:#80d0ff;font-size:12px;text-align:center;letter-spacing:1px;">ENTER THE<br>ICE FLOOR?</h2>
+    <div style="color:#306080;font-size:6.5px;line-height:2.2;text-align:center;">
+      Stage 8 — The Frozen Grove<br><br>
+      🧊 Frost acorns — 80 nuts each!<br>
+      🏔 Ice pillars rise from the ground<br>
+      ❄ Two pillars at a time, 1 min each
+    </div>
+    <div style="color:#c84040;font-size:6px;text-align:center;line-height:2;border:1px solid #401010;border-radius:6px;padding:8px 12px;background:#0a0202;width:100%;">
+      ⚠ ALL UPGRADES RESET TO ZERO<br>
+      Friends dismissed · Shakers reset<br>
+      Nuts are spent on entry
+    </div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="confirmNextStage8()" style="flex:1;background:#040c1c;border:2px solid #40a0e0;border-radius:6px;color:#80d0ff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">🧊 ENTER ICE FLOOR</button>
+      <button onclick="closeNextStage8()" style="flex:1;background:#0a0202;border:1.5px solid #401010;border-radius:6px;color:#804040;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">✕ NOT YET</button>
+    </div>
+  </div>
+</div>
+
 <div id="costume-overlay">
   <div id="costume-modal">
     <button class="costume-close-btn" onclick="closeCostumeShop()">✕ CLOSE</button>
@@ -1233,7 +1272,7 @@ const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scal
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
 const maxCarry      = ()  => 3 + UPG.size.level * 2;
-const nutsPerAcorn  = ()  => (currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
+const nutsPerAcorn  = ()  => (currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
@@ -1662,6 +1701,7 @@ function enterStage7() {
     skelTimer: Math.floor(Math.random()*400)+300,
   }));
   document.getElementById('nextstage7-card').style.display = 'none';
+  document.getElementById('nextstage8-card').style.display = 'block';
   document.getElementById('stageDisplay').textContent = '👻 STAGE 7';
   fillField(); refreshUI();
 }
@@ -1923,6 +1963,173 @@ function drawGhostPops() {
     ctx.fillText('BOO!', 0, -22 - p*8);
     ctx.restore();
   });
+}
+
+// ── Stage 8 — Ice Floor ───────────────────────────────────
+const NEXTSTAGE8_COST = 400000;
+let icePillars = [];
+const ICE_PILLAR_MAX = 2;
+const ICE_PILLAR_LIFE = 60 * 60;
+const ICE_PILLAR_RISE_FRAMES = 90;
+const ICE_PILLAR_SINK_FRAMES = 60;
+
+function openNextStage8() {
+  if (currentStage !== 7) return;
+  document.getElementById('nextstage8-overlay').style.display = 'flex';
+}
+function closeNextStage8() {
+  document.getElementById('nextstage8-overlay').style.display = 'none';
+}
+function confirmNextStage8() {
+  if (nuts < NEXTSTAGE8_COST) return;
+  nuts -= NEXTSTAGE8_COST;
+  closeNextStage8();
+  runStageTransition('🧊', 'ENTERING THE<br>ICE FLOOR', 'STAGE 8 · BRRR!', enterStage8);
+}
+function enterStage8() {
+  resetForNewStage();
+  currentStage = 8;
+  document.body.classList.remove('stage7');
+  document.body.classList.add('stage8');
+  talkingTrees = []; fireSprites = []; candySheep = []; lollipopTrees = [];
+  gravestones = []; skeletons = []; ghostPops = [];
+  icePillars = [];
+  document.getElementById('nextstage8-card').style.display = 'none';
+  document.getElementById('stageDisplay').textContent = '🧊 STAGE 8';
+  fillField(); refreshUI();
+}
+
+function spawnIcePillar() {
+  if (icePillars.length >= ICE_PILLAR_MAX) return;
+  let attempts = 0, px, py;
+  do {
+    px = 50 + Math.random() * (W - 100);
+    py = 50 + Math.random() * (H - 100);
+    attempts++;
+  } while (attempts < 20 && (
+    dist(px, py, CX, CY) < TR + 70 ||
+    dist(px, py, NEST_X, NEST_Y) < 60 ||
+    icePillars.some(p => dist(px, py, p.x, p.y) < 90)
+  ));
+  icePillars.push({
+    x: px, y: py, riseAmt: 0, age: 0, maxAge: ICE_PILLAR_LIFE,
+    size: 18 + Math.random() * 10, state: 'rising',
+    crystals: Array.from({length: 5}, (_, i) => ({
+      angle: (i / 5) * Math.PI * 2 + Math.random() * 0.4,
+      height: 0.6 + Math.random() * 0.8,
+      width: 0.3 + Math.random() * 0.3,
+    })),
+  });
+}
+
+function updateIceFloor() {
+  if (currentStage !== 8) return;
+  if (icePillars.length < ICE_PILLAR_MAX) {
+    const chance = icePillars.length === 0 ? 0.02 : 0.003;
+    if (Math.random() < chance) spawnIcePillar();
+  }
+  icePillars.forEach(p => {
+    p.age++;
+    if (p.state === 'rising') {
+      p.riseAmt = Math.min(1, p.riseAmt + 1 / ICE_PILLAR_RISE_FRAMES);
+      if (p.riseAmt >= 1) p.state = 'standing';
+    } else if (p.state === 'standing') {
+      if (p.age >= p.maxAge) p.state = 'sinking';
+    } else if (p.state === 'sinking') {
+      p.riseAmt = Math.max(0, p.riseAmt - 1 / ICE_PILLAR_SINK_FRAMES);
+    }
+  });
+  icePillars = icePillars.filter(p => !(p.state === 'sinking' && p.riseAmt <= 0));
+}
+
+function drawIcePillar(p) {
+  if (p.riseAmt <= 0) return;
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  const h = p.size * 3.5 * p.riseAmt;
+  const r = p.size;
+  const shimmer = Math.sin(frame / 20 + p.x * 0.02) * 0.08 + 0.92;
+
+  // Ground shadow
+  ctx.fillStyle = 'rgba(0,20,60,0.3)';
+  ctx.beginPath(); ctx.ellipse(0, 4, r * 0.9, r * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Clip pillar to rise from ground
+  ctx.save();
+  ctx.beginPath(); ctx.rect(-r * 1.5, -h - 2, r * 3, h + 6); ctx.clip();
+
+  // Main pillar body
+  const pg = ctx.createLinearGradient(-r, -h, r, 0);
+  pg.addColorStop(0, '#e8f8ff'); pg.addColorStop(0.3, '#90d0f0');
+  pg.addColorStop(0.7, '#4090c0'); pg.addColorStop(1, '#205080');
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.7, 0); ctx.lineTo(-r * 0.9, -h * 0.4);
+  ctx.lineTo(-r * 0.6, -h); ctx.lineTo(r * 0.6, -h);
+  ctx.lineTo(r * 0.9, -h * 0.4); ctx.lineTo(r * 0.7, 0);
+  ctx.closePath();
+  ctx.fillStyle = pg; ctx.globalAlpha = 0.88 * shimmer; ctx.fill();
+  ctx.strokeStyle = 'rgba(180,230,255,0.7)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Internal crack lines
+  ctx.globalAlpha = 0.3; ctx.strokeStyle = '#b0e8ff'; ctx.lineWidth = 0.8;
+  [0.25, 0.55, 0.78].forEach(frac => {
+    const cy = -h * frac;
+    ctx.beginPath(); ctx.moveTo(-r * 0.7 * (1 - frac * 0.3), cy);
+    ctx.lineTo(r * 0.6 * (1 - frac * 0.2), cy - h * 0.08); ctx.stroke();
+  });
+
+  // Highlight streak
+  ctx.globalAlpha = 0.45 * shimmer;
+  const hl = ctx.createLinearGradient(-r * 0.3, -h, -r * 0.1, 0);
+  hl.addColorStop(0, 'rgba(255,255,255,0.85)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.35, 0); ctx.lineTo(-r * 0.45, -h * 0.5);
+  ctx.lineTo(-r * 0.2, -h * 0.9); ctx.lineTo(-r * 0.05, -h * 0.5);
+  ctx.lineTo(-r * 0.1, 0); ctx.closePath();
+  ctx.fillStyle = hl; ctx.fill();
+
+  // Sharp crystal spikes at top — tall and needle-like
+  ctx.globalAlpha = 0.95 * shimmer;
+  // Central dominant spike
+  const mainH = r * 3.2 * p.riseAmt;
+  const mainG = ctx.createLinearGradient(0, -h, 0, -h - mainH);
+  mainG.addColorStop(0, '#80c8f0'); mainG.addColorStop(0.4, '#e8f8ff'); mainG.addColorStop(1, '#ffffff');
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.18, -h); ctx.lineTo(0, -h - mainH); ctx.lineTo(r * 0.18, -h);
+  ctx.closePath(); ctx.fillStyle = mainG; ctx.fill();
+  ctx.strokeStyle = 'rgba(220,245,255,0.7)'; ctx.lineWidth = 0.8; ctx.stroke();
+
+  // Smaller surrounding spikes
+  p.crystals.forEach(c => {
+    const cx2 = Math.cos(c.angle) * r * 0.5;
+    const cw = r * c.width * 0.35; // much narrower = sharper
+    const ch = r * c.height * 2.6 * p.riseAmt; // taller
+    const cg = ctx.createLinearGradient(cx2, -h, cx2, -h - ch);
+    cg.addColorStop(0, '#70b8e0'); cg.addColorStop(0.5, '#d0f0ff'); cg.addColorStop(1, '#ffffff');
+    ctx.beginPath();
+    ctx.moveTo(cx2 - cw, -h); ctx.lineTo(cx2, -h - ch); ctx.lineTo(cx2 + cw, -h);
+    ctx.closePath(); ctx.fillStyle = cg; ctx.fill();
+    ctx.strokeStyle = 'rgba(200,240,255,0.4)'; ctx.lineWidth = 0.6; ctx.stroke();
+  });
+  ctx.restore();
+
+  // Base glow
+  ctx.globalAlpha = 0.15 * p.riseAmt;
+  const bg = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.5);
+  bg.addColorStop(0, '#80d0ff'); bg.addColorStop(1, 'rgba(80,180,255,0)');
+  ctx.beginPath(); ctx.arc(0, 0, r * 2.5, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill();
+
+  // Countdown ring — flashes red in last 10s
+  const timeLeft = p.maxAge - p.age;
+  if (p.state === 'standing' && timeLeft < 600) {
+    const frac = timeLeft / 600;
+    ctx.globalAlpha = 0.7 * (Math.sin(frame / 6) * 0.4 + 0.6);
+    ctx.beginPath();
+    ctx.arc(0, -h / 2, r * 1.1, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+    ctx.strokeStyle = '#ff4040'; ctx.lineWidth = 3; ctx.lineCap = 'butt'; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 function spawnCandySheep() {
@@ -2532,8 +2739,8 @@ function refreshUI() {
     document.getElementById('lvl-size').textContent = 'MAX';
     document.getElementById('cost-size').textContent = '—';
   }
-  const nut = currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
-  const nutName = currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
+  const nut = currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nutName = currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
   document.getElementById('desc-size').textContent   = `Carry ${maxCarry()} ${nutName}s`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
@@ -2561,6 +2768,7 @@ function refreshUI() {
   if (currentStage === 4) { document.getElementById('btn-nextstage5').classList.toggle('cant', nuts < NEXTSTAGE5_COST); document.getElementById('nextstage5-card').classList.toggle('cant', nuts < NEXTSTAGE5_COST); }
   if (currentStage === 5) { document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST); document.getElementById('nextstage6-card').classList.toggle('cant', nuts < NEXTSTAGE6_COST); }
   if (currentStage === 6) { document.getElementById('btn-nextstage7').classList.toggle('cant', nuts < NEXTSTAGE7_COST); document.getElementById('nextstage7-card').classList.toggle('cant', nuts < NEXTSTAGE7_COST); }
+  if (currentStage === 7) { document.getElementById('btn-nextstage8').classList.toggle('cant', nuts < NEXTSTAGE8_COST); document.getElementById('nextstage8-card').classList.toggle('cant', nuts < NEXTSTAGE8_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -2570,7 +2778,7 @@ function nutPop(x,y,amount) {
   // canvas internal coords → screen coords (accounts for CSS scaling)
   const scaleX = r.width  / canvas.width;
   const scaleY = r.height / canvas.height;
-  const nut = currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nut = currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
   el.style.cssText=`left:${r.left + x*scaleX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
   setTimeout(()=>{ el.style.transition='opacity .8s,transform .8s'; el.style.opacity='0'; el.style.transform='translateY(-36px)'; },40);
@@ -2581,6 +2789,58 @@ function nutPop(x,y,amount) {
 // ─────────────────────────────────────────────────────────
 
 function drawGround() {
+  if (currentStage === 8) {
+    // Ice Floor — deep blue frozen tundra
+    ctx.fillStyle = '#060e1e'; ctx.fillRect(0,0,W,H);
+    const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
+    gr.addColorStop(0,'rgba(0,0,0,0.7)'); gr.addColorStop(.5,'rgba(0,10,30,0.3)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    // Ice crystal ground texture
+    ctx.globalAlpha=.45;
+    for (let i=0;i<300;i++) {
+      const gx=(i*127+13)%W, gy=(i*89+31)%H;
+      if (dist(gx,gy,CX,CY)<TR+12) continue;
+      const cols=['#0a1a3a','#102040','#1a3050','#0e2848','#162038'];
+      ctx.fillStyle=cols[i%5];
+      ctx.beginPath();
+      if (i%3===0) ctx.ellipse(gx,gy,5+i%3,2,i*0.5,0,Math.PI*2);
+      else ctx.ellipse(gx,gy,2,4+i%2,i*0.3,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // Icy glint patches
+    for (let i=0;i<60;i++) {
+      const gx=(i*211+57)%W, gy=(i*143+83)%H;
+      if (dist(gx,gy,CX,CY)<TR+15) continue;
+      const twinkle = Math.sin(frame/25+i*1.7)*0.5+0.5;
+      ctx.globalAlpha = twinkle * 0.25;
+      ctx.fillStyle = '#c0e8ff';
+      ctx.beginPath(); ctx.ellipse(gx,gy,3,1.2,i*0.8,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // Blue shimmer glow spots at pillar positions
+    const iceGlows=[
+      [W*.12,H*.20,50],[W*.86,H*.22,45],[W*.14,H*.78,48],[W*.84,H*.76,44],
+      [W*.50,H*.08,36],[W*.50,H*.90,38],[W*.06,H*.48,34],[W*.92,H*.50,36],
+    ];
+    iceGlows.forEach(([mx,my,mr])=>{
+      const pulse = 0.05 + Math.sin(frame/70+mx)*0.025;
+      const mg=ctx.createRadialGradient(mx,my,0,mx,my,mr);
+      mg.addColorStop(0,`rgba(60,140,220,${pulse})`); mg.addColorStop(1,'rgba(30,80,180,0)');
+      ctx.beginPath(); ctx.arc(mx,my,mr,0,Math.PI*2); ctx.fillStyle=mg; ctx.fill();
+    });
+    // Drifting snow/ice particles
+    for (let i=0;i<12;i++) {
+      const fx=((i*179 + frame*0.3)%W);
+      const fy=((i*113 + frame*0.15 + i*30)%H);
+      if (dist(fx,fy,CX,CY)<TR+20) continue;
+      ctx.globalAlpha=0.15+Math.sin(frame/30+i)*0.08;
+      ctx.fillStyle='#d0f0ff';
+      ctx.beginPath(); ctx.arc(fx,fy,1.5+i%2,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    return;
+  }
   if (currentStage === 7) {
     // Ghost Floor — mossy grey haunted ground
     ctx.fillStyle = '#1e2a1e'; ctx.fillRect(0,0,W,H);
@@ -2798,10 +3058,11 @@ function drawTrunkPillar() {
   const s5 = currentStage === 5;
   const s6 = currentStage === 6;
   const s7 = currentStage === 7;
-  const tOuter = s7?'#1a3a1a':s6?'#5020a0':s5 ? '#0e0804' : s3 ? '#2a3008' : s2 ? '#0a1a0e' : COL.trunkOuter;
-  const tMid   = s7?'#2a4a2a':s6?'#7030b0':s5 ? '#1e1008' : s3 ? '#3a4210' : s2 ? '#102a18' : COL.trunkMid;
-  const tCore  = s7?'#3a5a3a':s6?'#9040c0':s5 ? '#2e1a0c' : s3 ? '#4a5418' : s2 ? '#163a20' : COL.trunkCore;
-  const tLight = s7?'#60a060':s6?'#c060e0':s5 ? '#3e2010' : s3 ? '#6a7828' : s2 ? '#204a2a' : COL.trunkLight;
+  const s8 = currentStage === 8;
+  const tOuter = s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
+  const tMid   = s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
+  const tCore  = s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
+  const tLight = s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
   const shadow=ctx.createRadialGradient(CX,CY+6,TR*.5,CX,CY+4,TR*1.28);
   shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.beginPath(); ctx.arc(CX,CY,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
@@ -2810,7 +3071,7 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
   [.82,.65,.48].forEach(rf=>{
     ctx.beginPath(); ctx.arc(CX,CY,TR*rf,0,Math.PI*2);
-    ctx.strokeStyle=s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+    ctx.strokeStyle=s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
   });
   ctx.globalAlpha=1;
   for (let i=0;i<9;i++) {
@@ -2823,10 +3084,10 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2);
   ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
   // Stage glow on trunk
-  if (s2 || s3 || s5 || s6 || s7) {
+  if (s2 || s3 || s5 || s6 || s7 || s8) {
     const glowP = Math.sin(frame/80)*0.5+0.5;
     ctx.globalAlpha = 0.12 + glowP*0.08;
-    const glowCol = s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5 ? 'rgba(255,80,10,1)' : s3 ? 'rgba(200,220,30,1)' : 'rgba(40,200,120,1)';
+    const glowCol = s8?'rgba(60,140,240,1)':s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5?'rgba(255,80,10,1)':s3?'rgba(200,220,30,1)':'rgba(40,200,120,1)';
     const tglow=ctx.createRadialGradient(CX,CY,0,CX,CY,TR*1.1);
     tglow.addColorStop(0,glowCol); tglow.addColorStop(1,glowCol.replace(',1)',',0)'));
     ctx.beginPath(); ctx.arc(CX,CY,TR*1.1,0,Math.PI*2); ctx.fillStyle=tglow; ctx.fill();
@@ -2864,6 +3125,23 @@ function drawTrunkPillar() {
         ctx.globalAlpha=sp*0.6;
         ctx.fillStyle=i%2===0?'#60e878':'#a0ffb8';
         ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,2.5+sp*1.5,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if (s8) {
+      // Icy blue shards orbit trunk
+      for (let i=0;i<10;i++) {
+        const sa=(i/10)*Math.PI*2+frame*0.018;
+        const sr=TR+7+Math.sin(frame/22+i*1.4)*9;
+        const sp=Math.sin(frame/13+i*2.3)*0.5+0.5;
+        ctx.globalAlpha=sp*0.75;
+        ctx.fillStyle=i%3===0?'#ffffff':i%3===1?'#80d0ff':'#c0eeff';
+        ctx.save();
+        ctx.translate(CX+Math.cos(sa)*sr, CY+Math.sin(sa)*sr);
+        ctx.rotate(sa+frame*0.03);
+        ctx.beginPath(); ctx.moveTo(0,-3-sp*2); ctx.lineTo(1.2,0); ctx.lineTo(0,3+sp*2); ctx.lineTo(-1.2,0); ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
       ctx.globalAlpha=1;
     }
@@ -3187,7 +3465,29 @@ function drawAcorn(a) {
     : 1;
   if (falling) ctx.globalAlpha = .6;
   else if (lifeAlpha < 1) ctx.globalAlpha = Math.max(0, lifeAlpha);
-  if (currentStage === 7) {
+  if (currentStage === 8) {
+    const wobble = Math.sin(frame/18 + x*0.05) * 1.2;
+    const fg=ctx.createRadialGradient(x,y+wobble,0,x,y+wobble,r*3);
+    fg.addColorStop(0,'rgba(140,210,255,0.35)'); fg.addColorStop(1,'rgba(60,140,220,0)');
+    ctx.beginPath(); ctx.arc(x,y+wobble,r*3,0,Math.PI*2); ctx.fillStyle=fg; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x,y+wobble+r*.15,r*.72,r,0,0,Math.PI*2);
+    const ag=ctx.createRadialGradient(x-r*.2,y+wobble-r*.3,0,x,y+wobble,r);
+    ag.addColorStop(0,'#e8f8ff'); ag.addColorStop(0.4,'#80c8f0'); ag.addColorStop(1,'#1a5080');
+    ctx.globalAlpha*=0.92; ctx.fillStyle=ag; ctx.fill();
+    ctx.strokeStyle='rgba(180,230,255,0.5)'; ctx.lineWidth=0.8; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x,y+wobble-r*.72,r*.82,r*.38,0,0,Math.PI*2);
+    const cg=ctx.createLinearGradient(x,y+wobble-r,x,y+wobble-r*.4);
+    cg.addColorStop(0,'#ffffff'); cg.addColorStop(1,'#60a8d0');
+    ctx.fillStyle=cg; ctx.fill();
+    for (let i=0;i<4;i++) {
+      const sa=i*1.57+frame/30;
+      ctx.fillStyle='rgba(220,245,255,0.85)';
+      ctx.beginPath(); ctx.arc(x+Math.cos(sa)*r*.5,y+wobble+Math.sin(sa)*r*.4,1.2,0,Math.PI*2); ctx.fill();
+    }
+    ctx.beginPath(); ctx.moveTo(x,y+wobble-r*1.08); ctx.quadraticCurveTo(x+r*.4,y+wobble-r*1.5,x+r*.2,y+wobble-r*1.7);
+    ctx.strokeStyle='#5090b8'; ctx.lineWidth=1.5; ctx.lineCap='round'; ctx.stroke();
+    ctx.globalAlpha=1;
+  } else if (currentStage === 7) {
     // Ghost acorn — glowing green, slightly translucent with wispy cap
     const pulse = Math.sin(frame/20 + x*0.04) * 0.08 + 1;
     const wobble = Math.sin(frame/15 + y*0.03) * 1.5;
@@ -3746,6 +4046,7 @@ function update() {
   updateFireSprites();
   updateCandySheep();
   updateGhostFloor();
+  updateIceFloor();
 }
 
 // ── Draw ──────────────────────────────────────────────────
@@ -3768,6 +4069,8 @@ function draw() {
     drawGravestones();
     skeletons.forEach(s => drawSkeleton(s));
   }
+  // Ice pillars for stage 8
+  if (currentStage === 8) icePillars.forEach(p => drawIcePillar(p));
   drawTrunkPillar();
   drawNest();
   drawShakerSquirrels();
@@ -3819,17 +4122,17 @@ function saveGame() {
 
 function applyStageUI(stage) {
   // Body classes
-  ['stage2','stage3','stage4','stage5','stage6','stage7'].forEach(c => document.body.classList.remove(c));
+  ['stage2','stage3','stage4','stage5','stage6','stage7','stage8'].forEach(c => document.body.classList.remove(c));
   if (stage >= 2) document.body.classList.add('stage' + stage);
 
   // Stage display text
-  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7'};
+  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7',8:'🧊 STAGE 8'};
   document.getElementById('stageDisplay').textContent = stageLabels[stage] || '';
 
   // Next-stage cards: show the one for the current stage, hide others
   const cards = {
     1: 'nextstage-card', 2: 'nextstage3-card', 3: 'nextstage4-card',
-    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card',
+    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card', 7: 'nextstage8-card',
   };
   Object.entries(cards).forEach(([s, id]) => {
     const el = document.getElementById(id);
@@ -3853,6 +4156,17 @@ function applyStageUI(stage) {
       size: 18 + Math.random()*12,
     }));
     spawnCandySheep(); spawnCandySheep();
+  }
+  // Stage 7 gravestones
+  if (stage === 7) {
+    gravestones = GRAVESTONE_SPOTS.map(p => ({
+      x: p.x * W, y: p.y * H,
+      skelTimer: Math.floor(Math.random()*400)+300,
+    }));
+  }
+  // Stage 8 ice pillars start empty (they spawn naturally)
+  if (stage === 8) {
+    icePillars = [];
   }
 }
 
