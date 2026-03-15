@@ -170,8 +170,8 @@
 
   .upg-btn {
     background:#4a2000; border:1.5px solid #c8860a; border-radius:5px;
-    color:#f5c842; font-family:'Press Start 2P',monospace; font-size:6px;
-    padding:4px 8px; cursor:pointer; transition:background 0.1s,transform 0.08s; white-space:nowrap;
+    color:#f5c842; font-family:'Press Start 2P',monospace; font-size:9px;
+    padding:7px 12px; cursor:pointer; transition:background 0.1s,transform 0.08s; white-space:nowrap;
     flex-shrink:0;
   }
   .upg-btn:hover  { background:#6a3000; transform:scale(1.04); }
@@ -736,6 +736,10 @@
 
 <div id="shop">
   <h2>🐿 UPGRADES</h2>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:-4px;margin-bottom:2px;">
+    <span id="save-indicator" style="color:#2a4010;font-size:5px;font-family:'Press Start 2P',monospace;">💾 SAVED</span>
+    <button onclick="newGame()" style="background:#1a0400;border:1px solid #5a1800;border-radius:4px;color:#6a2800;font-family:'Press Start 2P',monospace;font-size:5px;padding:4px 7px;cursor:pointer;" onmouseover="this.style.color='#f5c842';this.style.borderColor='#c8860a'" onmouseout="this.style.color='#6a2800';this.style.borderColor='#5a1800'">NEW GAME</button>
+  </div>
 
   <div class="upg-card">
     <div class="upg-title">🐿 BIGGER SQUIRREL</div>
@@ -1376,6 +1380,7 @@ function resetForNewStage() {
   friends = [];
   acorns = []; carrying = [];
   regenTimer = 0;
+  nuts = 0;
   squirrel.x = CX + TR + 110; squirrel.y = CY;
   squirrel.angle = Math.PI; squirrel.targetAngle = Math.PI;
 }
@@ -3291,8 +3296,112 @@ function draw() {
 
 function loop(){update();draw();requestAnimationFrame(loop);}
 
+// ── Save / Load ───────────────────────────────────────────
+const SAVE_KEY = 'worldTreeSquirrel_save';
+
+function saveGame() {
+  const data = {
+    v: 1,
+    nuts,
+    stage: currentStage,
+    upg: Object.fromEntries(Object.entries(UPG).map(([k,v]) => [k, v.level])),
+    shakerCount: shakers.length,
+    shakerDrops: shakers.map(s => s.drops),
+    friendCount: friends.length,
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  // Flash the save indicator
+  const ind = document.getElementById('save-indicator');
+  if (ind) {
+    ind.style.color = '#90c840';
+    ind.textContent = '💾 SAVED!';
+    setTimeout(() => { ind.style.color = '#2a4010'; ind.textContent = '💾 SAVED'; }, 1200);
+  }
+}
+
+function applyStageUI(stage) {
+  // Body classes
+  ['stage2','stage3','stage4','stage5','stage6'].forEach(c => document.body.classList.remove(c));
+  if (stage >= 2) document.body.classList.add('stage' + stage);
+
+  // Stage display text
+  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6'};
+  document.getElementById('stageDisplay').textContent = stageLabels[stage] || '';
+
+  // Next-stage cards: show the one for the current stage, hide others
+  const cards = {
+    1: 'nextstage-card', 2: 'nextstage3-card', 3: 'nextstage4-card',
+    4: 'nextstage5-card', 5: 'nextstage6-card',
+  };
+  Object.entries(cards).forEach(([s, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = (parseInt(s) === stage) ? 'block' : 'none';
+  });
+
+  // Stage 4 talking trees
+  if (stage === 4) {
+    talkingTrees = [
+      { x: W * 0.18, y: H * 0.22, bubbleIdx: 0, timer: Math.floor(Math.random()*600)+480, showing: false, duration: 0 },
+      { x: W * 0.78, y: H * 0.72, bubbleIdx: 1, timer: Math.floor(Math.random()*600)+900, showing: false, duration: 0 },
+    ];
+  }
+  // Stage 6 lollipop trees + sheep
+  if (stage === 6) {
+    lollipopTrees = LOLLIPOP_SPOTS.map((p,i) => ({
+      x: p.x * W, y: p.y * H,
+      color: LOLLIPOP_COLORS[i % LOLLIPOP_COLORS.length],
+      color2: LOLLIPOP_COLORS[(i+3) % LOLLIPOP_COLORS.length],
+      wobble: Math.random()*Math.PI*2,
+      size: 18 + Math.random()*12,
+    }));
+    spawnCandySheep(); spawnCandySheep();
+  }
+}
+
+function loadGame() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return false;
+  try {
+    const d = JSON.parse(raw);
+    if (!d || d.v !== 1) return false;
+
+    nuts = d.nuts || 0;
+    currentStage = d.stage || 1;
+
+    // Restore upgrades
+    Object.keys(UPG).forEach(k => { if (d.upg && d.upg[k] != null) UPG[k].level = d.upg[k]; });
+
+    // Restore shakers
+    shakers = [];
+    const count = d.shakerCount || 1;
+    for (let i = 0; i < count; i++) addShakerEntry();
+    if (d.shakerDrops) d.shakerDrops.forEach((drops, i) => { if (shakers[i]) shakers[i].drops = drops; });
+
+    // Restore friends
+    friends = [];
+    const fCount = d.friendCount || 0;
+    for (let i = 0; i < fCount; i++) spawnFriend();
+
+    applyStageUI(currentStage);
+    return true;
+  } catch(e) {
+    console.warn('Save load failed:', e);
+    return false;
+  }
+}
+
+function newGame() {
+  if (!confirm('Start a new game? Your save will be deleted.')) return;
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
+
+// Auto-save every 5 seconds
+setInterval(saveGame, 5000);
+
 // Boot
-addShakerEntry();
+const hasSave = loadGame();
+if (!hasSave) addShakerEntry();
 squirrel.speed = playerSpeed();
 fillField();
 refreshUI();
