@@ -96,7 +96,7 @@
   /* ── Sound toggle button ── */
   #sound-btn {
     position: absolute;
-    top: 10px; left: 108px;
+    top: 10px; right: 10px;
     background: rgba(4,10,2,0.92);
     border: 2px solid #3a6010;
     border-radius: 7px;
@@ -123,9 +123,9 @@
     background: rgba(0,0,0,0.82);
     border: 2px solid #c8860a;
     border-radius: 6px;
-    padding: 5px 9px;
+    padding: 6px 11px;
     color: #f5c842;
-    font-size: 7px;
+    font-size: 10px;
     white-space: nowrap;
   }
   .hud-box.green { border-color:#3a6010; color:#90c840; }
@@ -153,33 +153,50 @@
 
   .upg-card {
     background:#040c02; border:2px solid #1a3800; border-radius:8px;
-    padding:9px 11px; display:flex; flex-direction:column; gap:5px;
+    padding:0; display:flex; flex-direction:column;
     transition:border-color 0.15s;
+    cursor: pointer;
+    overflow: hidden;
   }
   .upg-card:hover { border-color:#c8860a; }
+  .upg-card:active { transform: scale(0.98); }
   .upg-card.friend-card { border-color:#1a4060; }
   .upg-card.friend-card:hover { border-color:#60b8f0; }
+  .upg-card.cant { opacity: 0.5; cursor: not-allowed; }
+  .upg-card.cant:active { transform: none; }
 
-  .upg-title { color:#deb887; font-size:8px; }
+  .upg-card-inner {
+    padding: 11px 13px 11px;
+    display: flex; flex-direction: row; gap: 10px; align-items: center;
+  }
+  .upg-card-left {
+    display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;
+  }
+  .upg-card-right {
+    display: flex; flex-direction: column; gap: 5px;
+    text-align: right; flex-shrink: 0; max-width: 120px;
+  }
+  .upg-card-desc {
+    color: #4a7020; font-size: 9px; line-height: 1.9;
+    font-family: 'Press Start 2P', monospace;
+  }
+  .upg-card-desc.blue { color: #3a7090; }
+  .upg-card-price {
+    color: #f5c842; font-size: 11px;
+    font-family: 'Press Start 2P', monospace;
+  }
+  .upg-card-price.blue { color: #90d0ff; }
+  .upg-card.cant .upg-card-price { color: #2a3800; }
+  .upg-card.cant.friend-card .upg-card-price { color: #102030; }
+  .upg-title { color:#deb887; font-size:11px; }
   .upg-title.blue { color:#90d0ff; }
-  .upg-desc  { color:#4a7020; font-size:6px; line-height:1.8; }
+  .upg-desc  { color:#4a7020; font-size:9px; line-height:2; }
   .upg-desc.blue { color:#3a7090; }
-  .upg-row   { display:flex; justify-content:space-between; align-items:center; gap:6px; }
-  .upg-level { color:#c8860a; font-size:6.5px; }
+  .upg-level { color:#c8860a; font-size:9px; }
   .upg-level.blue { color:#60b8f0; }
 
-  .upg-btn {
-    background:#4a2000; border:1.5px solid #c8860a; border-radius:5px;
-    color:#f5c842; font-family:'Press Start 2P',monospace; font-size:9px;
-    padding:7px 12px; cursor:pointer; transition:background 0.1s,transform 0.08s; white-space:nowrap;
-    flex-shrink:0;
-  }
-  .upg-btn:hover  { background:#6a3000; transform:scale(1.04); }
-  .upg-btn:active { transform:scale(0.96); }
-  .upg-btn.cant   { background:#020600; border-color:#0a1800; color:#182800; cursor:not-allowed; transform:none !important; }
-  .upg-btn.blue-btn { background:#0a2840; border-color:#3a80b0; color:#90d0ff; }
-  .upg-btn.blue-btn:hover { background:#1a4060; }
-  .upg-btn.blue-btn.cant { background:#020608; border-color:#0a1820; color:#102030; }
+  .upg-row   { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .upg-btn { display: none; }
 
   .regen-track { width:100%; height:4px; background:#020600; border-radius:3px; overflow:hidden; }
   .regen-fill  { height:100%; background:#c8860a; width:0%; border-radius:3px; transition:width 0.1s linear; }
@@ -741,128 +758,173 @@
     <button onclick="newGame()" style="background:#1a0400;border:1px solid #5a1800;border-radius:4px;color:#6a2800;font-family:'Press Start 2P',monospace;font-size:5px;padding:4px 7px;cursor:pointer;" onmouseover="this.style.color='#f5c842';this.style.borderColor='#c8860a'" onmouseout="this.style.color='#6a2800';this.style.borderColor='#5a1800'">NEW GAME</button>
   </div>
 
-  <div class="upg-card">
-    <div class="upg-title">🐿 BIGGER SQUIRREL</div>
-    <div class="upg-desc" id="desc-size">Carry more acorns at once</div>
-    <div class="upg-row">
-      <span class="upg-level" id="lvl-size">LV 0</span>
-      <button class="upg-btn" id="btn-size" onclick="buyUpgrade('size')">🌰 <span id="cost-size">10</span></button>
+  <div class="upg-card" id="card-size" onclick="buyUpgrade('size')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title">🐿 BIGGER SQUIRREL</div>
+        <span class="upg-level" id="lvl-size">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" id="desc-size">Carry more acorns at once</div>
+        <div class="upg-card-price">🌰 <span id="cost-size">10</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-size" style="display:none"></button>
   </div>
 
-  <div class="upg-card">
-    <div class="upg-title">💨 MOVE SPEED</div>
-    <div class="upg-desc" id="desc-speed">Run faster across the field</div>
-    <div class="upg-row">
-      <span class="upg-level" id="lvl-speed">LV 0</span>
-      <button class="upg-btn" id="btn-speed" onclick="buyUpgrade('speed')">🌰 <span id="cost-speed">12</span></button>
+  <div class="upg-card" id="card-speed" onclick="buyUpgrade('speed')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title">💨 MOVE SPEED</div>
+        <span class="upg-level" id="lvl-speed">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" id="desc-speed">Run faster across the field</div>
+        <div class="upg-card-price">🌰 <span id="cost-speed">12</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-speed" style="display:none"></button>
   </div>
 
-  <div class="upg-card">
-    <div class="upg-title">💰 ACORN VALUE</div>
-    <div class="upg-desc" id="desc-coins">Each acorn worth more nuts</div>
-    <div class="upg-row">
-      <span class="upg-level" id="lvl-coins">LV 0</span>
-      <button class="upg-btn" id="btn-coins" onclick="buyUpgrade('coins')">🌰 <span id="cost-coins">15</span></button>
+  <div class="upg-card" id="card-coins" onclick="buyUpgrade('coins')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title">💰 ACORN VALUE</div>
+        <span class="upg-level" id="lvl-coins">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" id="desc-coins">Each acorn worth more nuts</div>
+        <div class="upg-card-price">🌰 <span id="cost-coins">15</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-coins" style="display:none"></button>
   </div>
 
-  <div class="upg-card">
-    <div class="upg-title">⏱ SHAKE FASTER</div>
-    <div class="upg-desc" id="desc-regen">All shakers drop quicker</div>
-    <div class="upg-row">
-      <span class="upg-level" id="lvl-regen">LV 0</span>
-      <button class="upg-btn" id="btn-regen" onclick="buyUpgrade('regen')">🌰 <span id="cost-regen">20</span></button>
+  <div class="upg-card" id="card-regen" onclick="buyUpgrade('regen')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title">⏱ SHAKE FASTER</div>
+        <span class="upg-level" id="lvl-regen">LV 0</span>
+        <div class="regen-track"><div class="regen-fill" id="regen-fill"></div></div>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" id="desc-regen">All shakers drop quicker</div>
+        <div class="upg-card-price">🌰 <span id="cost-regen">20</span></div>
+      </div>
     </div>
-    <div class="regen-track"><div class="regen-fill" id="regen-fill"></div></div>
+    <button class="upg-btn" id="btn-regen" style="display:none"></button>
   </div>
 
-  <div class="upg-card friend-card">
-    <div class="upg-title blue">🐾 HIRE A FRIEND</div>
-    <div class="upg-desc blue" id="desc-friend">Auto-fetches acorns to nest</div>
-    <div class="upg-row">
-      <span class="upg-level blue" id="lvl-friend">0 friends</span>
-      <button class="upg-btn blue-btn" id="btn-friend" onclick="hireFriend()">🌰 <span id="cost-friend">40</span></button>
+  <div class="upg-card friend-card" id="card-friend" onclick="hireFriend()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title blue">🐾 HIRE A FRIEND</div>
+        <span class="upg-level blue" id="lvl-friend">0 friends</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc blue" id="desc-friend">Auto-fetches acorns to nest</div>
+        <div class="upg-card-price blue">🌰 <span id="cost-friend">40</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-friend" style="display:none"></button>
   </div>
 
-  <div class="upg-card friend-card">
-    <div class="upg-title blue">💨 FRIEND SPEED</div>
-    <div class="upg-desc blue" id="desc-fspeed">Make all friends run faster</div>
-    <div class="upg-row">
-      <span class="upg-level blue" id="lvl-fspeed">LV 0</span>
-      <button class="upg-btn blue-btn" id="btn-fspeed" onclick="buyUpgrade('fspeed')">🌰 <span id="cost-fspeed">25</span></button>
+  <div class="upg-card friend-card" id="card-fspeed" onclick="buyUpgrade('fspeed')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title blue">💨 FRIEND SPEED</div>
+        <span class="upg-level blue" id="lvl-fspeed">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc blue" id="desc-fspeed">Make all friends run faster</div>
+        <div class="upg-card-price blue">🌰 <span id="cost-fspeed">25</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-fspeed" style="display:none"></button>
   </div>
 
-  <div class="upg-card friend-card">
-    <div class="upg-title blue">🎒 FRIEND CARRY</div>
-    <div class="upg-desc blue" id="desc-fcarry">Friends carry more per trip</div>
-    <div class="upg-row">
-      <span class="upg-level blue" id="lvl-fcarry">LV 0</span>
-      <button class="upg-btn blue-btn" id="btn-fcarry" onclick="buyUpgrade('fcarry')">🌰 <span id="cost-fcarry">35</span></button>
+  <div class="upg-card friend-card" id="card-fcarry" onclick="buyUpgrade('fcarry')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title blue">🎒 FRIEND CARRY</div>
+        <span class="upg-level blue" id="lvl-fcarry">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc blue" id="desc-fcarry">Friends carry more per trip</div>
+        <div class="upg-card-price blue">🌰 <span id="cost-fcarry">35</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-fcarry" style="display:none"></button>
   </div>
 
-  <div class="upg-card" id="nextstage-card" style="border-color:#0a2820;">
-    <div class="upg-title" style="color:#40e8c0;">🌲 DARK FOREST</div>
-    <div class="upg-desc" style="color:#1a5040;">Stage 2 — walnuts 2x. Resets!</div>
-    <div class="upg-row">
-      <span class="upg-level" style="color:#0a7060;">ONE-TIME</span>
-      <button class="upg-btn" id="btn-nextstage" onclick="openNextStage()"
-        style="background:#001a14;border-color:#0a7060;color:#40e8c0;">
-        🌰 <span id="cost-nextstage">7000</span>
-      </button>
+  <div class="upg-card" id="nextstage-card" style="border-color:#0a2820;" onclick="openNextStage()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#40e8c0;">🌲 DARK FOREST</div>
+        <span class="upg-level" style="color:#0a7060;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#1a5040;">Stage 2 — walnuts 2x. Resets!</div>
+        <div class="upg-card-price" style="color:#40e8c0;">🌰 <span id="cost-nextstage">7000</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-nextstage" style="display:none"></button>
   </div>
 
-  <div class="upg-card" id="nextstage3-card" style="border-color:#2a2c08;display:none;">
-    <div class="upg-title" style="color:#f0f840;">☀️ LIGHT FOREST</div>
-    <div class="upg-desc" style="color:#505810;">Stage 3 — peanuts 4x. Resets!</div>
-    <div class="upg-row">
-      <span class="upg-level" style="color:#a0b010;">ONE-TIME</span>
-      <button class="upg-btn" id="btn-nextstage3" onclick="openNextStage3()"
-        style="background:#1c1e04;border-color:#b0c018;color:#f0f840;">
-        🥜 <span id="cost-nextstage3">20000</span>
-      </button>
+  <div class="upg-card" id="nextstage3-card" style="border-color:#2a2c08;display:none;" onclick="openNextStage3()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#f0f840;">☀️ LIGHT FOREST</div>
+        <span class="upg-level" style="color:#a0b010;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#505810;">Stage 3 — peanuts 4x. Resets!</div>
+        <div class="upg-card-price" style="color:#f0f840;">🥜 <span id="cost-nextstage3">20000</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-nextstage3" style="display:none"></button>
   </div>
 
-  <div class="upg-card" id="nextstage4-card" style="border-color:#2a1808;display:none;">
-    <div class="upg-title" style="color:#c8a060;">🌳 TALKING TREES</div>
-    <div class="upg-desc" style="color:#503820;">Stage 4 — acorns 6x. Trees talk!</div>
-    <div class="upg-row">
-      <span class="upg-level" style="color:#8a6030;">ONE-TIME</span>
-      <button class="upg-btn" id="btn-nextstage4" onclick="openNextStage4()"
-        style="background:#1a0e04;border-color:#8a6030;color:#c8a060;">
-        🥜 <span id="cost-nextstage4">40000</span>
-      </button>
+  <div class="upg-card" id="nextstage4-card" style="border-color:#2a1808;display:none;" onclick="openNextStage4()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#c8a060;">🌳 TALKING TREES</div>
+        <span class="upg-level" style="color:#8a6030;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#503820;">Stage 4 — acorns 6x. Trees talk!</div>
+        <div class="upg-card-price" style="color:#c8a060;">🥜 <span id="cost-nextstage4">40000</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-nextstage4" style="display:none"></button>
   </div>
 
-  <div class="upg-card" id="nextstage5-card" style="border-color:#3a1008;display:none;">
-    <div class="upg-title" style="color:#ff8040;">🔥 FIRE FLOOR</div>
-    <div class="upg-desc" style="color:#6a2810;">Stage 5 — fire nuts 8x. It burns!</div>
-    <div class="upg-row">
-      <span class="upg-level" style="color:#b03010;">ONE-TIME</span>
-      <button class="upg-btn" id="btn-nextstage5" onclick="openNextStage5()"
-        style="background:#280c04;border-color:#c04010;color:#ff8040;">
-        🔥 <span id="cost-nextstage5">60000</span>
-      </button>
+  <div class="upg-card" id="nextstage5-card" style="border-color:#3a1008;display:none;" onclick="openNextStage5()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#ff8040;">🔥 FIRE FLOOR</div>
+        <span class="upg-level" style="color:#b03010;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#6a2810;">Stage 5 — fire nuts 8x. It burns!</div>
+        <div class="upg-card-price" style="color:#ff8040;">🔥 <span id="cost-nextstage5">60000</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-nextstage5" style="display:none"></button>
   </div>
 
-  <div class="upg-card" id="nextstage6-card" style="border-color:#3a1040;display:none;">
-    <div class="upg-title" style="color:#ff90e0;">🍬 CANDY FOREST</div>
-    <div class="upg-desc" style="color:#6a3080;">Stage 6 — gumdrops 16x. So sweet!</div>
-    <div class="upg-row">
-      <span class="upg-level" style="color:#a030c0;">ONE-TIME</span>
-      <button class="upg-btn" id="btn-nextstage6" onclick="openNextStage6()"
-        style="background:#200830;border-color:#c040a0;color:#ff90e0;">
-        🍬 <span id="cost-nextstage6">100000</span>
-      </button>
+  <div class="upg-card" id="nextstage6-card" style="border-color:#3a1040;display:none;" onclick="openNextStage6()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#ff90e0;">🍬 CANDY FOREST</div>
+        <span class="upg-level" style="color:#a030c0;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#6a3080;">Stage 6 — gumdrops 16x. So sweet!</div>
+        <div class="upg-card-price" style="color:#ff90e0;">🍬 <span id="cost-nextstage6">100000</span></div>
+      </div>
     </div>
+    <button class="upg-btn" id="btn-nextstage6" style="display:none"></button>
   </div>
 
   <div id="code-bar">
@@ -2143,16 +2205,23 @@ function refreshUI() {
   document.getElementById('lvl-friend').textContent  = `${friends.length} friends`;
   document.getElementById('cost-friend').textContent = friendCost();
   document.getElementById('btn-friend').classList.toggle('cant', nuts<friendCost());
+  // Toggle cant on cards for visual disabled state
+  ['size','speed','coins','regen','fspeed','fcarry'].forEach(id => {
+    const card = document.getElementById('card-'+id);
+    if (card) card.classList.toggle('cant', nuts < upgCost(id));
+  });
+  const friendCard = document.getElementById('card-friend');
+  if (friendCard) friendCard.classList.toggle('cant', nuts < friendCost());
   document.getElementById('coinDisplay').textContent   = `${nut} ${nuts}`;
   document.getElementById('carryDisplay').textContent  = `🐿 ${carrying.length}/${maxCarry()}`;
   document.getElementById('shakerDisplay').textContent = `🌿 ${shakers.length} shaker${shakers.length>1?'s':''}`;
   document.getElementById('friendDisplay').textContent = `🐾 ${friends.length} friend${friends.length!==1?'s':''}`;
   document.getElementById('regen-fill').style.width = Math.min(100,regenTimer/regenFrames()*100)+'%';
-  if (currentStage === 1) document.getElementById('btn-nextstage').classList.toggle('cant', nuts < NEXTSTAGE_COST);
-  if (currentStage === 2) document.getElementById('btn-nextstage3').classList.toggle('cant', nuts < NEXTSTAGE3_COST);
-  if (currentStage === 3) document.getElementById('btn-nextstage4').classList.toggle('cant', nuts < NEXTSTAGE4_COST);
-  if (currentStage === 4) document.getElementById('btn-nextstage5').classList.toggle('cant', nuts < NEXTSTAGE5_COST);
-  if (currentStage === 5) document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST);
+  if (currentStage === 1) { document.getElementById('btn-nextstage').classList.toggle('cant', nuts < NEXTSTAGE_COST); document.getElementById('nextstage-card').classList.toggle('cant', nuts < NEXTSTAGE_COST); }
+  if (currentStage === 2) { document.getElementById('btn-nextstage3').classList.toggle('cant', nuts < NEXTSTAGE3_COST); document.getElementById('nextstage3-card').classList.toggle('cant', nuts < NEXTSTAGE3_COST); }
+  if (currentStage === 3) { document.getElementById('btn-nextstage4').classList.toggle('cant', nuts < NEXTSTAGE4_COST); document.getElementById('nextstage4-card').classList.toggle('cant', nuts < NEXTSTAGE4_COST); }
+  if (currentStage === 4) { document.getElementById('btn-nextstage5').classList.toggle('cant', nuts < NEXTSTAGE5_COST); document.getElementById('nextstage5-card').classList.toggle('cant', nuts < NEXTSTAGE5_COST); }
+  if (currentStage === 5) { document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST); document.getElementById('nextstage6-card').classList.toggle('cant', nuts < NEXTSTAGE6_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
