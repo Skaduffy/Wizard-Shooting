@@ -428,7 +428,26 @@
 
   /* ── Stage badge ── */
   #stageDisplay { display: none; }
-  body.stage2 #stageDisplay, body.stage3 #stageDisplay, body.stage4 #stageDisplay, body.stage5 #stageDisplay { display: block; }
+  body.stage2 #stageDisplay, body.stage3 #stageDisplay, body.stage4 #stageDisplay,
+  body.stage5 #stageDisplay, body.stage6 #stageDisplay { display: block; }
+
+  /* ── Stage 6 — Candy Forest ── */
+  body.stage6 { background: #1a0820; }
+  body.stage6 #shop { background: rgba(16,4,20,0.99); border-left-color: #e060c0; }
+  body.stage6 #shop h2 { color: #ff90e0; border-bottom-color: #3a1040; }
+  body.stage6 #gameCanvas { border-color: #8030a0; box-shadow: 0 0 60px rgba(220,80,200,0.5); }
+  body.stage6 .hud-box { border-color: #c040a0; color: #ff90e0; }
+  body.stage6 .hud-box.green { border-color: #8060c0; color: #c090ff; }
+  body.stage6 .hud-box.blue  { border-color: #4060c0; color: #80c0ff; }
+  body.stage6 #store-btn { border-color: #c040a0; color: #ff90e0; }
+  body.stage6 .upg-card { border-color: #3a1040; background: #100818; }
+  body.stage6 .upg-card:hover { border-color: #e060c0; }
+  body.stage6 .upg-title { color: #ff90e0; }
+  body.stage6 .upg-desc { color: #7040a0; }
+  body.stage6 .upg-btn { background: #200830; border-color: #c040a0; color: #ff90e0; }
+  body.stage6 .upg-btn:hover { background: #380c50; }
+  body.stage6 .upg-level { color: #a030c0; }
+  body.stage6 .regen-fill { background: #e060c0; }
 
   /* ── Stage 5 — Fire Floor ── */
   body.stage5 { background: #120602; }
@@ -786,6 +805,18 @@
     </div>
   </div>
 
+  <div class="upg-card" id="nextstage6-card" style="border-color:#3a1040;display:none;">
+    <div class="upg-title" style="color:#ff90e0;">🍬 CANDY FOREST</div>
+    <div class="upg-desc" style="color:#6a3080;">Stage 6 — gumdrops 16x. So sweet!</div>
+    <div class="upg-row">
+      <span class="upg-level" style="color:#a030c0;">ONE-TIME</span>
+      <button class="upg-btn" id="btn-nextstage6" onclick="openNextStage6()"
+        style="background:#200830;border-color:#c040a0;color:#ff90e0;">
+        🍬 <span id="cost-nextstage6">100000</span>
+      </button>
+    </div>
+  </div>
+
   <div id="code-bar">
     <label>🔑 REDEEM CODE</label>
     <div id="code-input-row">
@@ -925,6 +956,28 @@
     </div>
   </div>
 </div>
+
+<div id="nextstage6-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:60;align-items:center;justify-content:center;">
+  <div style="background:#100818;border:2px solid #c040a0;border-radius:14px;padding:26px 28px 24px;width:420px;max-width:96vw;box-shadow:0 0 70px rgba(200,60,180,0.7);font-family:'Press Start 2P',monospace;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div style="font-size:48px;">🍬</div>
+    <h2 style="color:#ff90e0;font-size:12px;text-align:center;letter-spacing:1px;">ENTER THE<br>CANDY FOREST?</h2>
+    <div style="color:#9050b0;font-size:6.5px;line-height:2.2;text-align:center;">
+      Stage 6 — The Sugary Grove<br><br>
+      🍬 Gumdrops — 16 nuts each!<br>
+      🍭 Lollipop trees dot the forest<br>
+      🐑 Cotton candy sheep wander by
+    </div>
+    <div style="color:#c84040;font-size:6px;text-align:center;line-height:2;border:1px solid #401010;border-radius:6px;padding:8px 12px;background:#0a0202;width:100%;">
+      ⚠ ALL UPGRADES RESET TO ZERO<br>
+      Friends dismissed · Shakers reset<br>
+      Nuts are spent on entry
+    </div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="confirmNextStage6()" style="flex:1;background:#200830;border:2px solid #c040a0;border-radius:6px;color:#ff90e0;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">🍬 ENTER CANDY</button>
+      <button onclick="closeNextStage6()" style="flex:1;background:#0a0202;border:1.5px solid #401010;border-radius:6px;color:#804040;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">✕ NOT YET</button>
+    </div>
+  </div>
+</div>
 <div id="costume-overlay">
   <div id="costume-modal">
     <button class="costume-close-btn" onclick="closeCostumeShop()">✕ CLOSE</button>
@@ -1033,7 +1086,7 @@ const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scal
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
 const maxCarry      = ()  => 3 + UPG.size.level * 2;
-const nutsPerAcorn  = ()  => (currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
+const nutsPerAcorn  = ()  => (currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
@@ -1369,9 +1422,220 @@ function enterStage5() {
   document.body.classList.add('stage5');
   talkingTrees = [];
   fireSprites = [];
+  candySheep = [];
   document.getElementById('nextstage5-card').style.display = 'none';
+  document.getElementById('nextstage6-card').style.display = 'block';
   document.getElementById('stageDisplay').textContent = '🔥 STAGE 5';
   fillField(); refreshUI();
+}
+
+// ── Stage 6 — Candy Forest ────────────────────────────────
+const NEXTSTAGE6_COST = 100000;
+let candySheep = [];
+let lollipopTrees = [];
+
+// Fixed lollipop tree positions (set on enter)
+const LOLLIPOP_SPOTS = [
+  {x:0.12,y:0.18}, {x:0.85,y:0.15}, {x:0.78,y:0.80},
+  {x:0.15,y:0.75}, {x:0.50,y:0.08}, {x:0.50,y:0.88},
+  {x:0.06,y:0.48}, {x:0.92,y:0.50},
+];
+const LOLLIPOP_COLORS = ['#ff4080','#40c0ff','#ff9020','#a040ff','#20d060','#ff6060','#60ffcc','#ffd020'];
+
+function openNextStage6() {
+  if (currentStage !== 5) return;
+  document.getElementById('nextstage6-overlay').style.display = 'flex';
+}
+function closeNextStage6() {
+  document.getElementById('nextstage6-overlay').style.display = 'none';
+}
+function confirmNextStage6() {
+  if (nuts < NEXTSTAGE6_COST) return;
+  nuts -= NEXTSTAGE6_COST;
+  closeNextStage6();
+  runStageTransition('🍬', 'ENTERING THE<br>CANDY FOREST', 'STAGE 6 · SO SWEET IT HURTS', enterStage6);
+}
+function enterStage6() {
+  resetForNewStage();
+  currentStage = 6;
+  document.body.classList.remove('stage5');
+  document.body.classList.add('stage6');
+  talkingTrees = [];
+  fireSprites = [];
+  candySheep = [];
+  lollipopTrees = LOLLIPOP_SPOTS.map((p,i) => ({
+    x: p.x * W, y: p.y * H,
+    color: LOLLIPOP_COLORS[i % LOLLIPOP_COLORS.length],
+    color2: LOLLIPOP_COLORS[(i+3) % LOLLIPOP_COLORS.length],
+    wobble: Math.random()*Math.PI*2,
+    size: 18 + Math.random()*12,
+  }));
+  document.getElementById('nextstage6-card').style.display = 'none';
+  document.getElementById('stageDisplay').textContent = '🍬 STAGE 6';
+  // Spawn a couple of sheep right away so the world feels alive
+  spawnCandySheep(); spawnCandySheep();
+  fillField(); refreshUI();
+}
+
+// ── Candy Sheep ───────────────────────────────────────────
+function spawnCandySheep() {
+  // Enter from a random edge
+  const side = Math.floor(Math.random()*4);
+  let sx, sy, angle;
+  if      (side===0) { sx=-40;       sy=H*(.2+Math.random()*.6); angle=0; }
+  else if (side===1) { sx=W+40;      sy=H*(.2+Math.random()*.6); angle=Math.PI; }
+  else if (side===2) { sx=W*(.2+Math.random()*.6); sy=-40;       angle=Math.PI/2; }
+  else               { sx=W*(.2+Math.random()*.6); sy=H+40;      angle=-Math.PI/2; }
+  const colors = [
+    {body:'#ffaad4',fluff:'#ffccee'}, {body:'#aaddff',fluff:'#cceeff'},
+    {body:'#c8aaff',fluff:'#e0ccff'}, {body:'#aaffcc',fluff:'#ccffe8'},
+    {body:'#ffddaa',fluff:'#ffeecc'},
+  ];
+  const col = colors[Math.floor(Math.random()*colors.length)];
+  candySheep.push({ x:sx, y:sy, angle, speed:0.6+Math.random()*0.5,
+    bodyCol:col.body, fluffCol:col.fluff, frame:Math.floor(Math.random()*60),
+    wobble:0, alive:true });
+}
+
+function updateCandySheep() {
+  if (currentStage !== 6) return;
+  // Randomly spawn a new sheep every ~8–20 seconds
+  if (Math.random() < 0.001) spawnCandySheep();
+  candySheep.forEach(sheep => {
+    sheep.frame++;
+    sheep.wobble = Math.sin(sheep.frame/14)*0.15;
+    sheep.x += Math.cos(sheep.angle) * sheep.speed;
+    sheep.y += Math.sin(sheep.angle) * sheep.speed;
+    // Add gentle drift
+    sheep.angle += (Math.random()-.5)*0.02;
+    // Remove if off screen
+    if (sheep.x < -80 || sheep.x > W+80 || sheep.y < -80 || sheep.y > H+80) sheep.alive = false;
+  });
+  candySheep = candySheep.filter(s => s.alive);
+}
+
+function drawCandySheep(sheep) {
+  const t = sheep.frame/10;
+  const leg = Math.sin(t)*0.4;
+  ctx.save();
+  ctx.translate(sheep.x, sheep.y);
+  ctx.rotate(sheep.angle + Math.PI); // face direction of travel
+  ctx.scale(1.1, 1.1);
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(0,14,14,4,0,0,Math.PI*2); ctx.fill();
+
+  // Legs (4)
+  const legPairs=[[-7,10],[7,10],[-5,12],[5,12]];
+  legPairs.forEach(([lx,ly],i)=>{
+    ctx.save(); ctx.rotate(i%2===0?leg:-leg);
+    ctx.fillStyle='#e080b0';
+    ctx.beginPath(); ctx.roundRect(lx-2,ly,4,10,2); ctx.fill();
+    // Hoof
+    ctx.fillStyle='#c06090';
+    ctx.beginPath(); ctx.ellipse(lx,ly+11,3,2.5,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+
+  // Body — big fluffy cotton candy blob
+  const fluffPuffs = [
+    [0,0,16],[-8,-4,12],[8,-4,12],[0,-10,11],[-10,2,10],[10,2,10],
+    [-6,-12,9],[6,-12,9],[0,-17,8],
+  ];
+  fluffPuffs.forEach(([px,py,pr])=>{
+    const fg=ctx.createRadialGradient(px-pr*.3,py-pr*.3,0,px,py,pr);
+    fg.addColorStop(0,sheep.fluffCol); fg.addColorStop(1,sheep.bodyCol);
+    ctx.beginPath(); ctx.arc(px,py,pr,0,Math.PI*2);
+    ctx.fillStyle=fg; ctx.fill();
+  });
+
+  // Head
+  ctx.beginPath(); ctx.ellipse(0,-24,9,8,.05,0,Math.PI*2);
+  ctx.fillStyle=sheep.bodyCol; ctx.fill();
+  // Snout
+  ctx.beginPath(); ctx.ellipse(5,-23,5,3.5,0.1,0,Math.PI*2);
+  ctx.fillStyle='#f0c0d8'; ctx.fill();
+  // Nose dots
+  ctx.fillStyle='#c06080';
+  ctx.beginPath(); ctx.arc(4,-22.5,1.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7,-22.5,1.2,0,Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle='#201020';
+  ctx.beginPath(); ctx.ellipse(-3,-26,2.5,2.8,-.1,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3,-27,2.5,2.8,.1,0,Math.PI*2); ctx.fill();
+  // Sparkle catchlights
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.beginPath(); ctx.arc(-2,-27,0.9,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(4,-28,0.9,0,Math.PI*2); ctx.fill();
+  // Fluffy ears
+  [[-9,-28,6],[7,-29,6]].forEach(([ex,ey,er])=>{
+    ctx.beginPath(); ctx.arc(ex,ey,er,0,Math.PI*2);
+    ctx.fillStyle=sheep.fluffCol; ctx.fill();
+    ctx.beginPath(); ctx.arc(ex,ey,er*.55,0,Math.PI*2);
+    ctx.fillStyle='#f090c0'; ctx.fill();
+  });
+  // Candy sprinkles on wool
+  const sprinkleColors=['#ff4080','#40c0ff','#ffdd00','#a040ff','#20e080'];
+  for(let i=0;i<8;i++){
+    const sx2=Math.cos(i*1.3+sheep.frame*0.02)*10;
+    const sy2=Math.sin(i*1.7+sheep.frame*0.02)*8-4;
+    ctx.fillStyle=sprinkleColors[i%5];
+    ctx.save(); ctx.translate(sx2,sy2); ctx.rotate(i*0.8);
+    ctx.fillRect(-2.5,-0.8,5,1.6);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function drawLollipopTree(tree) {
+  ctx.save();
+  ctx.translate(tree.x, tree.y);
+  const wob = Math.sin(frame/50 + tree.wobble)*0.04;
+  ctx.rotate(wob);
+  const sz = tree.size;
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(0,sz*1.1,sz*.7,sz*.25,0,0,Math.PI*2); ctx.fill();
+
+  // Stick — striped candy cane style
+  const stickH = sz*2.2;
+  ctx.lineWidth=sz*.22; ctx.lineCap='round';
+  ctx.strokeStyle='#f0f0f0';
+  ctx.beginPath(); ctx.moveTo(0,sz*.6); ctx.lineTo(0,-stickH*.3); ctx.stroke();
+  // Spiral stripe on stick
+  ctx.strokeStyle=tree.color; ctx.lineWidth=sz*.08;
+  for(let i=0;i<6;i++){
+    const t1=i/6, t2=(i+0.5)/6;
+    const y1=sz*.6-t1*stickH*.9, y2=sz*.6-t2*stickH*.9;
+    ctx.beginPath(); ctx.moveTo(sz*.11*Math.sin(i*1.1),y1); ctx.lineTo(-sz*.11*Math.sin(i*1.1+0.5),y2); ctx.stroke();
+  }
+
+  // Lollipop head — multi-ring candy
+  ctx.beginPath(); ctx.arc(0,-stickH*.3,sz,0,Math.PI*2);
+  const bg=ctx.createRadialGradient(-sz*.3,-stickH*.3-sz*.3,0,0,-stickH*.3,sz);
+  bg.addColorStop(0,'#fff'); bg.addColorStop(.15,tree.color); bg.addColorStop(.5,tree.color2); bg.addColorStop(1,tree.color);
+  ctx.fillStyle=bg; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+
+  // Swirl lines on lollipop
+  ctx.save(); ctx.beginPath(); ctx.arc(0,-stickH*.3,sz,0,Math.PI*2); ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=sz*.18;
+  for(let i=0;i<3;i++){
+    const startA = (i/3)*Math.PI*2;
+    ctx.beginPath();
+    ctx.arc(0,-stickH*.3, sz*.55, startA, startA+Math.PI*.9);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Shine
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.ellipse(-sz*.28,-stickH*.3-sz*.25,sz*.28,sz*.2,-0.5,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
 }
 
 function updateFireSprites() {
@@ -1689,6 +1953,8 @@ let openPanel = null, activeShakerIdx = -1;
 const dist = (ax,ay,bx,by) => Math.hypot(ax-bx, ay-by);
 
 // ── Acorn spawning ────────────────────────────────────────
+const ACORN_FIELD_CAP = 200; // hard limit — prevents lag regardless of upgrades
+
 function spawnAcornFromShaker(idx) {
   const sh = shakers[idx], a = sh.angle;
   const sx = CX + Math.cos(a)*(TR+8), sy = CY + Math.sin(a)*(TR+8);
@@ -1696,18 +1962,21 @@ function spawnAcornFromShaker(idx) {
   const lr = ACORN_INNER + Math.random()*(ACORN_OUTER - ACORN_INNER);
   const lx = Math.max(14, Math.min(W-14, CX + Math.cos(la)*lr));
   const ly = Math.max(14, Math.min(H-14, CY + Math.sin(la)*lr));
-  acorns.push({ x:sx, y:sy, landX:lx, landY:ly, r:6, carried:false, friendCarried:false, vy:0, falling:true });
+  // maxAge: 25–40 seconds after landing (at 60fps), plus ~2s falling time
+  const maxAge = Math.floor((25 + Math.random()*15) * 60);
+  acorns.push({ x:sx, y:sy, landX:lx, landY:ly, r:6, carried:false, friendCarried:false, vy:0, falling:true, age:0, maxAge });
 }
 function spawnAcornAllShakers() {
   shakers.forEach((sh,i) => {
     for (let d=0; d<sh.drops; d++) {
-      if (acorns.filter(a=>!a.carried&&!a.friendCarried).length + carrying.length < maxAcorns())
+      const onField = acorns.filter(a=>!a.carried&&!a.friendCarried).length + carrying.length;
+      if (onField < maxAcorns() && acorns.length < ACORN_FIELD_CAP)
         spawnAcornFromShaker(i);
     }
   });
 }
 function fillField() {
-  const need = maxAcorns() - acorns.length - carrying.length;
+  const need = Math.min(maxAcorns(), ACORN_FIELD_CAP) - acorns.length - carrying.length;
   for (let i=0; i<need; i++) spawnAcornFromShaker(i % shakers.length);
 }
 
@@ -1795,8 +2064,8 @@ function refreshUI() {
     document.getElementById('lvl-size').textContent = 'MAX';
     document.getElementById('cost-size').textContent = '—';
   }
-  const nut = currentStage >= 2 ? '🥜' : '🌰';
-  const nutName = currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
+  const nut = currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nutName = currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
   document.getElementById('desc-size').textContent   = `Carry ${maxCarry()} ${nutName}s`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
@@ -1815,6 +2084,7 @@ function refreshUI() {
   if (currentStage === 2) document.getElementById('btn-nextstage3').classList.toggle('cant', nuts < NEXTSTAGE3_COST);
   if (currentStage === 3) document.getElementById('btn-nextstage4').classList.toggle('cant', nuts < NEXTSTAGE4_COST);
   if (currentStage === 4) document.getElementById('btn-nextstage5').classList.toggle('cant', nuts < NEXTSTAGE5_COST);
+  if (currentStage === 5) document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST);
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -1824,7 +2094,7 @@ function nutPop(x,y,amount) {
   // canvas internal coords → screen coords (accounts for CSS scaling)
   const scaleX = r.width  / canvas.width;
   const scaleY = r.height / canvas.height;
-  const nut = currentStage === 3 ? '🥜' : currentStage === 2 ? '🥜' : '🌰';
+  const nut = currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
   el.style.cssText=`left:${r.left + x*scaleX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
   setTimeout(()=>{ el.style.transition='opacity .8s,transform .8s'; el.style.opacity='0'; el.style.transform='translateY(-36px)'; },40);
@@ -1835,7 +2105,49 @@ function nutPop(x,y,amount) {
 // ─────────────────────────────────────────────────────────
 
 function drawGround() {
-  if (currentStage === 5) {
+  if (currentStage === 6) {
+    // Candy Forest — soft purple-pink dreamy ground
+    ctx.fillStyle = '#2a1035'; ctx.fillRect(0,0,W,H);
+    const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
+    gr.addColorStop(0,'rgba(0,0,0,0.5)'); gr.addColorStop(.4,'rgba(0,0,0,0.2)');
+    gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    // Candy-coloured ground texture
+    ctx.globalAlpha=.4;
+    for (let i=0;i<200;i++) {
+      const gx=(i*137+19)%W, gy=(i*103+47)%H;
+      if (dist(gx,gy,CX,CY)<TR+10) continue;
+      const cols=['#7030a0','#a03080','#4020a0','#c04080'];
+      ctx.fillStyle=cols[i%4];
+      ctx.beginPath();
+      if (i%3===0) ctx.ellipse(gx,gy,3+i%2,1.5,i*.5,0,Math.PI*2); else ctx.fillRect(gx,gy,1,2+i%3);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // Candy shimmer glow spots in pastel colours
+    const candyGlows=[
+      [W*.10,H*.15,50,'rgba(255,100,200,0.18)'],[W*.85,H*.18,45,'rgba(100,200,255,0.16)'],
+      [W*.80,H*.80,48,'rgba(180,100,255,0.18)'],[W*.14,H*.75,40,'rgba(255,200,80,0.15)'],
+      [W*.50,H*.07,36,'rgba(100,255,180,0.14)'],[W*.50,H*.92,38,'rgba(255,120,160,0.16)'],
+      [W*.05,H*.48,32,'rgba(200,100,255,0.14)'],[W*.94,H*.50,34,'rgba(100,220,255,0.14)'],
+    ];
+    candyGlows.forEach(([dx,dy,dr,col])=>{
+      const lg=ctx.createRadialGradient(dx,dy,0,dx,dy,dr);
+      lg.addColorStop(0,col); lg.addColorStop(1,col.replace(/[\d.]+\)$/,'0)'));
+      ctx.beginPath(); ctx.arc(dx,dy,dr,0,Math.PI*2); ctx.fillStyle=lg; ctx.fill();
+    });
+    // Tiny sparkle dots scattered around
+    for (let i=0;i<30;i++) {
+      const sx=(i*173+frame*0.4+31)%W, sy=(i*97+frame*0.3+17)%H;
+      if (dist(sx,sy,CX,CY)<TR+20) continue;
+      const twinkle=Math.sin(frame/6+i*2.3)*0.5+0.5;
+      ctx.globalAlpha=twinkle*0.7;
+      const sc=['#ff80c0','#80d0ff','#c080ff','#80ffcc','#ffdd60'];
+      ctx.fillStyle=sc[i%5];
+      ctx.beginPath(); ctx.arc(sx,sy,1.2+twinkle,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  } else if (currentStage === 5) {
     // Fire Floor — dark ash, scorched earth, embers
     ctx.fillStyle = '#1a0a04'; ctx.fillRect(0,0,W,H);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
@@ -1967,10 +2279,11 @@ function drawTrunkPillar() {
   const s2 = currentStage === 2;
   const s3 = currentStage === 3;
   const s5 = currentStage === 5;
-  const tOuter = s5 ? '#0e0804' : s3 ? '#2a3008' : s2 ? '#0a1a0e' : COL.trunkOuter;
-  const tMid   = s5 ? '#1e1008' : s3 ? '#3a4210' : s2 ? '#102a18' : COL.trunkMid;
-  const tCore  = s5 ? '#2e1a0c' : s3 ? '#4a5418' : s2 ? '#163a20' : COL.trunkCore;
-  const tLight = s5 ? '#3e2010' : s3 ? '#6a7828' : s2 ? '#204a2a' : COL.trunkLight;
+  const s6 = currentStage === 6;
+  const tOuter = s6?'#5020a0':s5 ? '#0e0804' : s3 ? '#2a3008' : s2 ? '#0a1a0e' : COL.trunkOuter;
+  const tMid   = s6?'#7030b0':s5 ? '#1e1008' : s3 ? '#3a4210' : s2 ? '#102a18' : COL.trunkMid;
+  const tCore  = s6?'#9040c0':s5 ? '#2e1a0c' : s3 ? '#4a5418' : s2 ? '#163a20' : COL.trunkCore;
+  const tLight = s6?'#c060e0':s5 ? '#3e2010' : s3 ? '#6a7828' : s2 ? '#204a2a' : COL.trunkLight;
   const shadow=ctx.createRadialGradient(CX,CY+6,TR*.5,CX,CY+4,TR*1.28);
   shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.beginPath(); ctx.arc(CX,CY,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
@@ -1979,7 +2292,7 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
   [.82,.65,.48].forEach(rf=>{
     ctx.beginPath(); ctx.arc(CX,CY,TR*rf,0,Math.PI*2);
-    ctx.strokeStyle=s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+    ctx.strokeStyle=s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
   });
   ctx.globalAlpha=1;
   for (let i=0;i<9;i++) {
@@ -1992,15 +2305,14 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2);
   ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
   // Stage glow on trunk
-  if (s2 || s3 || s5) {
+  if (s2 || s3 || s5 || s6) {
     const glowP = Math.sin(frame/80)*0.5+0.5;
     ctx.globalAlpha = 0.12 + glowP*0.08;
-    const glowCol = s5 ? 'rgba(255,80,10,1)' : s3 ? 'rgba(200,220,30,1)' : 'rgba(40,200,120,1)';
+    const glowCol = s6?'rgba(200,80,255,1)':s5 ? 'rgba(255,80,10,1)' : s3 ? 'rgba(200,220,30,1)' : 'rgba(40,200,120,1)';
     const tglow=ctx.createRadialGradient(CX,CY,0,CX,CY,TR*1.1);
     tglow.addColorStop(0,glowCol); tglow.addColorStop(1,glowCol.replace(',1)',',0)'));
     ctx.beginPath(); ctx.arc(CX,CY,TR*1.1,0,Math.PI*2); ctx.fillStyle=tglow; ctx.fill();
     ctx.globalAlpha=1;
-    // Stage 5: ember sparks orbit the trunk
     if (s5) {
       for (let i=0;i<8;i++) {
         const sa=(i/8)*Math.PI*2+frame*0.05;
@@ -2009,6 +2321,19 @@ function drawTrunkPillar() {
         ctx.globalAlpha=spark*0.8;
         ctx.fillStyle=i%2===0?'#ff8020':'#ffcc40';
         ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,1.5+spark,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if (s6) {
+      // Candy sparkles orbit trunk
+      const sparkCols=['#ff80c0','#80d0ff','#c080ff','#80ffcc','#ffdd60','#ff6090'];
+      for (let i=0;i<10;i++) {
+        const sa=(i/10)*Math.PI*2+frame*0.04;
+        const sr=TR+5+Math.sin(frame/12+i)*8;
+        const sp=Math.sin(frame/7+i*1.9)*0.5+0.5;
+        ctx.globalAlpha=sp*0.85;
+        ctx.fillStyle=sparkCols[i%6];
+        ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,2+sp,0,Math.PI*2); ctx.fill();
       }
       ctx.globalAlpha=1;
     }
@@ -2325,8 +2650,45 @@ function lighten(hex, amt) {
 
 function drawAcorn(a) {
   const {x,y,r,falling}=a;
-  if (falling) ctx.globalAlpha=.6;
-  if (currentStage === 5) {
+  // Fade out in last 20% of life, fade in while falling
+  const lifeAlpha = (!falling && a.maxAge > 0)
+    ? Math.min(1, (a.maxAge - a.age) / (a.maxAge * 0.2))
+    : 1;
+  if (falling) ctx.globalAlpha = .6;
+  else if (lifeAlpha < 1) ctx.globalAlpha = Math.max(0, lifeAlpha);
+  if (currentStage === 6) {
+    // Gumdrop — round, jewel-toned, with a sugary flat top and shine
+    const gdColors=[['#ff4090','#ff80c0'],['#4090ff','#80c0ff'],['#a040ff','#d080ff'],
+                    ['#20c080','#60ffb8'],['#ff9020','#ffc060'],['#ff4060','#ff8090']];
+    const gc = gdColors[Math.floor((x*3+y*7)%gdColors.length)];
+    const pulse = Math.sin(frame/25 + x*0.05)*0.06+1;
+    // Glow halo
+    const gg=ctx.createRadialGradient(x,y,0,x,y,r*3);
+    gg.addColorStop(0,gc[1]+'55'); gg.addColorStop(1,gc[0]+'00');
+    ctx.beginPath(); ctx.arc(x,y,r*3,0,Math.PI*2); ctx.fillStyle=gg; ctx.fill();
+    // Main gumdrop body — dome shape
+    ctx.beginPath();
+    ctx.arc(x, y-r*.2, r*pulse, Math.PI, 0);
+    ctx.lineTo(x+r*pulse, y+r*.5);
+    ctx.quadraticCurveTo(x, y+r*.9*pulse, x-r*pulse, y+r*.5);
+    ctx.closePath();
+    const dg=ctx.createRadialGradient(x-r*.3,y-r*.5,0,x,y,r*1.2);
+    dg.addColorStop(0,gc[1]); dg.addColorStop(.5,gc[0]); dg.addColorStop(1,'#80008a');
+    ctx.fillStyle=dg; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.stroke();
+    // Flat sugary top
+    ctx.beginPath(); ctx.ellipse(x,y-r*.2*pulse,r*pulse,r*.3,0,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.fill();
+    // Shine highlight
+    ctx.beginPath(); ctx.ellipse(x-r*.3,y-r*.45,r*.3,r*.2,-.4,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fill();
+    // Sugar crystal sparkles
+    for(let i=0;i<3;i++){
+      const sa=i*2.1+frame/20;
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.arc(x+Math.cos(sa)*r*.5,y+Math.sin(sa)*r*.3-r*.2,0.9,0,Math.PI*2); ctx.fill();
+    }
+  } else if (currentStage === 5) {
     // Fire nut — glowing ember acorn with flame on top
     const t = frame / 8;
     const flicker = 0.88 + Math.sin(t * 4.1 + x) * 0.12;
@@ -2601,12 +2963,24 @@ function update() {
     if (regenTimer>=regenFrames()){spawnAcornAllShakers();regenTimer=0;}
   } else regenTimer=0;
 
-  // Fall physics
+  // Fall physics + age tracking
   acorns.forEach(a=>{
     if (a.falling){
       a.x+=(a.landX-a.x)*.06; a.vy+=.35; a.y+=a.vy;
       if (a.y>=a.landY){a.x=a.landX;a.y=a.landY;a.falling=false;a.vy=0;}
+    } else if (!a.carried && !a.friendCarried) {
+      a.age++;
     }
+  });
+
+  // Despawn expired acorns — release any friend reservations first
+  acorns = acorns.filter(a => {
+    if (a.carried || a.friendCarried || a.falling) return true; // never cull active ones
+    if (a.age >= a.maxAge) {
+      // If a friend was seeking this, the friend's stale-check will handle cleanup
+      return false;
+    }
+    return true;
   });
 
   // Player pick up
@@ -2719,6 +3093,7 @@ function update() {
   refreshUI();
   updateTalkingTrees();
   updateFireSprites();
+  updateCandySheep();
 }
 
 // ── Draw ──────────────────────────────────────────────────
@@ -2731,6 +3106,11 @@ function draw() {
   carrying.forEach(a=>drawAcorn(a));
   // Fire sprites behind trunk
   if (currentStage === 5) fireSprites.forEach(f => drawFireSprite(f));
+  // Lollipop trees and candy sheep for stage 6
+  if (currentStage === 6) {
+    lollipopTrees.forEach(t => drawLollipopTree(t));
+    candySheep.forEach(s => drawCandySheep(s));
+  }
   drawTrunkPillar();
   drawNest();
   drawShakerSquirrels();
