@@ -491,6 +491,8 @@
   body.stage6 { background: #1a0820; }
   body.stage6 #shop { background: rgba(16,4,20,0.99); border-left-color: #e060c0; }
   body.stage6 #shop h2 { color: #ff90e0; border-bottom-color: #3a1040; }
+  body.stage7 #shop { background: rgba(4,12,4,0.99); border-left-color: #50c060; }
+  body.stage7 #shop h2 { color: #80e890; border-bottom-color: #1a3a1a; }
   body.stage6 #gameCanvas { border-color: #8030a0; box-shadow: 0 0 60px rgba(220,80,200,0.5); }
   body.stage6 .hud-box { border-color: #c040a0; color: #ff90e0; }
   body.stage6 .hud-box.green { border-color: #8060c0; color: #c090ff; }
@@ -927,6 +929,20 @@
     <button class="upg-btn" id="btn-nextstage6" style="display:none"></button>
   </div>
 
+  <div class="upg-card" id="nextstage7-card" style="border-color:#1a4020;display:none;" onclick="openNextStage7()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#80e890;">👻 GHOST FLOOR</div>
+        <span class="upg-level" style="color:#30a040;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#284030;">Stage 7 — ghost acorns 40x. Boo!</div>
+        <div class="upg-card-price" style="color:#80e890;">👻 <span id="cost-nextstage7">200000</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-nextstage7" style="display:none"></button>
+  </div>
+
   <div id="code-bar">
     <label>🔑 REDEEM CODE</label>
     <div id="code-input-row">
@@ -1088,6 +1104,28 @@
     </div>
   </div>
 </div>
+
+<div id="nextstage7-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:60;align-items:center;justify-content:center;">
+  <div style="background:#080e08;border:2px solid #50c060;border-radius:14px;padding:26px 28px 24px;width:420px;max-width:96vw;box-shadow:0 0 70px rgba(60,180,80,0.6);font-family:'Press Start 2P',monospace;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div style="font-size:48px;">👻</div>
+    <h2 style="color:#80e890;font-size:12px;text-align:center;letter-spacing:1px;">ENTER THE<br>GHOST FLOOR?</h2>
+    <div style="color:#406050;font-size:6.5px;line-height:2.2;text-align:center;">
+      Stage 7 — The Haunted Grove<br><br>
+      👻 Ghost acorns — 40 nuts each!<br>
+      🪦 Skeletons rise from the graves<br>
+      💀 Pick up acorns... if you dare
+    </div>
+    <div style="color:#c84040;font-size:6px;text-align:center;line-height:2;border:1px solid #401010;border-radius:6px;padding:8px 12px;background:#0a0202;width:100%;">
+      ⚠ ALL UPGRADES RESET TO ZERO<br>
+      Friends dismissed · Shakers reset<br>
+      Nuts are spent on entry
+    </div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="confirmNextStage7()" style="flex:1;background:#081408;border:2px solid #50c060;border-radius:6px;color:#80e890;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">👻 ENTER GHOST FLOOR</button>
+      <button onclick="closeNextStage7()" style="flex:1;background:#0a0202;border:1.5px solid #401010;border-radius:6px;color:#804040;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">✕ NOT YET</button>
+    </div>
+  </div>
+</div>
 <div id="costume-overlay">
   <div id="costume-modal">
     <button class="costume-close-btn" onclick="closeCostumeShop()">✕ CLOSE</button>
@@ -1196,7 +1234,7 @@ const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scal
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
 const maxCarry      = ()  => 3 + UPG.size.level * 2;
-const nutsPerAcorn  = ()  => (currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
+const nutsPerAcorn  = ()  => (currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
@@ -1582,13 +1620,275 @@ function enterStage6() {
     size: 18 + Math.random()*12,
   }));
   document.getElementById('nextstage6-card').style.display = 'none';
+  document.getElementById('nextstage7-card').style.display = 'block';
   document.getElementById('stageDisplay').textContent = '🍬 STAGE 6';
   // Spawn a couple of sheep right away so the world feels alive
   spawnCandySheep(); spawnCandySheep();
   fillField(); refreshUI();
 }
 
-// ── Candy Sheep ───────────────────────────────────────────
+// ── Stage 7 — Ghost Floor ─────────────────────────────────
+const NEXTSTAGE7_COST = 200000;
+let gravestones = [];
+let skeletons   = [];
+let ghostPops   = []; // { x, y, age, maxAge }
+
+const GRAVESTONE_SPOTS = [
+  {x:0.10,y:0.18},{x:0.88,y:0.20},{x:0.12,y:0.78},{x:0.86,y:0.76},
+  {x:0.50,y:0.06},{x:0.50,y:0.90},{x:0.05,y:0.48},{x:0.93,y:0.48},
+];
+
+function openNextStage7() {
+  if (currentStage !== 6) return;
+  document.getElementById('nextstage7-overlay').style.display = 'flex';
+}
+function closeNextStage7() {
+  document.getElementById('nextstage7-overlay').style.display = 'none';
+}
+function confirmNextStage7() {
+  if (nuts < NEXTSTAGE7_COST) return;
+  nuts -= NEXTSTAGE7_COST;
+  closeNextStage7();
+  runStageTransition('👻', 'ENTERING THE<br>GHOST FLOOR', 'STAGE 7 · BOO!', enterStage7);
+}
+function enterStage7() {
+  resetForNewStage();
+  currentStage = 7;
+  document.body.classList.remove('stage6');
+  document.body.classList.add('stage7');
+  talkingTrees = []; fireSprites = []; candySheep = []; lollipopTrees = [];
+  skeletons = []; ghostPops = [];
+  gravestones = GRAVESTONE_SPOTS.map(p => ({
+    x: p.x * W, y: p.y * H,
+    skelTimer: Math.floor(Math.random()*400)+300,
+  }));
+  document.getElementById('nextstage7-card').style.display = 'none';
+  document.getElementById('stageDisplay').textContent = '👻 STAGE 7';
+  fillField(); refreshUI();
+}
+
+function spawnSkeleton(grave) {
+  skeletons.push({
+    x: grave.x, y: grave.y,
+    grave,
+    angle: Math.random() * Math.PI * 2,
+    wanderTimer: Math.floor(Math.random()*180)+120,
+    state: 'rising', // rising → wander → returning → sinking
+    riseAmt: 0, // 0 to 1
+    frame: 0,
+  });
+}
+
+function updateGhostFloor() {
+  if (currentStage !== 7) return;
+
+  // Gravestone skeleton spawning
+  gravestones.forEach(g => {
+    const hasSkel = skeletons.some(s => s.grave === g);
+    if (!hasSkel) {
+      g.skelTimer--;
+      if (g.skelTimer <= 0) {
+        spawnSkeleton(g);
+        g.skelTimer = Math.floor(Math.random()*500)+400;
+      }
+    }
+  });
+
+  // Update skeletons
+  skeletons.forEach(s => {
+    s.frame++;
+    if (s.state === 'rising') {
+      s.riseAmt = Math.min(1, s.riseAmt + 0.025);
+      if (s.riseAmt >= 1) s.state = 'wander';
+    } else if (s.state === 'wander') {
+      s.wanderTimer--;
+      s.angle += (Math.random() - 0.5) * 0.08;
+      const spd = 0.6;
+      const nx = s.x + Math.cos(s.angle) * spd;
+      const ny = s.y + Math.sin(s.angle) * spd;
+      // Keep away from centre trunk
+      if (dist(nx, ny, CX, CY) > TR + 28) {
+        s.x = Math.max(18, Math.min(W-18, nx));
+        s.y = Math.max(18, Math.min(H-18, ny));
+      }
+      if (s.wanderTimer <= 0) s.state = 'returning';
+    } else if (s.state === 'returning') {
+      const dx = s.grave.x - s.x, dy = s.grave.y - s.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 3) { s.state = 'sinking'; s.x = s.grave.x; s.y = s.grave.y; }
+      else { s.x += dx/d * 1.1; s.y += dy/d * 1.1; }
+    } else if (s.state === 'sinking') {
+      s.riseAmt = Math.max(0, s.riseAmt - 0.025);
+    }
+  });
+  skeletons = skeletons.filter(s => !(s.state === 'sinking' && s.riseAmt <= 0));
+
+  // Ghost pop particles age out
+  ghostPops.forEach(g => g.age++);
+  ghostPops = ghostPops.filter(g => g.age < g.maxAge);
+}
+
+function ghostAcornPop(ax, ay) {
+  if (currentStage !== 7 || Math.random() > 0.05) return;
+  ghostPops.push({ x: ax, y: ay - 10, age: 0, maxAge: 55 });
+}
+
+function drawGravestones() {
+  gravestones.forEach(g => {
+    ctx.save();
+    ctx.translate(g.x, g.y);
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.ellipse(0, 14, 10, 3, 0, 0, Math.PI*2); ctx.fill();
+    // Stone body
+    const sg = ctx.createLinearGradient(-9, -20, 9, 14);
+    sg.addColorStop(0, '#8a9a8a'); sg.addColorStop(1, '#4a5a4a');
+    ctx.beginPath();
+    ctx.roundRect(-9, -4, 18, 18, 2);
+    ctx.fillStyle = sg; ctx.fill();
+    ctx.strokeStyle = '#2a3a2a'; ctx.lineWidth = 1.2; ctx.stroke();
+    // Rounded top
+    ctx.beginPath(); ctx.arc(0, -4, 9, Math.PI, 0);
+    ctx.fillStyle = sg; ctx.fill();
+    ctx.strokeStyle = '#2a3a2a'; ctx.lineWidth = 1.2; ctx.stroke();
+    // Moss patches
+    ctx.fillStyle = 'rgba(60,120,50,0.5)';
+    ctx.beginPath(); ctx.ellipse(-3, 0, 4, 2, -0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(4, 5, 3, 1.5, 0.4, 0, Math.PI*2); ctx.fill();
+    // Cross engraving
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.stroke();
+    // Tiny RIP text
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.font = 'bold 4px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('RIP', 0, 10);
+    ctx.restore();
+  });
+}
+
+function drawSkeleton(s) {
+  if (s.riseAmt <= 0) return;
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  // Clip rising/sinking: skeleton emerges upward from grave position
+  const clipY = 20 - s.riseAmt * 48; // how far up the skeleton is visible
+  ctx.beginPath(); ctx.rect(-20, -60, 40, 60 + clipY);
+  ctx.clip();
+  ctx.rotate(Math.sin(s.frame / 14) * 0.06);
+
+  const bobY = s.state === 'wander' ? Math.sin(s.frame / 10) * 1.5 : 0;
+  ctx.translate(0, bobY);
+
+  const bonecol = '#d8e8d0';
+  const shadowcol = 'rgba(0,0,0,0.22)';
+
+  // Shadow
+  ctx.fillStyle = shadowcol;
+  ctx.beginPath(); ctx.ellipse(0, 0, 7, 2.5, 0, 0, Math.PI*2); ctx.fill();
+
+  // Pelvis
+  ctx.fillStyle = bonecol;
+  ctx.beginPath(); ctx.ellipse(0, -6, 5, 3.5, 0, 0, Math.PI*2); ctx.fill();
+
+  // Spine
+  ctx.beginPath();
+  ctx.moveTo(0, -9); ctx.lineTo(0, -28);
+  ctx.strokeStyle = bonecol; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
+
+  // Ribcage
+  [-14,-19,-24].forEach((ry, i) => {
+    const w = 7 - i;
+    ctx.beginPath(); ctx.ellipse(0, ry, w, 2.2, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fill();
+    ctx.strokeStyle = bonecol; ctx.lineWidth = 1.8; ctx.stroke();
+  });
+
+  // Arms swinging
+  const armSwing = Math.sin(s.frame / 12) * 0.5;
+  [-1, 1].forEach(side => {
+    ctx.save();
+    ctx.translate(side * 5, -22);
+    ctx.rotate(side * (0.3 + armSwing * side));
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(side * 6, 9);
+    ctx.strokeStyle = bonecol; ctx.lineWidth = 2.2; ctx.stroke();
+    // hand nub
+    ctx.beginPath(); ctx.arc(side * 6, 9, 2, 0, Math.PI*2);
+    ctx.fillStyle = bonecol; ctx.fill();
+    ctx.restore();
+  });
+
+  // Legs
+  const legSwing = Math.sin(s.frame / 10) * 0.35;
+  [-1, 1].forEach(side => {
+    ctx.save();
+    ctx.translate(side * 3, -6);
+    ctx.rotate(side * legSwing);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 10);
+    ctx.strokeStyle = bonecol; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(side * 2, 18);
+    ctx.strokeStyle = bonecol; ctx.lineWidth = 2; ctx.stroke();
+    // foot
+    ctx.beginPath(); ctx.ellipse(side * 2, 19, 3, 1.5, 0, 0, Math.PI*2);
+    ctx.fillStyle = bonecol; ctx.fill();
+    ctx.restore();
+  });
+
+  // Skull
+  ctx.beginPath(); ctx.arc(0, -34, 6.5, 0, Math.PI*2);
+  ctx.fillStyle = bonecol; ctx.fill();
+  ctx.strokeStyle = '#a0b8a0'; ctx.lineWidth = 0.8; ctx.stroke();
+  // Eye sockets
+  [-2.5, 2.5].forEach(ex => {
+    ctx.beginPath(); ctx.arc(ex, -34.5, 1.8, 0, Math.PI*2);
+    ctx.fillStyle = '#1a2a1a'; ctx.fill();
+  });
+  // Teeth
+  ctx.fillStyle = bonecol;
+  [-2, 0, 2].forEach(tx => {
+    ctx.beginPath(); ctx.rect(tx - 0.8, -29.5, 1.6, 2.5);
+    ctx.fillStyle = bonecol; ctx.fill();
+  });
+  // Jaw gap
+  ctx.strokeStyle = '#1a2a1a'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(-3.5, -29); ctx.lineTo(3.5, -29); ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawGhostPops() {
+  ghostPops.forEach(g => {
+    const p = g.age / g.maxAge;
+    const alpha = p < 0.3 ? p/0.3 : 1 - (p-0.3)/0.7;
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.translate(g.x, g.y - p * 30);
+    // Ghost body
+    const gr = ctx.createRadialGradient(0, -8, 0, 0, -4, 16);
+    gr.addColorStop(0, 'rgba(200,255,210,0.95)');
+    gr.addColorStop(1, 'rgba(120,220,140,0)');
+    ctx.beginPath();
+    ctx.arc(0, -8, 11 + p*4, Math.PI, 0);
+    ctx.lineTo(11 + p*4, 4);
+    const wag = Math.sin(g.age / 5) * 3;
+    ctx.quadraticCurveTo(7, 8 + wag, 0, 6);
+    ctx.quadraticCurveTo(-7, 8 - wag, -(11 + p*4), 4);
+    ctx.closePath();
+    ctx.fillStyle = gr; ctx.fill();
+    // Eyes
+    ctx.fillStyle = 'rgba(30,80,40,0.8)';
+    ctx.beginPath(); ctx.ellipse(-3.5, -9, 2, 2.5, 0, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3.5, -9, 2, 2.5, 0, 0, Math.PI*2); ctx.fill();
+    // BOO text
+    ctx.fillStyle = 'rgba(60,160,80,0.9)';
+    ctx.font = `bold ${7 + p*4}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('BOO!', 0, -22 - p*8);
+    ctx.restore();
+  });
+}
+
 function spawnCandySheep() {
   // Enter from a random edge
   const side = Math.floor(Math.random()*4);
@@ -2194,8 +2494,8 @@ function refreshUI() {
     document.getElementById('lvl-size').textContent = 'MAX';
     document.getElementById('cost-size').textContent = '—';
   }
-  const nut = currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
-  const nutName = currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
+  const nut = currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nutName = currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
   document.getElementById('desc-size').textContent   = `Carry ${maxCarry()} ${nutName}s`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
@@ -2222,6 +2522,7 @@ function refreshUI() {
   if (currentStage === 3) { document.getElementById('btn-nextstage4').classList.toggle('cant', nuts < NEXTSTAGE4_COST); document.getElementById('nextstage4-card').classList.toggle('cant', nuts < NEXTSTAGE4_COST); }
   if (currentStage === 4) { document.getElementById('btn-nextstage5').classList.toggle('cant', nuts < NEXTSTAGE5_COST); document.getElementById('nextstage5-card').classList.toggle('cant', nuts < NEXTSTAGE5_COST); }
   if (currentStage === 5) { document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST); document.getElementById('nextstage6-card').classList.toggle('cant', nuts < NEXTSTAGE6_COST); }
+  if (currentStage === 6) { document.getElementById('btn-nextstage7').classList.toggle('cant', nuts < NEXTSTAGE7_COST); document.getElementById('nextstage7-card').classList.toggle('cant', nuts < NEXTSTAGE7_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -2231,7 +2532,7 @@ function nutPop(x,y,amount) {
   // canvas internal coords → screen coords (accounts for CSS scaling)
   const scaleX = r.width  / canvas.width;
   const scaleY = r.height / canvas.height;
-  const nut = currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nut = currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
   el.style.cssText=`left:${r.left + x*scaleX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
   setTimeout(()=>{ el.style.transition='opacity .8s,transform .8s'; el.style.opacity='0'; el.style.transform='translateY(-36px)'; },40);
@@ -2242,6 +2543,47 @@ function nutPop(x,y,amount) {
 // ─────────────────────────────────────────────────────────
 
 function drawGround() {
+  if (currentStage === 7) {
+    // Ghost Floor — mossy grey haunted ground
+    ctx.fillStyle = '#1e2a1e'; ctx.fillRect(0,0,W,H);
+    const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
+    gr.addColorStop(0,'rgba(0,0,0,0.6)'); gr.addColorStop(.5,'rgba(0,0,0,0.2)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
+    // Mossy ground patches
+    ctx.globalAlpha=.55;
+    for (let i=0;i<280;i++) {
+      const gx=(i*131+7)%W, gy=(i*97+23)%H;
+      if (dist(gx,gy,CX,CY)<TR+12) continue;
+      const cols=['#2e4a2e','#3a5a3a','#486048','#506850','#405040'];
+      ctx.fillStyle=cols[i%5];
+      ctx.beginPath();
+      if (i%4===0) ctx.ellipse(gx,gy,4+i%3,2,i*0.7,0,Math.PI*2);
+      else ctx.ellipse(gx,gy,2,3+i%2,i*0.4,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // Eerie green mist pools
+    const mistSpots=[
+      [W*.10,H*.18,55],[W*.88,H*.20,50],[W*.12,H*.78,52],[W*.86,H*.76,48],
+      [W*.50,H*.06,38],[W*.50,H*.90,40],[W*.05,H*.48,36],[W*.93,H*.48,38],
+    ];
+    mistSpots.forEach(([mx,my,mr])=>{
+      const pulse = 0.06 + Math.sin(frame/90 + mx)*0.03;
+      const mg=ctx.createRadialGradient(mx,my,0,mx,my,mr);
+      mg.addColorStop(0,`rgba(60,160,70,${pulse})`); mg.addColorStop(1,'rgba(40,100,50,0)');
+      ctx.beginPath(); ctx.arc(mx,my,mr,0,Math.PI*2); ctx.fillStyle=mg; ctx.fill();
+    });
+    // Wispy floating fog streaks
+    for (let i=0;i<8;i++) {
+      const fx=(i*173+frame*0.18)%W, fy=(i*89+frame*0.07+i*40)%H;
+      if (dist(fx,fy,CX,CY)<TR+20) continue;
+      ctx.globalAlpha=0.06+Math.sin(frame/40+i)*0.03;
+      ctx.fillStyle='#70b880';
+      ctx.beginPath(); ctx.ellipse(fx,fy,28+i*4,6,0.2*i,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    return;
+  }
   if (currentStage === 6) {
     // Candy Forest — soft purple-pink dreamy ground
     ctx.fillStyle = '#2a1035'; ctx.fillRect(0,0,W,H);
@@ -2417,10 +2759,11 @@ function drawTrunkPillar() {
   const s3 = currentStage === 3;
   const s5 = currentStage === 5;
   const s6 = currentStage === 6;
-  const tOuter = s6?'#5020a0':s5 ? '#0e0804' : s3 ? '#2a3008' : s2 ? '#0a1a0e' : COL.trunkOuter;
-  const tMid   = s6?'#7030b0':s5 ? '#1e1008' : s3 ? '#3a4210' : s2 ? '#102a18' : COL.trunkMid;
-  const tCore  = s6?'#9040c0':s5 ? '#2e1a0c' : s3 ? '#4a5418' : s2 ? '#163a20' : COL.trunkCore;
-  const tLight = s6?'#c060e0':s5 ? '#3e2010' : s3 ? '#6a7828' : s2 ? '#204a2a' : COL.trunkLight;
+  const s7 = currentStage === 7;
+  const tOuter = s7?'#1a3a1a':s6?'#5020a0':s5 ? '#0e0804' : s3 ? '#2a3008' : s2 ? '#0a1a0e' : COL.trunkOuter;
+  const tMid   = s7?'#2a4a2a':s6?'#7030b0':s5 ? '#1e1008' : s3 ? '#3a4210' : s2 ? '#102a18' : COL.trunkMid;
+  const tCore  = s7?'#3a5a3a':s6?'#9040c0':s5 ? '#2e1a0c' : s3 ? '#4a5418' : s2 ? '#163a20' : COL.trunkCore;
+  const tLight = s7?'#60a060':s6?'#c060e0':s5 ? '#3e2010' : s3 ? '#6a7828' : s2 ? '#204a2a' : COL.trunkLight;
   const shadow=ctx.createRadialGradient(CX,CY+6,TR*.5,CX,CY+4,TR*1.28);
   shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.beginPath(); ctx.arc(CX,CY,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
@@ -2429,7 +2772,7 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
   [.82,.65,.48].forEach(rf=>{
     ctx.beginPath(); ctx.arc(CX,CY,TR*rf,0,Math.PI*2);
-    ctx.strokeStyle=s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+    ctx.strokeStyle=s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
   });
   ctx.globalAlpha=1;
   for (let i=0;i<9;i++) {
@@ -2442,10 +2785,10 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2);
   ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
   // Stage glow on trunk
-  if (s2 || s3 || s5 || s6) {
+  if (s2 || s3 || s5 || s6 || s7) {
     const glowP = Math.sin(frame/80)*0.5+0.5;
     ctx.globalAlpha = 0.12 + glowP*0.08;
-    const glowCol = s6?'rgba(200,80,255,1)':s5 ? 'rgba(255,80,10,1)' : s3 ? 'rgba(200,220,30,1)' : 'rgba(40,200,120,1)';
+    const glowCol = s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5 ? 'rgba(255,80,10,1)' : s3 ? 'rgba(200,220,30,1)' : 'rgba(40,200,120,1)';
     const tglow=ctx.createRadialGradient(CX,CY,0,CX,CY,TR*1.1);
     tglow.addColorStop(0,glowCol); tglow.addColorStop(1,glowCol.replace(',1)',',0)'));
     ctx.beginPath(); ctx.arc(CX,CY,TR*1.1,0,Math.PI*2); ctx.fillStyle=tglow; ctx.fill();
@@ -2471,6 +2814,18 @@ function drawTrunkPillar() {
         ctx.globalAlpha=sp*0.85;
         ctx.fillStyle=sparkCols[i%6];
         ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,2+sp,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if (s7) {
+      // Ghostly green wisps orbit trunk
+      for (let i=0;i<8;i++) {
+        const sa=(i/8)*Math.PI*2+frame*0.025;
+        const sr=TR+8+Math.sin(frame/18+i*1.3)*10;
+        const sp=Math.sin(frame/11+i*2.1)*0.5+0.5;
+        ctx.globalAlpha=sp*0.6;
+        ctx.fillStyle=i%2===0?'#60e878':'#a0ffb8';
+        ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,2.5+sp*1.5,0,Math.PI*2); ctx.fill();
       }
       ctx.globalAlpha=1;
     }
@@ -2794,7 +3149,34 @@ function drawAcorn(a) {
     : 1;
   if (falling) ctx.globalAlpha = .6;
   else if (lifeAlpha < 1) ctx.globalAlpha = Math.max(0, lifeAlpha);
-  if (currentStage === 6) {
+  if (currentStage === 7) {
+    // Ghost acorn — glowing green, slightly translucent with wispy cap
+    const pulse = Math.sin(frame/20 + x*0.04) * 0.08 + 1;
+    const wobble = Math.sin(frame/15 + y*0.03) * 1.5;
+    // Outer glow
+    const gg=ctx.createRadialGradient(x,y+wobble,0,x,y+wobble,r*3.5);
+    gg.addColorStop(0,'rgba(80,220,100,0.3)'); gg.addColorStop(1,'rgba(40,120,60,0)');
+    ctx.beginPath(); ctx.arc(x,y+wobble,r*3.5,0,Math.PI*2); ctx.fillStyle=gg; ctx.fill();
+    // Acorn body — green glowing
+    ctx.beginPath(); ctx.ellipse(x, y+wobble+r*.15, r*.72, r, 0, 0, Math.PI*2);
+    const ag=ctx.createRadialGradient(x-r*.2,y+wobble-r*.3,0,x,y+wobble,r);
+    ag.addColorStop(0,'#90ffaa'); ag.addColorStop(.5,'#40c060'); ag.addColorStop(1,'#1a5030');
+    ctx.globalAlpha *= 0.88; ctx.fillStyle=ag; ctx.fill();
+    ctx.strokeStyle='rgba(100,255,130,0.4)'; ctx.lineWidth=0.8; ctx.stroke();
+    // Wispy cap
+    ctx.beginPath(); ctx.ellipse(x, y+wobble-r*.72, r*.82, r*.38, 0, 0, Math.PI*2);
+    const cg=ctx.createLinearGradient(x,y+wobble-r,x,y+wobble-r*.4);
+    cg.addColorStop(0,'#c0ffc8'); cg.addColorStop(1,'#3a7a50');
+    ctx.fillStyle=cg; ctx.fill();
+    // Wispy stem
+    ctx.beginPath(); ctx.moveTo(x, y+wobble-r*1.08); ctx.quadraticCurveTo(x+r*.4, y+wobble-r*1.5, x+r*.2, y+wobble-r*1.7);
+    ctx.strokeStyle='#60c070'; ctx.lineWidth=1.5; ctx.lineCap='round'; ctx.stroke();
+    // Eye glints (eerie touch)
+    ctx.fillStyle='rgba(180,255,200,0.6)';
+    ctx.beginPath(); ctx.ellipse(x-r*.22,y+wobble-r*.1,r*.14,r*.18,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x+r*.22,y+wobble-r*.1,r*.14,r*.18,0,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  } else if (currentStage === 6) {
     // Gumdrop — round, jewel-toned, with a sugary flat top and shine
     const gdColors=[['#ff4090','#ff80c0'],['#4090ff','#80c0ff'],['#a040ff','#d080ff'],
                     ['#20c080','#60ffb8'],['#ff9020','#ffc060'],['#ff4060','#ff8090']];
@@ -3221,6 +3603,7 @@ function update() {
       if (!a.carried&&!a.friendCarried&&!a.falling&&carrying.length<cap&&dist(a.x,a.y,fx,fy)<sqH()/2+14){
         a.carried=true; carrying.push(a);
         acornScream(a.x, a.y); // 5% chance to scream in stage 4
+        ghostAcornPop(a.x, a.y); // 5% chance ghost in stage 7
       }
     }
   }
@@ -3324,6 +3707,7 @@ function update() {
   updateTalkingTrees();
   updateFireSprites();
   updateCandySheep();
+  updateGhostFloor();
 }
 
 // ── Draw ──────────────────────────────────────────────────
@@ -3341,6 +3725,11 @@ function draw() {
     lollipopTrees.forEach(t => drawLollipopTree(t));
     candySheep.forEach(s => drawCandySheep(s));
   }
+  // Gravestones and skeletons for stage 7
+  if (currentStage === 7) {
+    drawGravestones();
+    skeletons.forEach(s => drawSkeleton(s));
+  }
   drawTrunkPillar();
   drawNest();
   drawShakerSquirrels();
@@ -3348,6 +3737,8 @@ function draw() {
   // Friends drawn before player (player on top)
   friends.forEach(f=>drawFriendSquirrel(f));
   drawSquirrel();
+  // Ghost pops for stage 7
+  if (currentStage === 7) drawGhostPops();
   // Click marker — small ripple ring where player clicked
   if (clickMarker) {
     const p = clickMarker.age / 40;
@@ -3390,17 +3781,17 @@ function saveGame() {
 
 function applyStageUI(stage) {
   // Body classes
-  ['stage2','stage3','stage4','stage5','stage6'].forEach(c => document.body.classList.remove(c));
+  ['stage2','stage3','stage4','stage5','stage6','stage7'].forEach(c => document.body.classList.remove(c));
   if (stage >= 2) document.body.classList.add('stage' + stage);
 
   // Stage display text
-  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6'};
+  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7'};
   document.getElementById('stageDisplay').textContent = stageLabels[stage] || '';
 
   // Next-stage cards: show the one for the current stage, hide others
   const cards = {
     1: 'nextstage-card', 2: 'nextstage3-card', 3: 'nextstage4-card',
-    4: 'nextstage5-card', 5: 'nextstage6-card',
+    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card',
   };
   Object.entries(cards).forEach(([s, id]) => {
     const el = document.getElementById(id);
