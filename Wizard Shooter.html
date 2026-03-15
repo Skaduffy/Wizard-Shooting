@@ -404,6 +404,21 @@
   }
   .costume-close-btn:hover { color: #c8860a; border-color: #c8860a; }
 
+  /* ── Costume tab buttons ── */
+  .costume-tab-btn {
+    background: #060e03;
+    border: 1.5px solid #1a3800;
+    border-radius: 5px;
+    color: #3a6010;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s, background 0.1s;
+  }
+  .costume-tab-btn:hover { border-color: #c8860a; color: #f5c842; }
+  .costume-tab-btn.active { background: #1a3000; border-color: #c8860a; color: #f5c842; }
+
   /* ── Stage 2 theme overrides ── */
   body.stage2 { background: #030808; }
   body.stage2 #shop { background: rgba(1,5,8,0.99); border-left-color: #0a7060; }
@@ -1179,11 +1194,20 @@
 </div>
 
 <div id="costume-overlay">
-  <div id="costume-modal">
+  <div id="costume-modal" style="max-height:90vh;overflow-y:auto;width:520px;">
     <button class="costume-close-btn" onclick="closeCostumeShop()">✕ CLOSE</button>
     <h2>👗 COSTUME SHOP</h2>
-    <div class="costume-grid">
 
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:4px;">
+      <button class="costume-tab-btn active" id="tab-player" onclick="switchCostumeTab('player')">🐿 PLAYER</button>
+      <button class="costume-tab-btn" id="tab-friend" onclick="switchCostumeTab('friend')">🐾 FRIENDS</button>
+      <button class="costume-tab-btn" id="tab-shaker" onclick="switchCostumeTab('shaker')">🌿 SHAKERS</button>
+    </div>
+
+    <!-- PLAYER SKINS -->
+    <div id="costumes-player">
+    <div class="costume-grid">
       <!-- Pink Cowboy -->
       <div class="costume-card" id="card-cowboy">
         <div class="costume-preview">
@@ -1196,7 +1220,6 @@
         <div class="costume-desc">Yeehaw! A rootin'<br>tootin' squirrel!</div>
         <button class="costume-equip-btn" id="btn-cowboy" onclick="equipCostume('cowboy')">EQUIP</button>
       </div>
-
       <!-- Wizard -->
       <div class="costume-card" id="card-wizard">
         <div class="costume-preview">
@@ -1209,7 +1232,6 @@
         <div class="costume-desc">Ancient acorn<br>magic awaits!</div>
         <button class="costume-equip-btn" id="btn-wizard" onclick="equipCostume('wizard')">EQUIP</button>
       </div>
-
       <!-- Racecar Driver -->
       <div class="costume-card" id="card-racer">
         <div class="costume-preview">
@@ -1222,7 +1244,6 @@
         <div class="costume-desc">Zoom zoom!<br>Fastest acorns!</div>
         <button class="costume-equip-btn" id="btn-racer" onclick="equipCostume('racer')">EQUIP</button>
       </div>
-
       <!-- Cat -->
       <div class="costume-card" id="card-cat">
         <div class="costume-preview">
@@ -1235,9 +1256,178 @@
         <div class="costume-desc">Purrfect for<br>collecting acorns!</div>
         <button class="costume-equip-btn" id="btn-cat" onclick="equipCostume('cat')">EQUIP</button>
       </div>
-
+      <!-- Ghost -->
+      <div class="costume-card" id="card-ghost">
+        <div class="costume-preview">
+          <div class="costume-squirrel-base">
+            <span class="costume-hat" style="font-size:26px;top:2px">👻</span>
+            <span class="costume-sq" style="filter:grayscale(1) brightness(1.6) opacity(0.7)">🐿</span>
+          </div>
+        </div>
+        <div class="costume-name">SPOOKY GHOST</div>
+        <div class="costume-desc">Boo! Haunted<br>nut collector!</div>
+        <button class="costume-equip-btn" id="btn-ghost" onclick="equipCostume('ghost')">EQUIP</button>
+      </div>
+      <!-- Ninja -->
+      <div class="costume-card" id="card-ninja">
+        <div class="costume-preview">
+          <div class="costume-squirrel-base">
+            <span class="costume-hat" style="font-size:24px;top:4px">🥷</span>
+            <span class="costume-sq" style="filter:grayscale(1) brightness(0.4)">🐿</span>
+          </div>
+        </div>
+        <div class="costume-name">NINJA</div>
+        <div class="costume-desc">Shadow acorn<br>master!</div>
+        <button class="costume-equip-btn" id="btn-ninja" onclick="equipCostume('ninja')">EQUIP</button>
+      </div>
+      <!-- Dragon -->
+      <div class="costume-card" id="card-dragon">
+        <div class="costume-preview">
+          <div class="costume-squirrel-base">
+            <span class="costume-hat" style="font-size:26px;top:2px">🐲</span>
+            <span class="costume-sq" style="filter:hue-rotate(100deg) saturate(2)">🐿</span>
+          </div>
+        </div>
+        <div class="costume-name">DRAGON</div>
+        <div class="costume-desc">Fear the<br>squirrel dragon!</div>
+        <button class="costume-equip-btn" id="btn-dragon" onclick="equipCostume('dragon')">EQUIP</button>
+      </div>
+      <!-- Angel -->
+      <div class="costume-card" id="card-angel">
+        <div class="costume-preview">
+          <div class="costume-squirrel-base">
+            <span class="costume-hat" style="font-size:24px;top:3px">😇</span>
+            <span class="costume-sq" style="filter:brightness(1.4) saturate(0.4)">🐿</span>
+          </div>
+        </div>
+        <div class="costume-name">ANGEL</div>
+        <div class="costume-desc">Holy acorns!<br>Blessed squirrel!</div>
+        <button class="costume-equip-btn" id="btn-angel" onclick="equipCostume('angel')">EQUIP</button>
+      </div>
     </div>
     <button class="costume-none-btn" onclick="equipCostume(null)">🐿 REMOVE COSTUME</button>
+    </div>
+
+    <!-- FRIEND SKINS -->
+    <div id="costumes-friend" style="display:none;">
+    <div class="costume-grid">
+      <!-- Default (blue) -->
+      <div class="costume-card" id="fcard-default">
+        <div class="costume-preview" style="background:#0a0a18;">
+          <span style="font-size:40px;">🐿️</span>
+        </div>
+        <div class="costume-name">DEFAULT</div>
+        <div class="costume-desc">Classic blue<br>helper friend!</div>
+        <button class="costume-equip-btn" id="fbtn-default" onclick="equipFriendSkin('default')">EQUIP</button>
+      </div>
+      <!-- Emerald -->
+      <div class="costume-card" id="fcard-emerald">
+        <div class="costume-preview" style="background:#04140a;">
+          <span style="font-size:40px;filter:hue-rotate(130deg) saturate(2)">🐿️</span>
+        </div>
+        <div class="costume-name">EMERALD</div>
+        <div class="costume-desc">Verdant forest<br>guardians!</div>
+        <button class="costume-equip-btn" id="fbtn-emerald" onclick="equipFriendSkin('emerald')">EQUIP</button>
+      </div>
+      <!-- Ruby -->
+      <div class="costume-card" id="fcard-ruby">
+        <div class="costume-preview" style="background:#180404;">
+          <span style="font-size:40px;filter:hue-rotate(300deg) saturate(2.5)">🐿️</span>
+        </div>
+        <div class="costume-name">RUBY</div>
+        <div class="costume-desc">Fiery red speed<br>demons!</div>
+        <button class="costume-equip-btn" id="fbtn-ruby" onclick="equipFriendSkin('ruby')">EQUIP</button>
+      </div>
+      <!-- Golden -->
+      <div class="costume-card" id="fcard-golden">
+        <div class="costume-preview" style="background:#141004;">
+          <span style="font-size:40px;filter:hue-rotate(40deg) saturate(3) brightness(1.2)">🐿️</span>
+        </div>
+        <div class="costume-name">GOLDEN</div>
+        <div class="costume-desc">Elite golden<br>nut fetchers!</div>
+        <button class="costume-equip-btn" id="fbtn-golden" onclick="equipFriendSkin('golden')">EQUIP</button>
+      </div>
+      <!-- Shadow -->
+      <div class="costume-card" id="fcard-shadow">
+        <div class="costume-preview" style="background:#060608;">
+          <span style="font-size:40px;filter:grayscale(1) brightness(0.35)">🐿️</span>
+        </div>
+        <div class="costume-name">SHADOW</div>
+        <div class="costume-desc">Dark phantoms<br>of the forest!</div>
+        <button class="costume-equip-btn" id="fbtn-shadow" onclick="equipFriendSkin('shadow')">EQUIP</button>
+      </div>
+      <!-- Candy -->
+      <div class="costume-card" id="fcard-candy">
+        <div class="costume-preview" style="background:#140818;">
+          <span style="font-size:40px;filter:hue-rotate(290deg) saturate(3) brightness(1.3)">🐿️</span>
+        </div>
+        <div class="costume-name">CANDY</div>
+        <div class="costume-desc">Sweet pink pals<br>from Stage 6!</div>
+        <button class="costume-equip-btn" id="fbtn-candy" onclick="equipFriendSkin('candy')">EQUIP</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- SHAKER SKINS -->
+    <div id="costumes-shaker" style="display:none;">
+    <div class="costume-grid">
+      <!-- Default (orange) -->
+      <div class="costume-card" id="scard-default">
+        <div class="costume-preview" style="background:#100800;">
+          <span style="font-size:40px;">🐿️</span>
+        </div>
+        <div class="costume-name">CLASSIC</div>
+        <div class="costume-desc">The original<br>nut shaker!</div>
+        <button class="costume-equip-btn" id="sbtn-default" onclick="equipShakerSkin('default')">EQUIP</button>
+      </div>
+      <!-- Winter -->
+      <div class="costume-card" id="scard-winter">
+        <div class="costume-preview" style="background:#04080e;">
+          <span style="font-size:40px;filter:grayscale(0.4) brightness(1.4) hue-rotate(190deg)">🐿️</span>
+        </div>
+        <div class="costume-name">WINTER</div>
+        <div class="costume-desc">Icy cold shakers<br>from the north!</div>
+        <button class="costume-equip-btn" id="sbtn-winter" onclick="equipShakerSkin('winter')">EQUIP</button>
+      </div>
+      <!-- Forest -->
+      <div class="costume-card" id="scard-forest">
+        <div class="costume-preview" style="background:#041004;">
+          <span style="font-size:40px;filter:hue-rotate(90deg) saturate(1.8)">🐿️</span>
+        </div>
+        <div class="costume-name">FOREST</div>
+        <div class="costume-desc">Deep green forest<br>shaker spirits!</div>
+        <button class="costume-equip-btn" id="sbtn-forest" onclick="equipShakerSkin('forest')">EQUIP</button>
+      </div>
+      <!-- Inferno -->
+      <div class="costume-card" id="scard-inferno">
+        <div class="costume-preview" style="background:#100200;">
+          <span style="font-size:40px;filter:hue-rotate(330deg) saturate(3) brightness(0.9)">🐿️</span>
+        </div>
+        <div class="costume-name">INFERNO</div>
+        <div class="costume-desc">Blazing hot<br>fire shakers!</div>
+        <button class="costume-equip-btn" id="sbtn-inferno" onclick="equipShakerSkin('inferno')">EQUIP</button>
+      </div>
+      <!-- Cosmic -->
+      <div class="costume-card" id="scard-cosmic">
+        <div class="costume-preview" style="background:#080010;">
+          <span style="font-size:40px;filter:hue-rotate(260deg) saturate(2.5) brightness(1.1)">🐿️</span>
+        </div>
+        <div class="costume-name">COSMIC</div>
+        <div class="costume-desc">Galactic purple<br>space shakers!</div>
+        <button class="costume-equip-btn" id="sbtn-cosmic" onclick="equipShakerSkin('cosmic')">EQUIP</button>
+      </div>
+      <!-- Golden -->
+      <div class="costume-card" id="scard-golden">
+        <div class="costume-preview" style="background:#100c00;">
+          <span style="font-size:40px;filter:hue-rotate(35deg) saturate(4) brightness(1.15)">🐿️</span>
+        </div>
+        <div class="costume-name">GOLDEN</div>
+        <div class="costume-desc">Legendary gold<br>tier shakers!</div>
+        <button class="costume-equip-btn" id="sbtn-golden" onclick="equipShakerSkin('golden')">EQUIP</button>
+      </div>
+    </div>
+    </div>
+
   </div>
 </div>
 
@@ -1338,7 +1528,29 @@ function spawnFriend() {
 }
 
 // ── Costume system ────────────────────────────────────────
-let equippedCostume = null; // null | 'cowboy' | 'wizard' | 'racer' | 'cat'
+let equippedCostume = null; // null | 'cowboy' | 'wizard' | 'racer' | 'cat' | 'ghost' | 'ninja' | 'dragon' | 'angel'
+let equippedFriendSkin = 'default'; // 'default' | 'emerald' | 'ruby' | 'golden' | 'shadow' | 'candy'
+let equippedShakerSkin = 'default'; // 'default' | 'winter' | 'forest' | 'inferno' | 'cosmic' | 'golden'
+
+// Friend skin color palettes
+const FRIEND_SKINS = {
+  default: { body:'#8090c8', belly:'#b0c0e8', dark:'#405080' },
+  emerald: { body:'#40a860', belly:'#80d898', dark:'#206040' },
+  ruby:    { body:'#c84050', belly:'#f090a0', dark:'#801828' },
+  golden:  { body:'#c8a020', belly:'#f0d060', dark:'#806010' },
+  shadow:  { body:'#282830', belly:'#404050', dark:'#101018' },
+  candy:   { body:'#d050b0', belly:'#f090d8', dark:'#802070' },
+};
+
+// Shaker skin color palettes
+const SHAKER_SKINS = {
+  default: { body:COL.sqBody,  belly:COL.sqBelly, dark:COL.sqDark,  glow:'rgba(200,134,10,0.25)',  sel:'#f5c842',  badge:'#f5c842' },
+  winter:  { body:'#80b8e0',  belly:'#c0e0f8',   dark:'#305878',   glow:'rgba(100,180,255,0.25)', sel:'#80d0ff',  badge:'#80d0ff' },
+  forest:  { body:'#508040',  belly:'#90c870',   dark:'#284020',   glow:'rgba(80,160,40,0.25)',   sel:'#90e840',  badge:'#90e840' },
+  inferno: { body:'#c84020',  belly:'#f08060',   dark:'#701008',   glow:'rgba(255,80,20,0.3)',    sel:'#ff6030',  badge:'#ff6030' },
+  cosmic:  { body:'#7030b0',  belly:'#c080f0',   dark:'#301860',   glow:'rgba(180,80,255,0.3)',   sel:'#d080ff',  badge:'#d080ff' },
+  golden:  { body:'#c89020',  belly:'#f0d060',   dark:'#806000',   glow:'rgba(240,180,20,0.3)',   sel:'#ffd030',  badge:'#ffd030' },
+};
 
 const COSTUMES = {
   cowboy: {
@@ -1462,6 +1674,125 @@ const COSTUMES = {
       ctx.beginPath(); ctx.arc(10, 4, 2, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
     }
+  },
+  ghost: {
+    bodyColor: '#d8e8f8',
+    bellyColor: '#f0f8ff',
+    drawAccessory(ctx, sqW, frame) {
+      const sc = sqW / 28;
+      ctx.save();
+      ctx.translate(6 * sc, -16 * sc);
+      ctx.scale(sc, sc);
+      // wispy ghost trail behind head
+      const ghostAlpha = Math.sin(frame / 18) * 0.3 + 0.5;
+      ctx.globalAlpha = ghostAlpha;
+      ctx.fillStyle = 'rgba(200,230,255,0.6)';
+      ctx.beginPath(); ctx.arc(0, 0, 10, Math.PI, 0);
+      ctx.lineTo(10, 8);
+      ctx.quadraticCurveTo(5, 12, 0, 8);
+      ctx.quadraticCurveTo(-5, 12, -10, 8);
+      ctx.closePath(); ctx.fill();
+      // glowing eyes
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#80c8ff';
+      ctx.beginPath(); ctx.ellipse(-3, -1, 2.5, 3, 0, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(4, -1, 2.5, 3, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(-2, -2, 0.9, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(5, -2, 0.9, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  },
+  ninja: {
+    bodyColor: '#1a1a2a',
+    bellyColor: '#2a2a3a',
+    drawAccessory(ctx, sqW, frame) {
+      const sc = sqW / 28;
+      ctx.save();
+      ctx.translate(6 * sc, -12 * sc);
+      ctx.scale(sc, sc);
+      // headband
+      ctx.fillStyle = '#cc1010';
+      ctx.fillRect(-9, -4, 18, 4);
+      // headband knot at side
+      ctx.beginPath(); ctx.arc(-10, -2, 3, 0, Math.PI*2); ctx.fillStyle='#cc1010'; ctx.fill();
+      // headband tails
+      ctx.strokeStyle = '#cc1010'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-16, 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-13, 7); ctx.stroke();
+      // mask covering face
+      ctx.fillStyle = '#0a0a14';
+      ctx.fillRect(-9, 0, 18, 8);
+      // eye slit
+      ctx.fillStyle = '#ff3030';
+      ctx.beginPath(); ctx.ellipse(2, 3, 5, 1.5, 0, 0, Math.PI*2); ctx.fill();
+      // shine on mask
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(-8, 1); ctx.lineTo(8, 1); ctx.stroke();
+      ctx.restore();
+    }
+  },
+  dragon: {
+    bodyColor: '#2a8040',
+    bellyColor: '#60c880',
+    drawAccessory(ctx, sqW, frame) {
+      const sc = sqW / 28;
+      ctx.save();
+      ctx.translate(6 * sc, -16 * sc);
+      ctx.scale(sc, sc);
+      // Dragon horns
+      ctx.fillStyle = '#c84020';
+      ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-10, -14); ctx.lineTo(-3, -1); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(11, -14); ctx.lineTo(4, -1); ctx.closePath(); ctx.fill();
+      // horn highlight
+      ctx.fillStyle = '#ff6040';
+      ctx.beginPath(); ctx.moveTo(-5.5, -1); ctx.lineTo(-8, -10); ctx.lineTo(-4, -2); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(7.5, -1); ctx.lineTo(10, -10); ctx.lineTo(5, -2); ctx.closePath(); ctx.fill();
+      // fire breath puff
+      const fireAlpha = Math.sin(frame / 10) * 0.4 + 0.5;
+      ctx.globalAlpha = fireAlpha;
+      ctx.fillStyle = '#ff8020';
+      ctx.beginPath(); ctx.arc(16, 4, 4 + Math.sin(frame/8)*1.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffcc00';
+      ctx.beginPath(); ctx.arc(18, 3, 2, 0, Math.PI*2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  },
+  angel: {
+    bodyColor: '#f8f0d8',
+    bellyColor: '#ffffff',
+    drawAccessory(ctx, sqW, frame) {
+      const sc = sqW / 28;
+      ctx.save();
+      ctx.translate(6 * sc, -20 * sc);
+      ctx.scale(sc, sc);
+      // Halo glow
+      const haloGlow = Math.sin(frame / 25) * 0.3 + 0.7;
+      ctx.globalAlpha = haloGlow * 0.5;
+      ctx.strokeStyle = '#ffe060';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = haloGlow;
+      ctx.strokeStyle = '#fff080';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Wings
+      ctx.save();
+      ctx.translate(-18, 10);
+      const wingFlap = Math.sin(frame / 20) * 0.15;
+      ctx.rotate(-0.3 + wingFlap);
+      const wg = ctx.createRadialGradient(0, 0, 0, 10, -5, 20);
+      wg.addColorStop(0, 'rgba(255,255,220,0.9)');
+      wg.addColorStop(1, 'rgba(255,255,220,0)');
+      ctx.beginPath(); ctx.ellipse(8, -8, 14, 10, -0.3, 0, Math.PI*2);
+      ctx.fillStyle = wg; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,220,80,0.5)'; ctx.lineWidth = 0.8; ctx.stroke();
+      ctx.restore();
+      ctx.restore();
+    }
   }
 };
 
@@ -1472,17 +1803,48 @@ function openCostumeShop() {
 function closeCostumeShop() {
   document.getElementById('costume-overlay').classList.remove('open');
 }
+function switchCostumeTab(tab) {
+  ['player','friend','shaker'].forEach(t => {
+    document.getElementById('costumes-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+}
 function equipCostume(id) {
   equippedCostume = id;
   refreshCostumeUI();
 }
+function equipFriendSkin(id) {
+  equippedFriendSkin = id;
+  refreshCostumeUI();
+}
+function equipShakerSkin(id) {
+  equippedShakerSkin = id;
+  refreshCostumeUI();
+}
 function refreshCostumeUI() {
-  ['cowboy','wizard','racer','cat'].forEach(id => {
+  // Player costumes
+  ['cowboy','wizard','racer','cat','ghost','ninja','dragon','angel'].forEach(id => {
     const isOn = equippedCostume === id;
-    document.getElementById('card-' + id).classList.toggle('equipped', isOn);
+    const card = document.getElementById('card-' + id);
+    if (card) card.classList.toggle('equipped', isOn);
     const btn = document.getElementById('btn-' + id);
-    btn.textContent = isOn ? '✓ EQUIPPED' : 'EQUIP';
-    btn.classList.toggle('equipped-btn', isOn);
+    if (btn) { btn.textContent = isOn ? '✓ EQUIPPED' : 'EQUIP'; btn.classList.toggle('equipped-btn', isOn); }
+  });
+  // Friend skins
+  ['default','emerald','ruby','golden','shadow','candy'].forEach(id => {
+    const isOn = equippedFriendSkin === id;
+    const card = document.getElementById('fcard-' + id);
+    if (card) card.classList.toggle('equipped', isOn);
+    const btn = document.getElementById('fbtn-' + id);
+    if (btn) { btn.textContent = isOn ? '✓ EQUIPPED' : 'EQUIP'; btn.classList.toggle('equipped-btn', isOn); }
+  });
+  // Shaker skins
+  ['default','winter','forest','inferno','cosmic','golden'].forEach(id => {
+    const isOn = equippedShakerSkin === id;
+    const card = document.getElementById('scard-' + id);
+    if (card) card.classList.toggle('equipped', isOn);
+    const btn = document.getElementById('sbtn-' + id);
+    if (btn) { btn.textContent = isOn ? '✓ EQUIPPED' : 'EQUIP'; btn.classList.toggle('equipped-btn', isOn); }
   });
 }
 
@@ -3186,6 +3548,7 @@ function drawNest() {
 
 function drawShakerSquirrels() {
   const t=frame/60;
+  const sk = SHAKER_SKINS[equippedShakerSkin] || SHAKER_SKINS.default;
   shakers.forEach((sh,i)=>{
     const shake=Math.sin(t*7.5+sh.phase)*3.5;
     const sx=CX+Math.cos(sh.angle)*(TR+2), sy=CY+Math.sin(sh.angle)*(TR+2);
@@ -3193,33 +3556,33 @@ function drawShakerSquirrels() {
     ctx.save();
     ctx.translate(sx+Math.cos(sh.angle+Math.PI/2)*shake*.5, sy+Math.sin(sh.angle+Math.PI/2)*shake*.5);
     ctx.rotate(sh.angle); ctx.scale(.72,.72);
-    if (isSel) { ctx.beginPath(); ctx.arc(0,-4,22,0,Math.PI*2); ctx.strokeStyle='#f5c842'; ctx.lineWidth=2.5; ctx.globalAlpha=.7; ctx.stroke(); ctx.globalAlpha=1; }
-    ctx.beginPath(); ctx.arc(0,-4,20,0,Math.PI*2); ctx.strokeStyle='rgba(200,134,10,0.25)'; ctx.lineWidth=1.5; ctx.stroke();
+    if (isSel) { ctx.beginPath(); ctx.arc(0,-4,22,0,Math.PI*2); ctx.strokeStyle=sk.sel; ctx.lineWidth=2.5; ctx.globalAlpha=.7; ctx.stroke(); ctx.globalAlpha=1; }
+    ctx.beginPath(); ctx.arc(0,-4,20,0,Math.PI*2); ctx.strokeStyle=sk.glow; ctx.lineWidth=1.5; ctx.stroke();
     // tail
     ctx.beginPath(); ctx.moveTo(-4,0); ctx.quadraticCurveTo(-14,-9+shake,-10,-20);
-    ctx.lineWidth=5; ctx.strokeStyle=COL.sqBody; ctx.stroke();
-    ctx.lineWidth=3; ctx.strokeStyle=COL.sqBelly; ctx.stroke();
-    ctx.beginPath(); ctx.arc(-9,-20,4,0,Math.PI*2); ctx.fillStyle=COL.sqBelly; ctx.fill();
+    ctx.lineWidth=5; ctx.strokeStyle=sk.body; ctx.stroke();
+    ctx.lineWidth=3; ctx.strokeStyle=sk.belly; ctx.stroke();
+    ctx.beginPath(); ctx.arc(-9,-20,4,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
     // body
-    ctx.beginPath(); ctx.ellipse(0,0,5,7,0,0,Math.PI*2); ctx.fillStyle=COL.sqBody; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(1,1,3,4.5,0,0,Math.PI*2); ctx.fillStyle=COL.sqBelly; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(-2,7,3,4,.2,0,Math.PI*2); ctx.fillStyle=COL.sqDark; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(3,7,3,4,-.2,0,Math.PI*2); ctx.fillStyle=COL.sqDark; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0,0,5,7,0,0,Math.PI*2); ctx.fillStyle=sk.body; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(1,1,3,4.5,0,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-2,7,3,4,.2,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3,7,3,4,-.2,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
     // head
-    ctx.beginPath(); ctx.arc(5,-8,5,0,Math.PI*2); ctx.fillStyle=COL.sqBody; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(8,-7,3.5,2.5,.2,0,Math.PI*2); ctx.fillStyle=COL.sqBelly; ctx.fill();
-    ctx.beginPath(); ctx.arc(4,-13,2.8,0,Math.PI*2); ctx.fillStyle=COL.sqDark; ctx.fill();
-    ctx.beginPath(); ctx.arc(4,-13,1.4,0,Math.PI*2); ctx.fillStyle=COL.sqBelly; ctx.fill();
+    ctx.beginPath(); ctx.arc(5,-8,5,0,Math.PI*2); ctx.fillStyle=sk.body; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8,-7,3.5,2.5,.2,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.arc(4,-13,2.8,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
+    ctx.beginPath(); ctx.arc(4,-13,1.4,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
     ctx.beginPath(); ctx.arc(8,-9,1.5,0,Math.PI*2); ctx.fillStyle='#0e0400'; ctx.fill();
     ctx.beginPath(); ctx.arc(8.5,-9.4,.55,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
     ctx.beginPath(); ctx.arc(11,-7,1,0,Math.PI*2); ctx.fillStyle='#8B2020'; ctx.fill();
     // arms
     const as=shake*.6;
-    ctx.beginPath(); ctx.moveTo(4,-3); ctx.lineTo(12,2+as); ctx.lineWidth=2.5; ctx.strokeStyle=COL.sqBody; ctx.lineCap='round'; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(4,-1); ctx.lineTo(12,5+as); ctx.lineWidth=2; ctx.strokeStyle=COL.sqDark; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4,-3); ctx.lineTo(12,2+as); ctx.lineWidth=2.5; ctx.strokeStyle=sk.body; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4,-1); ctx.lineTo(12,5+as); ctx.lineWidth=2; ctx.strokeStyle=sk.dark; ctx.stroke();
     // drop badge
     ctx.rotate(-sh.angle);
-    ctx.fillStyle=sh.drops>1?'#f5c842':'rgba(200,134,10,0.5)';
+    ctx.fillStyle=sh.drops>1?sk.badge:'rgba(200,134,10,0.5)';
     ctx.font=`bold ${8+sh.drops}px sans-serif`; ctx.textAlign='center';
     ctx.fillText('x'+sh.drops, 0, -30);
     if (Math.abs(shake)>2.5) {
@@ -3239,6 +3602,12 @@ function drawFriendSquirrel(f) {
   const leg = Math.sin(t) * (f.state === 'idle' ? 0.15 : 0.38);
   const bob = Math.sin(t * 2) * 1.2;
   const hasAcorn = (f.heldAcorns && f.heldAcorns.length > 0) || f.state === 'returning';
+
+  // Apply friend skin
+  const fSkin = FRIEND_SKINS[equippedFriendSkin] || FRIEND_SKINS.default;
+  const frBody  = fSkin.body;
+  const frBelly = fSkin.belly;
+  const frDark  = fSkin.dark;
 
   ctx.save();
   ctx.translate(f.x, f.y + bob);
@@ -3260,39 +3629,39 @@ function drawFriendSquirrel(f) {
   ctx.save();
   ctx.rotate(-Math.PI*.15 + Math.sin(frame/20)*.1);
   ctx.beginPath(); ctx.moveTo(-3,4); ctx.bezierCurveTo(-18,-6,-24,-1,-19,-13);
-  ctx.lineWidth=8; ctx.strokeStyle=COL.frBody; ctx.stroke();
-  ctx.lineWidth=5; ctx.strokeStyle=COL.frBelly; ctx.stroke();
-  ctx.beginPath(); ctx.arc(-17,-13,4,0,Math.PI*2); ctx.fillStyle=COL.frBelly; ctx.fill();
+  ctx.lineWidth=8; ctx.strokeStyle=frBody; ctx.stroke();
+  ctx.lineWidth=5; ctx.strokeStyle=frBelly; ctx.stroke();
+  ctx.beginPath(); ctx.arc(-17,-13,4,0,Math.PI*2); ctx.fillStyle=frBelly; ctx.fill();
   ctx.restore();
 
   // Body
-  ctx.beginPath(); ctx.ellipse(2,4,7,9,0,0,Math.PI*2); ctx.fillStyle=COL.frBody; ctx.fill();
-  ctx.beginPath(); ctx.ellipse(3,5,4,6,.1,0,Math.PI*2); ctx.fillStyle=COL.frBelly; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(2,4,7,9,0,0,Math.PI*2); ctx.fillStyle=frBody; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3,5,4,6,.1,0,Math.PI*2); ctx.fillStyle=frBelly; ctx.fill();
 
   // Legs
   ctx.save(); ctx.rotate(leg*.6);
-  ctx.beginPath(); ctx.ellipse(0,12,3,4,.3,0,Math.PI*2); ctx.fillStyle=COL.frDark; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,12,3,4,.3,0,Math.PI*2); ctx.fillStyle=frDark; ctx.fill();
   ctx.restore();
   ctx.save(); ctx.rotate(-leg*.6);
-  ctx.beginPath(); ctx.ellipse(4,12,3,4,-.3,0,Math.PI*2); ctx.fillStyle=COL.frDark; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(4,12,3,4,-.3,0,Math.PI*2); ctx.fillStyle=frDark; ctx.fill();
   ctx.restore();
 
   // Head
-  ctx.beginPath(); ctx.ellipse(6,-5,6,6,.15,0,Math.PI*2); ctx.fillStyle=COL.frBody; ctx.fill();
-  ctx.beginPath(); ctx.ellipse(9,-4,3.5,2.5,.2,0,Math.PI*2); ctx.fillStyle=COL.frBelly; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(6,-5,6,6,.15,0,Math.PI*2); ctx.fillStyle=frBody; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9,-4,3.5,2.5,.2,0,Math.PI*2); ctx.fillStyle=frBelly; ctx.fill();
   // Ears
-  ctx.beginPath(); ctx.arc(2,-10,2.5,0,Math.PI*2); ctx.fillStyle=COL.frDark; ctx.fill();
-  ctx.beginPath(); ctx.arc(8,-11,2.5,0,Math.PI*2); ctx.fillStyle=COL.frDark; ctx.fill();
+  ctx.beginPath(); ctx.arc(2,-10,2.5,0,Math.PI*2); ctx.fillStyle=frDark; ctx.fill();
+  ctx.beginPath(); ctx.arc(8,-11,2.5,0,Math.PI*2); ctx.fillStyle=frDark; ctx.fill();
   // Eye
   ctx.beginPath(); ctx.arc(9,-6,1.4,0,Math.PI*2); ctx.fillStyle='#0a0820'; ctx.fill();
   ctx.beginPath(); ctx.arc(9.5,-6.3,.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
 
   // Arms — holding acorn if returning
   ctx.save(); ctx.rotate(leg*.5);
-  ctx.beginPath(); ctx.moveTo(5,0); ctx.lineTo(12,4); ctx.lineWidth=2.5; ctx.strokeStyle=COL.frBody; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(5,0); ctx.lineTo(12,4); ctx.lineWidth=2.5; ctx.strokeStyle=frBody; ctx.stroke();
   ctx.restore();
   ctx.save(); ctx.rotate(-leg*.5);
-  ctx.beginPath(); ctx.moveTo(5,2); ctx.lineTo(12,6); ctx.lineWidth=2.5; ctx.strokeStyle=COL.frBody; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(5,2); ctx.lineTo(12,6); ctx.lineWidth=2.5; ctx.strokeStyle=frBody; ctx.stroke();
   ctx.restore();
 
   // Held acorn(s) — show stack and count badge
@@ -3476,11 +3845,17 @@ function lighten(hex, amt) {
 function drawAcorn(a) {
   const {x,y,r,falling}=a;
   // Fade out in last 20% of life, fade in while falling
+  // Also fade acorns when there are 200+ on the ground (reduce visual clutter)
   const lifeAlpha = (!falling && a.maxAge > 0)
     ? Math.min(1, (a.maxAge - a.age) / (a.maxAge * 0.2))
     : 1;
+  const groundCount = acorns.filter(ac => !ac.falling && !ac.carried).length;
+  const FADE_CROWD_START = 200;
+  const crowdAlpha = groundCount > FADE_CROWD_START
+    ? Math.max(0.15, 1 - (groundCount - FADE_CROWD_START) / 100)
+    : 1;
   if (falling) ctx.globalAlpha = .6;
-  else if (lifeAlpha < 1) ctx.globalAlpha = Math.max(0, lifeAlpha);
+  else ctx.globalAlpha = Math.min(lifeAlpha, crowdAlpha);
   if (currentStage === 8) {
     const wobble = Math.sin(frame/18 + x*0.05) * 1.2;
     const fg=ctx.createRadialGradient(x,y+wobble,0,x,y+wobble,r*3);
