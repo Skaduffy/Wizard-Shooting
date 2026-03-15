@@ -204,25 +204,45 @@
   /* ── Float panels ── */
   .float-panel {
     display:none; position:fixed; z-index:30; background:rgba(2,6,1,0.98);
-    border:2px solid #c8860a; border-radius:10px; padding:16px 18px;
-    min-width:210px; flex-direction:column; gap:11px;
+    border:2px solid #c8860a; border-radius:10px; padding:20px 22px;
+    min-width:260px; flex-direction:column; gap:14px;
     box-shadow:0 0 28px rgba(200,134,10,0.45);
   }
-  .float-panel h3 { color:#f5c842; font-size:9px; text-align:center; border-bottom:1px solid #1a3800; padding-bottom:8px; }
-  .float-panel p  { color:#5a8820; font-size:6px; line-height:2; text-align:center; }
+  .float-panel h3 { color:#f5c842; font-size:12px; text-align:center; border-bottom:1px solid #1a3800; padding-bottom:10px; }
+  .float-panel p  { color:#5a8820; font-size:8px; line-height:2; text-align:center; }
   .panel-row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .panel-label { color:#deb887; font-size:7px; line-height:1.6; }
-  .panel-val   { color:#c8860a; font-size:6.5px; }
-  .panel-btn { background:#4a2000; border:1.5px solid #c8860a; border-radius:4px; color:#f5c842; font-family:'Press Start 2P',monospace; font-size:6px; padding:5px 8px; cursor:pointer; white-space:nowrap; transition:background 0.1s,transform 0.08s; }
+  .panel-label { color:#deb887; font-size:9px; line-height:1.8; }
+  .panel-val   { color:#c8860a; font-size:8px; }
+  .panel-btn { background:#4a2000; border:1.5px solid #c8860a; border-radius:6px; color:#f5c842; font-family:'Press Start 2P',monospace; font-size:9px; padding:9px 14px; cursor:pointer; white-space:nowrap; transition:background 0.1s,transform 0.08s; }
   .panel-btn:hover  { background:#6a3000; transform:scale(1.04); }
   .panel-btn:active { transform:scale(0.96); }
   .panel-btn.cant { background:#020600; border-color:#0a1800; color:#182800; cursor:not-allowed; transform:none !important; }
-  .close-btn { background:transparent; border:1px solid #1a3800; border-radius:4px; color:#3a6010; font-family:'Press Start 2P',monospace; font-size:6px; padding:3px 7px; cursor:pointer; align-self:flex-end; }
+  .close-btn { background:transparent; border:1px solid #1a3800; border-radius:4px; color:#3a6010; font-family:'Press Start 2P',monospace; font-size:7px; padding:5px 9px; cursor:pointer; align-self:flex-end; }
   .close-btn:hover { color:#c8860a; border-color:#c8860a; }
-  .shaker-badge { font-size:22px; text-align:center; margin-bottom:-4px; }
-  .shaker-drops-bar { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
-  .drop-pip { width:10px; height:10px; border-radius:50%; background:#c8860a; border:1px solid #f5c842; }
+  .shaker-badge { font-size:28px; text-align:center; margin-bottom:-4px; }
+  .shaker-drops-bar { display:flex; gap:5px; justify-content:center; flex-wrap:wrap; }
+  .drop-pip { width:13px; height:13px; border-radius:50%; background:#c8860a; border:1px solid #f5c842; }
   .drop-pip.empty { background:transparent; border-color:#2a3800; }
+
+  /* ── Mobile: store button below HUD, panels full-width ── */
+  @media (pointer: coarse) and (orientation: portrait) {
+    #store-btn {
+      top: auto;
+      bottom: 130px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      padding: 10px 18px;
+    }
+    .float-panel {
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 88vw;
+      min-width: unset;
+      max-width: 360px;
+    }
+  }
 
   #acorn-pop { position:fixed; pointer-events:none; font-size:10px; color:#f5c842; font-family:'Press Start 2P',monospace; opacity:0; transition:none; z-index:20; }
 
@@ -1737,33 +1757,62 @@ function drawGravestones() {
   gravestones.forEach(g => {
     ctx.save();
     ctx.translate(g.x, g.y);
+
+    const W2 = 22, H2 = 30, topR = 11; // wider, taller stone
+
     // Shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath(); ctx.ellipse(0, 14, 10, 3, 0, 0, Math.PI*2); ctx.fill();
-    // Stone body
-    const sg = ctx.createLinearGradient(-9, -20, 9, 14);
-    sg.addColorStop(0, '#8a9a8a'); sg.addColorStop(1, '#4a5a4a');
-    ctx.beginPath();
-    ctx.roundRect(-9, -4, 18, 18, 2);
-    ctx.fillStyle = sg; ctx.fill();
-    ctx.strokeStyle = '#2a3a2a'; ctx.lineWidth = 1.2; ctx.stroke();
-    // Rounded top
-    ctx.beginPath(); ctx.arc(0, -4, 9, Math.PI, 0);
-    ctx.fillStyle = sg; ctx.fill();
-    ctx.strokeStyle = '#2a3a2a'; ctx.lineWidth = 1.2; ctx.stroke();
-    // Moss patches
-    ctx.fillStyle = 'rgba(60,120,50,0.5)';
-    ctx.beginPath(); ctx.ellipse(-3, 0, 4, 2, -0.3, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(4, 5, 3, 1.5, 0.4, 0, Math.PI*2); ctx.fill();
-    // Cross engraving
-    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, -5); ctx.stroke();
-    // Tiny RIP text
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.font = 'bold 4px sans-serif';
+    ctx.beginPath(); ctx.ellipse(0, H2 + 4, W2 * 0.9, 5, 0, 0, Math.PI*2); ctx.fill();
+
+    // Stone gradient
+    const sg = ctx.createLinearGradient(-W2, -topR, W2, H2);
+    sg.addColorStop(0, '#9aaa9a');
+    sg.addColorStop(0.5, '#6a7a6a');
+    sg.addColorStop(1, '#3a4a3a');
+
+    // Stone body (rectangle portion)
+    ctx.beginPath();
+    ctx.moveTo(-W2, 0);
+    ctx.lineTo(-W2, H2);
+    ctx.lineTo(W2, H2);
+    ctx.lineTo(W2, 0);
+    ctx.closePath();
+    ctx.fillStyle = sg; ctx.fill();
+    ctx.strokeStyle = '#1a2a1a'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Rounded top arch
+    ctx.beginPath();
+    ctx.arc(0, 0, topR, Math.PI, 0);
+    ctx.lineTo(W2, 0);
+    ctx.lineTo(-W2, 0);
+    ctx.closePath();
+    ctx.fillStyle = sg; ctx.fill();
+    ctx.strokeStyle = '#1a2a1a'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Moss patches
+    ctx.fillStyle = 'rgba(50,110,45,0.6)';
+    ctx.beginPath(); ctx.ellipse(-8, 5, 7, 3, -0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(9, 14, 5, 2.5, 0.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-4, 22, 6, 2, 0.1, 0, Math.PI*2); ctx.fill();
+
+    // Cross engraving
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8, 2); ctx.lineTo(8, 2); ctx.stroke();
+
+    // RIP text
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.font = 'bold 6px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('RIP', 0, 10);
+    ctx.fillText('RIP', 0, 24);
+
+    // Eerie green glow at base
+    const glow = ctx.createRadialGradient(0, H2, 0, 0, H2, 20);
+    glow.addColorStop(0, 'rgba(50,180,60,0.18)');
+    glow.addColorStop(1, 'rgba(50,180,60,0)');
+    ctx.beginPath(); ctx.ellipse(0, H2, 20, 10, 0, 0, Math.PI*2);
+    ctx.fillStyle = glow; ctx.fill();
+
     ctx.restore();
   });
 }
@@ -1772,10 +1821,18 @@ function drawSkeleton(s) {
   if (s.riseAmt <= 0) return;
   ctx.save();
   ctx.translate(s.x, s.y);
-  // Clip rising/sinking: skeleton emerges upward from grave position
-  const clipY = 20 - s.riseAmt * 48; // how far up the skeleton is visible
-  ctx.beginPath(); ctx.rect(-20, -60, 40, 60 + clipY);
+
+  // The skeleton is 42px tall (feet at y=0, skull top at y=-42)
+  // riseAmt 0 = fully underground, 1 = fully above ground
+  // We slide the whole skeleton up by (1-riseAmt)*42 so it emerges feet-first
+  const skelHeight = 42;
+  const offsetY = (1 - s.riseAmt) * skelHeight;
+
+  // Clip to ground level so underground portion is hidden
+  ctx.beginPath(); ctx.rect(-22, -skelHeight - 4, 44, skelHeight + 4);
   ctx.clip();
+
+  ctx.translate(0, offsetY);
   ctx.rotate(Math.sin(s.frame / 14) * 0.06);
 
   const bobY = s.state === 'wander' ? Math.sin(s.frame / 10) * 1.5 : 0;
@@ -2416,11 +2473,13 @@ function closeAllPanels() {
   openPanel = null; activeShakerIdx = -1;
 }
 function positionPanel(el, cx, cy) {
-  let px=cx+18, py=cy-60;
-  if (px+240>window.innerWidth-10)  px=cx-240-18;
-  if (py+240>window.innerHeight-10) py=window.innerHeight-240-10;
-  if (py<10) py=10;
-  el.style.left=px+'px'; el.style.top=py+'px';
+  const pw = 280, ph = 200;
+  let px = cx + 18, py = cy - 60;
+  if (px + pw > window.innerWidth - 10)  px = cx - pw - 18;
+  if (py + ph > window.innerHeight - 10) py = window.innerHeight - ph - 10;
+  if (py < 10) py = 10;
+  if (px < 10) px = 10;
+  el.style.left = px + 'px'; el.style.top = py + 'px';
 }
 function openTreePanel(cx,cy) {
   closeAllPanels();
