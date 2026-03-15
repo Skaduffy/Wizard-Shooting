@@ -818,6 +818,20 @@
     <button class="upg-btn" id="btn-regen" style="display:none"></button>
   </div>
 
+  <div class="upg-card" id="card-nest" onclick="buyUpgrade('nest')">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title">🪺 NEST RADIUS</div>
+        <span class="upg-level" id="lvl-nest">LV 0</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" id="desc-nest">Bigger nest, easier deposit</div>
+        <div class="upg-card-price">🌰 <span id="cost-nest">30</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-nest" style="display:none"></button>
+  </div>
+
   <div class="upg-card friend-card" id="card-friend" onclick="hireFriend()">
     <div class="upg-card-inner">
       <div class="upg-card-left">
@@ -1265,22 +1279,24 @@ const UPG = {
   regen:  { level:0, baseCost:20,  scale:2.1 },
   fspeed: { level:0, baseCost:25,  scale:2.0 },
   fcarry: { level:0, baseCost:35,  scale:2.2 },
+  nest:   { level:0, baseCost:30,  scale:2.3 },
 };
 const SHAKER_BASE_COST = 25, SHAKER_SCALE = 2.4;
 
 const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scale, UPG[id].level));
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
-const maxCarry      = ()  => 3 + UPG.size.level * 2;
+const maxCarry      = ()  => 3 + UPG.size.level * 2;   // no hard cap — size grows squirrel body up to SQ_MAX_LEVEL but carry keeps scaling
 const nutsPerAcorn  = ()  => (currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
 const friendSpeed   = ()  => 1.8 + UPG.fspeed.level * 0.55;
 const friendMaxCarry= ()  => 1 + UPG.fcarry.level;
-const SQ_MAX_LEVEL  = 5;   // size cap — stops here
+const SQ_MAX_LEVEL  = 5;   // squirrel BODY size stops growing here, but carry keeps scaling
 const sqW           = ()  => 28 + Math.min(UPG.size.level, SQ_MAX_LEVEL) * 4;
 const sqH           = ()  => 24 + Math.min(UPG.size.level, SQ_MAX_LEVEL) * 3;
+const nestRadius    = ()  => NEST_R + UPG.nest.level * 8;  // 18 base, +8 per level
 const dropUpgCost   = lvl => Math.floor(DROP_BASE_COST * Math.pow(DROP_SCALE, lvl));
 const maxAcorns     = ()  => shakers.reduce((s, sh) => s + sh.drops * 8, 0);
 
@@ -2719,7 +2735,6 @@ function hireFriend() {
   nuts-=cost; spawnFriend(); refreshUI();
 }
 function buyUpgrade(id) {
-  if (id === 'size' && UPG.size.level >= SQ_MAX_LEVEL) return;
   const cost=upgCost(id); if (nuts<cost) return;
   nuts-=cost; UPG[id].level++;
   if (id==='speed') squirrel.speed=playerSpeed();
@@ -2728,30 +2743,31 @@ function buyUpgrade(id) {
 
 // ── UI ────────────────────────────────────────────────────
 function refreshUI() {
-  ['size','speed','coins','regen','fspeed','fcarry'].forEach(id => {
+  ['size','speed','coins','regen','nest','fspeed','fcarry'].forEach(id => {
     document.getElementById(`lvl-${id}`).textContent  = `LV ${UPG[id].level}`;
     document.getElementById(`cost-${id}`).textContent = upgCost(id);
     document.getElementById(`btn-${id}`).classList.toggle('cant', nuts<upgCost(id));
   });
-  // Size cap — grey out button at max
+  // Size body cap — squirrel stops growing but carry keeps scaling
   if (UPG.size.level >= SQ_MAX_LEVEL) {
-    document.getElementById('btn-size').classList.add('cant');
-    document.getElementById('lvl-size').textContent = 'MAX';
-    document.getElementById('cost-size').textContent = '—';
+    document.getElementById('lvl-size').textContent = `LV ${UPG.size.level} (max body)`;
   }
   const nut = currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   const nutName = currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
-  document.getElementById('desc-size').textContent   = `Carry ${maxCarry()} ${nutName}s`;
+  document.getElementById('desc-size').textContent   = UPG.size.level < SQ_MAX_LEVEL ? `Carry ${maxCarry()} · body grows` : `Carry ${maxCarry()} · max size`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
   document.getElementById('desc-regen').textContent  = `Drop every ${regenSecs().toFixed(1)}s`;
+  document.getElementById('desc-nest').textContent   = `Nest radius: ${nestRadius()}`;
+  document.getElementById('lvl-nest').textContent    = `LV ${UPG.nest.level}`;
+  document.getElementById('cost-nest').textContent   = upgCost('nest');
   document.getElementById('desc-fspeed').textContent = `Friend speed: ${friendSpeed().toFixed(1)}`;
   document.getElementById('desc-fcarry').textContent = `Friends carry ${friendMaxCarry()} at once`;
   document.getElementById('lvl-friend').textContent  = `${friends.length} friends`;
   document.getElementById('cost-friend').textContent = friendCost();
   document.getElementById('btn-friend').classList.toggle('cant', nuts<friendCost());
   // Toggle cant on cards for visual disabled state
-  ['size','speed','coins','regen','fspeed','fcarry'].forEach(id => {
+  ['size','speed','coins','regen','nest','fspeed','fcarry'].forEach(id => {
     const card = document.getElementById('card-'+id);
     if (card) card.classList.toggle('cant', nuts < upgCost(id));
   });
@@ -3149,21 +3165,21 @@ function drawTrunkPillar() {
 }
 
 function drawNest() {
-  const nx=NEST_X, ny=NEST_Y, dNest=dist(squirrel.x,squirrel.y,nx,ny);
-  ctx.beginPath(); ctx.ellipse(nx,ny,NEST_R,NEST_R*.82,NEST_A,0,Math.PI*2);
+  const nx=NEST_X, ny=NEST_Y, nr=nestRadius(), dNest=dist(squirrel.x,squirrel.y,nx,ny);
+  ctx.beginPath(); ctx.ellipse(nx,ny,nr,nr*.82,NEST_A,0,Math.PI*2);
   ctx.fillStyle=COL.nestDark; ctx.fill(); ctx.strokeStyle=COL.nestMid; ctx.lineWidth=2.5; ctx.stroke();
-  ctx.beginPath(); ctx.ellipse(nx,ny,NEST_R*.58,NEST_R*.48,NEST_A,0,Math.PI*2);
+  ctx.beginPath(); ctx.ellipse(nx,ny,nr*.58,nr*.48,NEST_A,0,Math.PI*2);
   ctx.fillStyle='#040100'; ctx.fill();
   ctx.strokeStyle=COL.nestLight; ctx.lineWidth=1.1;
-  for (let i=0;i<4;i++) { ctx.beginPath(); ctx.arc(nx+(i-1.5)*4,ny+NEST_R*.25,4.5+i*2,Math.PI*.1,Math.PI*.9); ctx.stroke(); }
+  for (let i=0;i<4;i++) { ctx.beginPath(); ctx.arc(nx+(i-1.5)*4,ny+nr*.25,4.5+i*2,Math.PI*.1,Math.PI*.9); ctx.stroke(); }
   // Glow near player OR any returning friend
   let glow = dNest < 90 ? (90-dNest)/90 : 0;
   friends.forEach(f=>{ if (f.state==='returning') glow=Math.max(glow,0.3); });
   if (glow>0) {
     ctx.globalAlpha=glow*.5;
-    const ng=ctx.createRadialGradient(nx,ny,0,nx,ny,NEST_R*2.5);
+    const ng=ctx.createRadialGradient(nx,ny,0,nx,ny,nr*2.5);
     ng.addColorStop(0,'rgba(255,190,40,0.9)'); ng.addColorStop(1,'rgba(255,190,40,0)');
-    ctx.beginPath(); ctx.arc(nx,ny,NEST_R*2.5,0,Math.PI*2); ctx.fillStyle=ng; ctx.fill();
+    ctx.beginPath(); ctx.arc(nx,ny,nr*2.5,0,Math.PI*2); ctx.fillStyle=ng; ctx.fill();
     ctx.globalAlpha=1;
   }
 }
@@ -3948,7 +3964,7 @@ function update() {
   carrying.forEach((a,i)=>{const {tx,ty}=carryPos(i,carrying.length); a.x+=(tx-a.x)*.35; a.y+=(ty-a.y)*.35;});
 
   // Player deposit
-  if (carrying.length>0&&dist(squirrel.x,squirrel.y,NEST_X,NEST_Y)<TR*.9){
+  if (carrying.length>0&&dist(squirrel.x,squirrel.y,NEST_X,NEST_Y)<TR*.9+nestRadius()-NEST_R){
     const earned=carrying.length*nutsPerAcorn();
     nuts+=earned; nutPop(NEST_X,NEST_Y-20,earned);
     const done=new Set(carrying);
