@@ -3379,6 +3379,7 @@ function refreshUI() {
   if (currentStage === 5) { document.getElementById('btn-nextstage6').classList.toggle('cant', nuts < NEXTSTAGE6_COST); document.getElementById('nextstage6-card').classList.toggle('cant', nuts < NEXTSTAGE6_COST); }
   if (currentStage === 6) { document.getElementById('btn-nextstage7').classList.toggle('cant', nuts < NEXTSTAGE7_COST); document.getElementById('nextstage7-card').classList.toggle('cant', nuts < NEXTSTAGE7_COST); }
   if (currentStage === 7) { document.getElementById('btn-nextstage8').classList.toggle('cant', nuts < NEXTSTAGE8_COST); document.getElementById('nextstage8-card').classList.toggle('cant', nuts < NEXTSTAGE8_COST); }
+  if (currentStage === 8) { document.getElementById('btn-nextstage9').classList.toggle('cant', nuts < NEXTSTAGE9_COST); document.getElementById('nextstage9-card').classList.toggle('cant', nuts < NEXTSTAGE9_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -5452,6 +5453,14 @@ function applyStageUI(stage) {
   if (stage === 8) {
     icePillars = [];
   }
+  // Scroll active stage card into view in the sidebar
+  setTimeout(() => {
+    const stageCardIds = {1:'nextstage-card',2:'nextstage3-card',3:'nextstage4-card',
+      4:'nextstage5-card',5:'nextstage6-card',6:'nextstage7-card',7:'nextstage8-card',8:'nextstage9-card'};
+    const activeCard = document.getElementById(stageCardIds[stage]);
+    if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+
   // Stage 9 Atlantis seagrass + fish
   if (stage === 9) {
     seagrassPatches = SEAGRASS_SPOTS.map((p, i) => ({
@@ -5523,7 +5532,7 @@ setInterval(saveGame, 5000);
 
 // Boot
 const hasSave = loadGame();
-if (!hasSave) addShakerEntry();
+if (!hasSave) { addShakerEntry(); applyStageUI(1); }
 squirrel.speed = playerSpeed();
 fillField();
 refreshUI();
