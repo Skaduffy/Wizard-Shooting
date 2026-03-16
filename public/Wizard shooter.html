@@ -438,6 +438,24 @@
   body.stage9 .upg-level { color: #20a8c0; }
   body.stage9 .regen-fill { background: #20c0d0; }
 
+  /* ── Stage 10 — Space Floor ── */
+  body.stage10 { background: #02000a; }
+  body.stage10 #shop { background: rgba(2,0,12,0.99); border-left-color: #8040d0; }
+  body.stage10 #shop h2 { color: #c080ff; border-bottom-color: #1a0838; }
+  body.stage10 #gameCanvas { border-color: #2a0860; box-shadow: 0 0 60px rgba(128,40,220,0.7); }
+  body.stage10 .hud-box { border-color: #8040d0; color: #c080ff; }
+  body.stage10 .hud-box.green { border-color: #504080; color: #b090ff; }
+  body.stage10 .hud-box.blue  { border-color: #3030a0; color: #80a0ff; }
+  body.stage10 #store-btn { border-color: #8040d0; color: #c080ff; box-shadow: 0 0 12px rgba(128,40,220,0.4); }
+  body.stage10 .upg-card { border-color: #1a0838; background: #06020e; }
+  body.stage10 .upg-card:hover { border-color: #8040d0; }
+  body.stage10 .upg-title { color: #d0a0ff; }
+  body.stage10 .upg-desc { color: #503870; }
+  body.stage10 .upg-btn { background: #0e0420; border-color: #8040d0; color: #c080ff; }
+  body.stage10 .upg-btn:hover { background: #1a0838; }
+  body.stage10 .upg-level { color: #8040d0; }
+  body.stage10 .regen-fill { background: #a060e0; }
+
   /* ── Stage 2 theme overrides ── */
   body.stage2 { background: #030808; }
   body.stage2 #shop { background: rgba(1,5,8,0.99); border-left-color: #0a7060; }
@@ -1031,6 +1049,20 @@
     <button class="upg-btn" id="btn-nextstage9" style="display:none"></button>
   </div>
 
+  <div class="upg-card" id="nextstage10-card" style="border-color:#1a0838;display:none;" onclick="openNextStage10()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#c080ff;">🚀 SPACE FLOOR</div>
+        <span class="upg-level" style="color:#8040d0;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#503870;">Stage 10 — space nuts 300x. Blast off!</div>
+        <div class="upg-card-price" style="color:#c080ff;">🌿 <span id="cost-nextstage10">2000000</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-nextstage10" style="display:none"></button>
+  </div>
+
 </div>
 
 
@@ -1249,6 +1281,29 @@
     <div style="display:flex;gap:12px;width:100%;">
       <button onclick="confirmNextStage9()" style="flex:1;background:#041820;border:2px solid #20a8c0;border-radius:6px;color:#40e8f0;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">🌊 DIVE INTO ATLANTIS</button>
       <button onclick="closeNextStage9()" style="flex:1;background:#0a0202;border:1.5px solid #401010;border-radius:6px;color:#804040;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">✕ NOT YET</button>
+    </div>
+  </div>
+</div>
+
+<div id="nextstage10-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,4,0.95);z-index:60;align-items:center;justify-content:center;">
+  <div style="background:#06020e;border:2px solid #8040d0;border-radius:14px;padding:26px 28px 24px;width:420px;max-width:96vw;box-shadow:0 0 80px rgba(128,40,220,0.8);font-family:'Press Start 2P',monospace;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div style="font-size:48px;">🚀</div>
+    <h2 style="color:#c080ff;font-size:12px;text-align:center;letter-spacing:1px;">BLAST OFF TO<br>SPACE FLOOR?</h2>
+    <div style="color:#7050a0;font-size:6.5px;line-height:2.2;text-align:center;">
+      Stage 10 — The Moon<br><br>
+      🌙 Space nuts — 300 nuts each!<br>
+      🌑 Gray craters cover the lunar surface<br>
+      🌳 Moon trees glow gray and purple<br>
+      👨‍🚀 Rare astronaut floats by spinning...
+    </div>
+    <div style="color:#c84040;font-size:6px;text-align:center;line-height:2;border:1px solid #401010;border-radius:6px;padding:8px 12px;background:#0a0202;width:100%;">
+      ⚠ ALL UPGRADES RESET TO ZERO<br>
+      Friends dismissed · Shakers reset<br>
+      Nuts are spent on entry
+    </div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="confirmNextStage10()" style="flex:1;background:#0e0420;border:2px solid #8040d0;border-radius:6px;color:#c080ff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">🚀 BLAST OFF</button>
+      <button onclick="closeNextStage10()" style="flex:1;background:#0a0202;border:1.5px solid #401010;border-radius:6px;color:#804040;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;">✕ NOT YET</button>
     </div>
   </div>
 </div>
@@ -1540,7 +1595,7 @@ const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scal
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
 const maxCarry      = ()  => 3 + UPG.size.level * 2;   // no hard cap — size grows squirrel body up to SQ_MAX_LEVEL but carry keeps scaling
-const nutsPerAcorn  = ()  => (currentStage === 9 ? 160 : currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
+const nutsPerAcorn  = ()  => (currentStage === 10 ? 300 : currentStage === 9 ? 160 : currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
@@ -1959,6 +2014,7 @@ function resetForNewStage() {
   acorns = []; carrying = [];
   regenTimer = 0;
   nuts = 0;
+  astronauts = [];
   squirrel.x = CX + TR + 110; squirrel.y = CY;
   squirrel.angle = Math.PI; squirrel.targetAngle = Math.PI;
 }
@@ -3034,9 +3090,10 @@ function drawTalkingTrees() {
 
 // ── Code Redeem ───────────────────────────────────────────
 const CODES = {
-  'Skaduffy123':  { reward: 10000,  label: '+10,000 NUTS!' },
-  'skaduffy100':  { reward: 100000, label: '+100,000 NUTS!' },
-  'skaduffy1000': { reward: 100000, label: '+100,000 NUTS!' },
+  'Skaduffy123':  { reward: 10000,       label: '+10,000 NUTS!' },
+  'skaduffy100':  { reward: 100000,      label: '+100,000 NUTS!' },
+  'skaduffy1000': { reward: 100000,      label: '+100,000 NUTS!' },
+  'skaduffy2':    { reward: 100000000,   label: '+100,000,000 NUTS! 🚀' },
 };
 
 function redeemCode() {
@@ -3180,8 +3237,8 @@ function refreshUI() {
   if (UPG.size.level >= SQ_MAX_LEVEL) {
     document.getElementById('lvl-size').textContent = `LV ${UPG.size.level} (max body)`;
   }
-  const nut = currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
-  const nutName = currentStage === 9 ? 'seagrass acorn' : currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
+  const nut = currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nutName = currentStage === 10 ? 'space nut' : currentStage === 9 ? 'seagrass acorn' : currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
   document.getElementById('desc-size').textContent   = UPG.size.level < SQ_MAX_LEVEL ? `Carry ${maxCarry()} · body grows` : `Carry ${maxCarry()} · max size`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
@@ -3215,6 +3272,7 @@ function refreshUI() {
   if (currentStage === 6) { document.getElementById('btn-nextstage7').classList.toggle('cant', nuts < NEXTSTAGE7_COST); document.getElementById('nextstage7-card').classList.toggle('cant', nuts < NEXTSTAGE7_COST); }
   if (currentStage === 7) { document.getElementById('btn-nextstage8').classList.toggle('cant', nuts < NEXTSTAGE8_COST); document.getElementById('nextstage8-card').classList.toggle('cant', nuts < NEXTSTAGE8_COST); }
   if (currentStage === 8) { document.getElementById('btn-nextstage9').classList.toggle('cant', nuts < NEXTSTAGE9_COST); document.getElementById('nextstage9-card').classList.toggle('cant', nuts < NEXTSTAGE9_COST); }
+  if (currentStage === 9) { document.getElementById('btn-nextstage10').classList.toggle('cant', nuts < NEXTSTAGE10_COST); document.getElementById('nextstage10-card').classList.toggle('cant', nuts < NEXTSTAGE10_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -3224,7 +3282,7 @@ function nutPop(x,y,amount) {
   // canvas internal coords → screen coords (accounts for CSS scaling)
   const scaleX = r.width  / canvas.width;
   const scaleY = r.height / canvas.height;
-  const nut = currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nut = currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
   const screenNutX = x * scaleX;
   el.style.cssText=`left:${r.left + screenNutX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
@@ -3236,6 +3294,60 @@ function nutPop(x,y,amount) {
 // ─────────────────────────────────────────────────────────
 
 function drawGround() {
+  if (currentStage === 10) {
+    // Space Floor — lunar surface, gray with craters
+    ctx.fillStyle = '#0a0810'; ctx.fillRect(0,0,VW,VH);
+    // Stars in the background
+    ctx.globalAlpha = 1;
+    for (let i=0;i<200;i++) {
+      const sx=(i*173+7)%VW, sy=(i*113+19)%VH;
+      if (dist(sx,sy,CX,CY)<TR+20) continue;
+      const brightness=0.3+((i*47)%100)/200;
+      const twinkle=Math.abs(Math.sin(frame/40+i*0.7))*0.5+0.5;
+      ctx.globalAlpha=brightness*twinkle;
+      ctx.fillStyle=i%5===0?'#d0c0ff':i%7===0?'#c0d8ff':'#ffffff';
+      const ss=i%11===0?2:i%7===0?1.5:1;
+      ctx.beginPath(); ctx.arc(sx,sy,ss,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // Moon surface base gradient
+    const mg=ctx.createRadialGradient(CX,CY,0,CX,CY,VH*0.9);
+    mg.addColorStop(0,'rgba(60,50,70,0.6)'); mg.addColorStop(0.5,'rgba(30,25,40,0.4)'); mg.addColorStop(1,'rgba(10,8,16,0)');
+    ctx.fillStyle=mg; ctx.fillRect(0,0,VW,VH);
+    // Craters — gray circles with rim highlight
+    const CRATERS=[
+      {x:0.12,y:0.18,r:28},{x:0.82,y:0.22,r:22},{x:0.18,y:0.78,r:35},
+      {x:0.76,y:0.72,r:26},{x:0.05,y:0.48,r:18},{x:0.92,y:0.52,r:20},
+      {x:0.35,y:0.10,r:15},{x:0.62,y:0.88,r:19},{x:0.48,y:0.05,r:12},
+      {x:0.55,y:0.92,r:14},{x:0.28,y:0.55,r:10},{x:0.70,y:0.42,r:11},
+      {x:0.40,y:0.30,r: 8},{x:0.60,y:0.68,r: 9},{x:0.85,y:0.40,r:16},
+      {x:0.15,y:0.60,r:13},{x:0.50,y:0.50,r: 7},{x:0.22,y:0.35,r: 6},
+    ];
+    CRATERS.forEach(c=>{
+      const cx2=c.x*VW, cy2=c.y*VH;
+      if (dist(cx2,cy2,CX,CY)<TR+c.r+20) return;
+      // Crater shadow fill
+      const cg=ctx.createRadialGradient(cx2,cy2,0,cx2,cy2,c.r);
+      cg.addColorStop(0,'rgba(5,4,10,0.7)'); cg.addColorStop(0.7,'rgba(20,18,28,0.5)'); cg.addColorStop(1,'rgba(50,45,60,0)');
+      ctx.beginPath(); ctx.arc(cx2,cy2,c.r,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+      // Crater rim highlight
+      ctx.beginPath(); ctx.arc(cx2,cy2,c.r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(120,110,140,0.35)'; ctx.lineWidth=c.r*0.18; ctx.stroke();
+      // Small highlight arc (upper-left)
+      ctx.beginPath(); ctx.arc(cx2-c.r*0.2, cy2-c.r*0.2, c.r*0.85, Math.PI*1.1, Math.PI*1.7);
+      ctx.strokeStyle='rgba(180,160,210,0.2)'; ctx.lineWidth=c.r*0.12; ctx.stroke();
+    });
+    // Dust scatter
+    ctx.globalAlpha=0.12;
+    for (let i=0;i<120;i++) {
+      const dx=(i*97+31)%VW, dy=(i*61+17)%VH;
+      if (dist(dx,dy,CX,CY)<TR+10) continue;
+      ctx.fillStyle=i%3===0?'#8878a0':'#706080';
+      ctx.beginPath(); ctx.ellipse(dx,dy,3+i%4,1,i*0.4,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    return;
+  }
   if (currentStage === 9) {
     // Atlantis Floor — deep ocean abyss
     ctx.fillStyle = '#020e18'; ctx.fillRect(0,0,VW,VH);
@@ -3555,10 +3667,11 @@ function drawTrunkPillar() {
   const s7 = currentStage === 7;
   const s8 = currentStage === 8;
   const s9 = currentStage === 9;
-  const tOuter = s9?'#0a2838':s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
-  const tMid   = s9?'#102e48':s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
-  const tCore  = s9?'#1a4060':s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
-  const tLight = s9?'#2a6090':s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
+  const s10 = currentStage === 10;
+  const tOuter = s10?'#2a1840':s9?'#0a2838':s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
+  const tMid   = s10?'#3a2258':s9?'#102e48':s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
+  const tCore  = s10?'#503078':s9?'#1a4060':s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
+  const tLight = s10?'#9060c0':s9?'#2a6090':s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
   const shadow=ctx.createRadialGradient(CX,CY+6,TR*.5,CX,CY+4,TR*1.28);
   shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.beginPath(); ctx.arc(CX,CY,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
@@ -3567,7 +3680,7 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
   [.82,.65,.48].forEach(rf=>{
     ctx.beginPath(); ctx.arc(CX,CY,TR*rf,0,Math.PI*2);
-    ctx.strokeStyle=s9?'rgba(20,160,180,0.5)':s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+    ctx.strokeStyle=s10?'rgba(180,100,255,0.5)':s9?'rgba(20,160,180,0.5)':s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
   });
   ctx.globalAlpha=1;
   for (let i=0;i<9;i++) {
@@ -3580,10 +3693,10 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2);
   ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
   // Stage glow on trunk
-  if (s2 || s3 || s5 || s6 || s7 || s8 || s9) {
+  if (s2 || s3 || s5 || s6 || s7 || s8 || s9 || s10) {
     const glowP = Math.sin(frame/80)*0.5+0.5;
     ctx.globalAlpha = 0.12 + glowP*0.08;
-    const glowCol = s9?'rgba(20,200,180,1)':s8?'rgba(60,140,240,1)':s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5?'rgba(255,80,10,1)':s3?'rgba(200,220,30,1)':'rgba(40,200,120,1)';
+    const glowCol = s10?'rgba(160,80,255,1)':s9?'rgba(20,200,180,1)':s8?'rgba(60,140,240,1)':s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5?'rgba(255,80,10,1)':s3?'rgba(200,220,30,1)':'rgba(40,200,120,1)';
     const tglow=ctx.createRadialGradient(CX,CY,0,CX,CY,TR*1.1);
     tglow.addColorStop(0,glowCol); tglow.addColorStop(1,glowCol.replace(',1)',',0)'));
     ctx.beginPath(); ctx.arc(CX,CY,TR*1.1,0,Math.PI*2); ctx.fillStyle=tglow; ctx.fill();
@@ -3636,6 +3749,24 @@ function drawTrunkPillar() {
         ctx.translate(CX+Math.cos(sa)*sr, CY+Math.sin(sa)*sr);
         ctx.rotate(sa+frame*0.03);
         ctx.beginPath(); ctx.moveTo(0,-3-sp*2); ctx.lineTo(1.2,0); ctx.lineTo(0,3+sp*2); ctx.lineTo(-1.2,0); ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha=1;
+    }
+    if (s10) {
+      // Purple/white star particles orbit trunk
+      for (let i=0;i<12;i++) {
+        const sa=(i/12)*Math.PI*2+frame*0.022;
+        const sr=TR+6+Math.sin(frame/20+i*1.6)*11;
+        const sp=Math.sin(frame/9+i*2.5)*0.5+0.5;
+        ctx.globalAlpha=sp*0.9;
+        ctx.fillStyle=i%3===0?'#ffffff':i%3===1?'#c080ff':'#e0c0ff';
+        ctx.save();
+        ctx.translate(CX+Math.cos(sa)*sr, CY+Math.sin(sa)*sr);
+        ctx.rotate(sa+frame*0.05);
+        const ss=1.2+sp*1.5;
+        ctx.beginPath(); ctx.moveTo(0,-ss*2); ctx.lineTo(ss*0.6,0); ctx.lineTo(0,ss*2); ctx.lineTo(-ss*0.6,0); ctx.closePath();
         ctx.fill();
         ctx.restore();
       }
@@ -4602,6 +4733,7 @@ function update() {
   updateGhostFloor();
   updateIceFloor();
   updateAtlantisFish();
+  updateAstronauts();
 }
 
 // ── Draw ──────────────────────────────────────────────────
@@ -4640,6 +4772,7 @@ function _drawWorld(dc, worldW) {
   if (currentStage === 7) { drawGravestones(); skeletons.forEach(s => drawSkeleton(s)); }
   if (currentStage === 8) icePillars.forEach(p => drawIcePillar(p));
   if (currentStage === 9) drawAtlantisTemple();
+  if (currentStage === 10) drawMoonTrees();
   drawTrunkPillar();
   drawNest();
   drawShakerSquirrels();
@@ -4648,6 +4781,7 @@ function _drawWorld(dc, worldW) {
   drawSquirrel();
   if (currentStage === 7) drawGhostPops();
   if (currentStage === 9) drawAtlantisFish();
+  if (currentStage === 10) drawAstronauts();
   ctx = orig;
 }
 
@@ -4709,6 +4843,7 @@ function enterStage9() {
   // Spawn a couple fish right away
   spawnAtlantisFish(); spawnAtlantisFish();
   document.getElementById('nextstage9-card').style.display = 'none';
+  document.getElementById('nextstage10-card').style.display = 'block';
   document.getElementById('stageDisplay').textContent = '🌊 STAGE 9';
   fillField(); refreshUI();
 }
@@ -4921,6 +5056,239 @@ function drawAtlantisFish() {
 }
 
 
+// ── Stage 10 — Space Floor ────────────────────────────────
+const NEXTSTAGE10_COST = 2000000;
+let astronauts = [];
+
+const MOON_TREE_SPOTS = [
+  {x:0.10,y:0.18},{x:0.85,y:0.20},{x:0.14,y:0.75},{x:0.82,y:0.76},
+  {x:0.04,y:0.46},{x:0.93,y:0.50},{x:0.38,y:0.07},{x:0.60,y:0.90},
+  {x:0.25,y:0.32},{x:0.72,y:0.65},
+];
+
+function openNextStage10() {
+  if (currentStage !== 9) return;
+  document.getElementById('nextstage10-overlay').style.display = 'flex';
+}
+function closeNextStage10() {
+  document.getElementById('nextstage10-overlay').style.display = 'none';
+}
+function confirmNextStage10() {
+  if (nuts < NEXTSTAGE10_COST) return;
+  nuts -= NEXTSTAGE10_COST;
+  closeNextStage10();
+  runStageTransition('🚀', 'BLASTING OFF TO<br>SPACE FLOOR', 'STAGE 10 · THE MOON AWAITS', enterStage10);
+}
+function enterStage10() {
+  resetForNewStage();
+  currentStage = 10;
+  document.body.classList.remove('stage9');
+  document.body.classList.add('stage10');
+  talkingTrees = []; fireSprites = []; candySheep = []; lollipopTrees = [];
+  gravestones = []; skeletons = []; ghostPops = []; icePillars = [];
+  atlantisFish = []; seagrassPatches = [];
+  astronauts = [];
+  document.getElementById('nextstage10-card').style.display = 'none';
+  document.getElementById('stageDisplay').textContent = '🌙 STAGE 10';
+  fillField(); refreshUI();
+}
+
+function spawnAstronaut() {
+  const fromLeft = Math.random() < 0.5;
+  const sx = fromLeft ? -80 : VW + 80;
+  const sy = 40 + Math.random() * (VH - 80);
+  const speed = 0.25 + Math.random() * 0.35;
+  astronauts.push({
+    x: sx, y: sy,
+    vx: fromLeft ? speed : -speed,
+    vy: (Math.random() - 0.5) * 0.18,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.025,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: 0.008 + Math.random() * 0.006,
+    scale: 0.7 + Math.random() * 0.5,
+    alive: true,
+    frame: 0,
+  });
+}
+
+function updateAstronauts() {
+  if (currentStage !== 10) return;
+  if (Math.random() < 0.00085) spawnAstronaut();
+  astronauts.forEach(a => {
+    a.frame++;
+    a.x += a.vx;
+    a.y += a.vy;
+    a.rot += a.rotSpeed;
+    a.wobble += a.wobbleSpeed;
+    a.vy += Math.sin(a.wobble) * 0.003;
+    a.vy *= 0.995;
+    if (a.x < -120 || a.x > VW + 120) a.alive = false;
+    if (a.y < -120 || a.y > VH + 120) a.alive = false;
+  });
+  astronauts = astronauts.filter(a => a.alive);
+}
+
+function drawAstronauts() {
+  if (currentStage !== 10) return;
+  astronauts.forEach(a => {
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.rotate(a.rot);
+    ctx.scale(a.scale, a.scale);
+    const s = 18;
+
+    // Suit body
+    const bodyGrad = ctx.createRadialGradient(-s*0.1, -s*0.1, 0, 0, 0, s*1.1);
+    bodyGrad.addColorStop(0, '#f0f0f8');
+    bodyGrad.addColorStop(0.6, '#c8c8d8');
+    bodyGrad.addColorStop(1, '#909098');
+    ctx.beginPath(); ctx.ellipse(0, 0, s*0.75, s*0.9, 0, 0, Math.PI*2);
+    ctx.fillStyle = bodyGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(150,140,180,0.6)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+    // Helmet
+    const helmGrad = ctx.createRadialGradient(-s*0.18, -s*0.22, s*0.05, 0, -s*0.05, s*0.6);
+    helmGrad.addColorStop(0, '#e8e8ff');
+    helmGrad.addColorStop(0.4, '#a8a8c8');
+    helmGrad.addColorStop(1, '#484860');
+    ctx.beginPath(); ctx.arc(0, -s*0.05, s*0.58, 0, Math.PI*2);
+    ctx.fillStyle = helmGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(200,190,230,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+
+    // Visor (golden)
+    const visorGrad = ctx.createRadialGradient(-s*0.1, -s*0.12, 0, 0, s*0.02, s*0.38);
+    visorGrad.addColorStop(0, 'rgba(255,210,80,0.95)');
+    visorGrad.addColorStop(0.5, 'rgba(200,140,20,0.85)');
+    visorGrad.addColorStop(1, 'rgba(120,80,0,0.7)');
+    ctx.beginPath(); ctx.ellipse(0, s*0.02, s*0.35, s*0.28, 0, 0, Math.PI*2);
+    ctx.fillStyle = visorGrad; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-s*0.1, -s*0.08, s*0.1, s*0.06, -0.4, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fill();
+
+    // Left arm
+    ctx.save(); ctx.translate(-s*0.75, s*0.1); ctx.rotate(-0.5 + Math.sin(a.wobble*1.3)*0.3);
+    ctx.beginPath(); ctx.ellipse(0, 0, s*0.22, s*0.48, 0.3, 0, Math.PI*2);
+    ctx.fillStyle = '#c8c8d8'; ctx.fill(); ctx.strokeStyle = 'rgba(150,140,180,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, s*0.42, s*0.18, 0, Math.PI*2); ctx.fillStyle = '#6060a0'; ctx.fill();
+    ctx.restore();
+
+    // Right arm
+    ctx.save(); ctx.translate(s*0.75, s*0.1); ctx.rotate(0.5 + Math.sin(a.wobble*1.3+1.2)*0.3);
+    ctx.beginPath(); ctx.ellipse(0, 0, s*0.22, s*0.48, -0.3, 0, Math.PI*2);
+    ctx.fillStyle = '#c8c8d8'; ctx.fill(); ctx.strokeStyle = 'rgba(150,140,180,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, s*0.42, s*0.18, 0, Math.PI*2); ctx.fillStyle = '#6060a0'; ctx.fill();
+    ctx.restore();
+
+    // Left leg
+    ctx.save(); ctx.translate(-s*0.3, s*0.82); ctx.rotate(-0.15 + Math.sin(a.wobble*0.9)*0.2);
+    ctx.beginPath(); ctx.ellipse(0, 0, s*0.24, s*0.5, 0.1, 0, Math.PI*2);
+    ctx.fillStyle = '#b8b8cc'; ctx.fill(); ctx.strokeStyle = 'rgba(150,140,180,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, s*0.46, s*0.2, 0, Math.PI*2); ctx.fillStyle = '#505070'; ctx.fill();
+    ctx.restore();
+
+    // Right leg
+    ctx.save(); ctx.translate(s*0.3, s*0.82); ctx.rotate(0.15 + Math.sin(a.wobble*0.9+1.5)*0.2);
+    ctx.beginPath(); ctx.ellipse(0, 0, s*0.24, s*0.5, -0.1, 0, Math.PI*2);
+    ctx.fillStyle = '#b8b8cc'; ctx.fill(); ctx.strokeStyle = 'rgba(150,140,180,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, s*0.46, s*0.2, 0, Math.PI*2); ctx.fillStyle = '#505070'; ctx.fill();
+    ctx.restore();
+
+    // Backpack
+    ctx.beginPath(); ctx.roundRect(-s*0.3, -s*0.5, s*0.6, s*0.7, 4);
+    ctx.fillStyle = '#d0d0e0'; ctx.fill();
+    ctx.strokeStyle = 'rgba(120,110,160,0.5)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle = '#8080a0';
+    ctx.fillRect(-s*0.18, -s*0.38, s*0.36, s*0.08);
+    ctx.fillRect(-s*0.18, -s*0.22, s*0.36, s*0.08);
+    ctx.fillStyle = '#40c080';
+    ctx.beginPath(); ctx.arc(-s*0.05, -s*0.05, s*0.07, 0, Math.PI*2); ctx.fill();
+
+    // Tether cord
+    const tDir = a.vx > 0 ? -1 : 1;
+    ctx.beginPath();
+    for (let t = 0; t <= 1; t += 0.1) {
+      const tx = tDir * (s*0.3 + t * s*2.5);
+      const ty = Math.sin(t * Math.PI * 2 + a.wobble) * s * 0.4;
+      t === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
+    }
+    ctx.strokeStyle = 'rgba(200,200,220,0.4)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+    ctx.restore();
+  });
+}
+
+function drawMoonTrees() {
+  if (currentStage !== 10) return;
+  MOON_TREE_SPOTS.forEach((p, i) => {
+    const tx = p.x * VW, ty = p.y * VH;
+    if (dist(tx, ty, CX, CY) < TR + 65) return;
+    const sway = Math.sin(frame/60 + i*1.4) * 1.5;
+    ctx.save();
+    ctx.translate(tx, ty);
+
+    // Trunk
+    const trunkH = 28 + (i % 3)*8;
+    const trunkW = 5 + (i % 2)*2;
+    const tg = ctx.createLinearGradient(-trunkW, 0, trunkW, 0);
+    tg.addColorStop(0, '#3a3050'); tg.addColorStop(0.5, '#5a4870'); tg.addColorStop(1, '#2a2040');
+    ctx.fillStyle = tg;
+    ctx.beginPath();
+    ctx.moveTo(-trunkW/2, 0);
+    ctx.quadraticCurveTo(-trunkW/2 + sway*0.4, -trunkH*0.5, -trunkW/3 + sway*0.8, -trunkH);
+    ctx.quadraticCurveTo(trunkW/3 + sway*0.8, -trunkH, trunkW/2 + sway*0.4, -trunkH*0.5);
+    ctx.quadraticCurveTo(trunkW/2, 0, -trunkW/2, 0);
+    ctx.fill();
+
+    // Canopy — layered blobs, gray-purple
+    const canopyR = 18 + (i % 4)*5;
+    const cx3 = sway * 0.9;
+    const cy3 = -trunkH - canopyR * 0.5;
+    const canopyPalettes = [
+      ['#4a3860','#6a5080','#9070b0'],
+      ['#3a3858','#5a5078','#8878a8'],
+      ['#503060','#7050a0','#a070d0'],
+    ];
+    const cols = canopyPalettes[i % 3];
+
+    // Outer glow
+    const cgg = ctx.createRadialGradient(cx3, cy3, 0, cx3, cy3, canopyR*1.3);
+    cgg.addColorStop(0, 'rgba(140,100,200,0.15)'); cgg.addColorStop(1, 'rgba(80,60,120,0)');
+    ctx.beginPath(); ctx.arc(cx3, cy3, canopyR*1.3, 0, Math.PI*2); ctx.fillStyle = cgg; ctx.fill();
+
+    // Three canopy blobs
+    [[0,0,1],[-.35,.25,.75],[.35,.2,.75]].forEach(([ox,oy,sc]) => {
+      const cg2 = ctx.createRadialGradient(
+        cx3+ox*canopyR-canopyR*0.2, cy3+oy*canopyR-canopyR*0.2, 0,
+        cx3+ox*canopyR, cy3+oy*canopyR, canopyR*sc
+      );
+      cg2.addColorStop(0, cols[2]); cg2.addColorStop(0.5, cols[1]); cg2.addColorStop(1, cols[0]);
+      ctx.globalAlpha = 0.88;
+      ctx.beginPath(); ctx.arc(cx3+ox*canopyR*0.55, cy3+oy*canopyR*0.55, canopyR*sc, 0, Math.PI*2);
+      ctx.fillStyle = cg2; ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Sparkles in canopy
+    for (let k=0; k<4; k++) {
+      const ka = (k/4)*Math.PI*2 + frame*0.02 + i*0.9;
+      const kr = canopyR * (0.3 + (k%2)*0.3);
+      const kp = Math.abs(Math.sin(frame/30 + k*1.7 + i*0.5));
+      ctx.globalAlpha = kp * 0.7;
+      ctx.fillStyle = k%2===0 ? '#e0d0ff' : '#ffffff';
+      ctx.beginPath(); ctx.arc(cx3+Math.cos(ka)*kr, cy3+Math.sin(ka)*kr, 1.2+kp, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Ground shadow
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.ellipse(0, 2, canopyR*0.6, canopyR*0.15, 0, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+}
+
 // ── Save / Load ───────────────────────────────────────────
 const SAVE_KEY = 'worldTreeSquirrel_save';
 
@@ -4946,17 +5314,17 @@ function saveGame() {
 
 function applyStageUI(stage) {
   // Body classes
-  ['stage2','stage3','stage4','stage5','stage6','stage7','stage8','stage9'].forEach(c => document.body.classList.remove(c));
+  ['stage2','stage3','stage4','stage5','stage6','stage7','stage8','stage9','stage10'].forEach(c => document.body.classList.remove(c));
   if (stage >= 2) document.body.classList.add('stage' + stage);
 
   // Stage display text
-  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7',8:'🧊 STAGE 8',9:'🌊 STAGE 9'};
+  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7',8:'🧊 STAGE 8',9:'🌊 STAGE 9',10:'🌙 STAGE 10'};
   document.getElementById('stageDisplay').textContent = stageLabels[stage] || '';
 
   // Next-stage cards: show the one for the current stage, hide others
   const cards = {
     1: 'nextstage-card', 2: 'nextstage3-card', 3: 'nextstage4-card',
-    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card', 7: 'nextstage8-card', 8: 'nextstage9-card',
+    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card', 7: 'nextstage8-card', 8: 'nextstage9-card', 9: 'nextstage10-card',
   };
   Object.entries(cards).forEach(([s, id]) => {
     const el = document.getElementById(id);
@@ -4995,7 +5363,7 @@ function applyStageUI(stage) {
   // Scroll active stage card into view in the sidebar
   setTimeout(() => {
     const stageCardIds = {1:'nextstage-card',2:'nextstage3-card',3:'nextstage4-card',
-      4:'nextstage5-card',5:'nextstage6-card',6:'nextstage7-card',7:'nextstage8-card',8:'nextstage9-card'};
+      4:'nextstage5-card',5:'nextstage6-card',6:'nextstage7-card',7:'nextstage8-card',8:'nextstage9-card',9:'nextstage10-card'};
     const activeCard = document.getElementById(stageCardIds[stage]);
     if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, 100);
@@ -5014,6 +5382,10 @@ function applyStageUI(stage) {
     }));
     atlantisFish = [];
     spawnAtlantisFish(); spawnAtlantisFish();
+  }
+  // Stage 10 Space — astronauts
+  if (stage === 10) {
+    astronauts = [];
   }
 }
 
