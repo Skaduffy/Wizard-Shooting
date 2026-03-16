@@ -795,6 +795,16 @@
     <button onclick="newGame()" style="background:#1a0400;border:1px solid #5a1800;border-radius:4px;color:#6a2800;font-family:'Press Start 2P',monospace;font-size:5px;padding:4px 7px;cursor:pointer;" onmouseover="this.style.color='#f5c842';this.style.borderColor='#c8860a'" onmouseout="this.style.color='#6a2800';this.style.borderColor='#5a1800'">NEW GAME</button>
   </div>
 
+  <div id="code-bar">
+    <label>🔑 REDEEM CODE</label>
+    <div id="code-input-row">
+      <input id="code-input" type="text" placeholder="enter code..." maxlength="20"
+        onkeydown="if(event.key==='Enter')redeemCode()" autocomplete="off" spellcheck="false"/>
+      <button id="code-submit" onclick="redeemCode()">OK</button>
+    </div>
+    <div id="code-msg"></div>
+  </div>
+
   <div class="upg-card" id="card-size" onclick="buyUpgrade('size')">
     <div class="upg-card-inner">
       <div class="upg-card-left">
@@ -908,6 +918,17 @@
     <button class="upg-btn" id="btn-fcarry" style="display:none"></button>
   </div>
 
+
+        <span class="upg-level" style="color:#30a040;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#284030;">Expands the map! New tree with its own shakers &amp; nest.</div>
+        <div class="upg-card-price" style="color:#60e890;">🌰 <span id="cost-tree2">5000</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-tree2" style="display:none"></button>
+  </div>
+
   <div class="upg-card" id="nextstage-card" style="border-color:#0a2820;" onclick="openNextStage()">
     <div class="upg-card-inner">
       <div class="upg-card-left">
@@ -993,20 +1014,6 @@
   </div>
 
 
-  <div class="upg-card" id="nextstage9-card" style="border-color:#082838;display:none;" onclick="openNextStage9()">
-    <div class="upg-card-inner">
-      <div class="upg-card-left">
-        <div class="upg-title" style="color:#40e8f0;">🌊 ATLANTIS</div>
-        <span class="upg-level" style="color:#20a8c0;">ONE-TIME</span>
-      </div>
-      <div class="upg-card-right">
-        <div class="upg-card-desc" style="color:#1a6870;">Stage 9 — seagrass 160x. Dive deep!</div>
-        <div class="upg-card-price" style="color:#40e8f0;">🌿 <span id="cost-nextstage9">800000</span></div>
-      </div>
-    </div>
-    <button class="upg-btn" id="btn-nextstage9" style="display:none"></button>
-  </div>
-
   <div class="upg-card" id="nextstage8-card" style="border-color:#0a2040;display:none;" onclick="openNextStage8()">
     <div class="upg-card-inner">
       <div class="upg-card-left">
@@ -1021,14 +1028,44 @@
     <button class="upg-btn" id="btn-nextstage8" style="display:none"></button>
   </div>
 
-  <div id="code-bar">
-    <label>🔑 REDEEM CODE</label>
-    <div id="code-input-row">
-      <input id="code-input" type="text" placeholder="enter code..." maxlength="20"
-        onkeydown="if(event.key==='Enter')redeemCode()" autocomplete="off" spellcheck="false"/>
-      <button id="code-submit" onclick="redeemCode()">OK</button>
+  <div class="upg-card" id="nextstage9-card" style="border-color:#082838;display:none;" onclick="openNextStage9()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#40e8f0;">🌊 ATLANTIS</div>
+        <span class="upg-level" style="color:#20a8c0;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#1a6870;">Stage 9 — seagrass 160x. Dive deep!</div>
+        <div class="upg-card-price" style="color:#40e8f0;">🌿 <span id="cost-nextstage9">800000</span></div>
+      </div>
     </div>
-    <div id="code-msg"></div>
+    <button class="upg-btn" id="btn-nextstage9" style="display:none"></button>
+  </div>
+
+</div>
+
+
+<!-- Tree 2 panel -->
+<div class="float-panel" id="tree2-panel">
+  <button class="close-btn" onclick="closeAllPanels()">✕ CLOSE</button>
+  <h3>🌳 WORLD TREE 2</h3>
+  <p id="panel-shaker2-info">1 squirrel shaking above</p>
+  <div class="panel-row">
+    <span class="panel-label">ADD SHAKER</span>
+    <button class="panel-btn" id="btn-add-shaker2" onclick="addShaker2()">🌰 <span id="cost-shaker2">25</span></button>
+  </div>
+</div>
+
+<!-- Shaker 2 panel -->
+<div class="float-panel" id="shaker2-panel">
+  <button class="close-btn" onclick="closeAllPanels()">✕ CLOSE</button>
+  <div class="shaker-badge">🌳</div>
+  <h3 id="shaker2-panel-title">TREE 2 SHAKER #1</h3>
+  <p id="shaker2-panel-info">Drops 1 acorn per shake</p>
+  <div class="shaker-drops-bar" id="shaker2-drops-bar"></div>
+  <div class="panel-row">
+    <span class="panel-label">UPGRADE DROPS<br><span class="panel-val" id="shaker2-upg-val"></span></span>
+    <button class="panel-btn" id="btn-shaker2-upg" onclick="upgradeShakerDrops2()">🌰 <span id="cost-shaker2-upg">30</span></button>
   </div>
 </div>
 
@@ -1040,6 +1077,10 @@
   <div class="panel-row">
     <span class="panel-label">ADD SHAKER</span>
     <button class="panel-btn" id="btn-add-shaker" onclick="addShaker()">🌰 <span id="cost-shaker">25</span></button>
+  </div>
+  <div class="panel-row" id="tree2-buy-row" style="display:none;">
+    <span class="panel-label" style="color:#60e890;">🌳🌳 SECOND TREE<br><span style="color:#284030;font-size:7px;">Expands the map!</span></span>
+    <button class="panel-btn" id="btn-buy-tree2" onclick="buyTree2();closeAllPanels();" style="border-color:#30a040;color:#60e890;">🌰 <span id="cost-tree2-panel">5000</span></button>
   </div>
 </div>
 
@@ -1491,12 +1532,17 @@
 
 <script>
 const canvas = document.getElementById('gameCanvas');
-const ctx    = canvas.getContext('2d');
+let ctx      = canvas.getContext('2d');
 // W and H are read from the canvas element (740×580 set in HTML)
 const W = canvas.width, H = canvas.height;
 
 // ── World constants ───────────────────────────────────────
-const CX = W / 2, CY = H / 2, TR = 62;
+// The on-screen canvas is always 740x580.
+// When tree2 is unlocked the world is 1480 wide; camera scrolls to show it.
+const VW = 740, VH = 580;   // viewport / canvas size — never changes
+const WORLD_W = () => tree2Unlocked ? VW * 2 : VW;
+
+const CX = VW / 2, CY = VH / 2, TR = 62;
 const NEST_A = Math.PI / 2;
 const NEST_X = CX + Math.cos(NEST_A) * TR;
 const NEST_Y = CY + Math.sin(NEST_A) * TR;
@@ -1505,6 +1551,25 @@ const ACORN_INNER = TR + 40, ACORN_OUTER = 230;
 const SHAKER_HIT_R = 22;
 const DROP_BASE_COST = 30, DROP_SCALE = 2.3, MAX_DROPS = 6;
 const FRIEND_BASE_COST = 40, FRIEND_COST_SCALE = 1.8;
+
+// Tree 2 — centred in the right half of the expanded world
+const T2X = VW + VW / 2;   // 1110
+const T2Y = VH / 2;
+const T2_NEST_A = Math.PI / 2;
+const T2_NEST_X = T2X + Math.cos(T2_NEST_A) * TR;
+const T2_NEST_Y = T2Y + Math.sin(T2_NEST_A) * TR;
+
+// Camera — camX is the left edge of the viewport in world coords
+let camX = 0;
+let tree2Unlocked = false;
+
+// Offscreen world canvas — drawn at full world width, then blitted to screen
+const worldCanvas = document.createElement('canvas');
+worldCanvas.width  = VW * 2;
+worldCanvas.height = VH;
+const wctx = worldCanvas.getContext('2d');
+
+const TREE2_COST = 200000;
 
 // ── Colors ────────────────────────────────────────────────
 const COL = {
@@ -1546,19 +1611,26 @@ const sqW           = ()  => 28 + Math.min(UPG.size.level, SQ_MAX_LEVEL) * 4;
 const sqH           = ()  => 24 + Math.min(UPG.size.level, SQ_MAX_LEVEL) * 3;
 const nestRadius    = ()  => NEST_R + UPG.nest.level * 8;  // 18 base, +8 per level
 const dropUpgCost   = lvl => Math.floor(DROP_BASE_COST * Math.pow(DROP_SCALE, lvl));
-const maxAcorns     = ()  => shakers.reduce((s, sh) => s + sh.drops * 8, 0);
+const maxAcorns     = ()  => shakers.reduce((s, sh) => s + sh.drops * 8, 0) + (tree2Unlocked ? shakers2.reduce((s, sh) => s + sh.drops * 8, 0) : 0);
 
 // ── Stage ─────────────────────────────────────────────────
 let currentStage = 1;
 
 // ── Shakers ───────────────────────────────────────────────
-let shakers = [];
+let shakers = [];   // Tree 1 shakers
+let shakers2 = [];  // Tree 2 shakers (only active when tree2Unlocked)
 
 function addShakerEntry() {
   const i = shakers.length;
   shakers.push({ angle:0, drops:1, phase: i * 1.7 });
   const n = shakers.length;
   shakers.forEach((sh, j) => { sh.angle = -Math.PI/2 + (j/n)*Math.PI*2; });
+}
+function addShakerEntry2() {
+  const i = shakers2.length;
+  shakers2.push({ angle:0, drops:1, phase: i * 1.7 + 0.8 });
+  const n = shakers2.length;
+  shakers2.forEach((sh, j) => { sh.angle = -Math.PI/2 + (j/n)*Math.PI*2; });
 }
 
 // ── Friend squirrels ──────────────────────────────────────
@@ -1950,6 +2022,7 @@ function runStageTransition(icon, title, subtitle, callback) {
 function resetForNewStage() {
   Object.keys(UPG).forEach(k => UPG[k].level = 0);
   shakers = []; addShakerEntry();
+  if (tree2Unlocked) { shakers2 = []; addShakerEntry2(); }
   friends.forEach(f => { if (f.targetAcorn) f.targetAcorn.friendCarried = false; f.heldAcorns = []; f.heldAcorn = null; });
   friends = [];
   acorns = []; carrying = [];
@@ -2924,8 +2997,8 @@ function updateTalkingTrees() {
         const phrase = TREE_PHRASES[Math.floor(Math.random() * TREE_PHRASES.length)];
         el.textContent = phrase;
         const r = canvas.getBoundingClientRect();
-        const sx = r.left + (tree.x / canvas.width)  * r.width;
-        const sy = r.top  + (tree.y / canvas.height) * r.height;
+        const sx = r.left + ((tree.x - camX) / VW) * r.width;
+        const sy = r.top  + (tree.y / VH) * r.height;
         el.style.visibility = 'hidden'; el.style.opacity = '0';
         requestAnimationFrame(() => {
           el.style.visibility = '';
@@ -2947,8 +3020,8 @@ function acornScream(ax, ay) {
   const phrase = ACORN_SCREAMS[Math.floor(Math.random() * ACORN_SCREAMS.length)];
   el.textContent = phrase;
   const r = canvas.getBoundingClientRect();
-  const sx = r.left + (ax / canvas.width)  * r.width;
-  const sy = r.top  + (ay / canvas.height) * r.height;
+  const sx = r.left + ((ax - camX) / VW) * r.width;
+  const sy = r.top  + (ay / VH) * r.height;
   el.style.cssText = `left:${sx - 30}px;top:${sy - 18}px;opacity:1;transition:none;transform:translateY(0) scale(1.1);`;
   setTimeout(() => {
     el.style.transition = 'opacity 1.8s, transform 1.8s';
@@ -3089,11 +3162,14 @@ function spawnAcornAllShakers() {
 function fillField() {
   const need = Math.min(maxAcorns(), ACORN_FIELD_CAP) - acorns.length - carrying.length;
   for (let i=0; i<need; i++) spawnAcornFromShaker(i % shakers.length);
+  if (tree2Unlocked) fillField2();
 }
 
 // ── Panels ────────────────────────────────────────────────
 function closeAllPanels() {
-  ['tree-panel','shaker-panel'].forEach(id => document.getElementById(id).style.display='none');
+  ['tree-panel','shaker-panel','tree2-panel','shaker2-panel'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display='none';
+  });
   openPanel = null; activeShakerIdx = -1;
 }
 function positionPanel(el, cx, cy) {
@@ -3123,6 +3199,14 @@ function refreshTreePanel() {
   const cost=shakerCost();
   document.getElementById('cost-shaker').textContent=cost;
   document.getElementById('btn-add-shaker').classList.toggle('cant', nuts<cost);
+  // Tree 2 buy row
+  const buyRow = document.getElementById('tree2-buy-row');
+  if (buyRow) {
+    buyRow.style.display = tree2Unlocked ? 'none' : 'flex';
+    document.getElementById('cost-tree2-panel').textContent = TREE2_COST;
+    const buyBtn = document.getElementById('btn-buy-tree2');
+    if (buyBtn) buyBtn.classList.toggle('cant', nuts < TREE2_COST);
+  }
 }
 function refreshShakerPanel() {
   const i=activeShakerIdx;
@@ -3145,6 +3229,93 @@ function refreshShakerPanel() {
 function addShaker() {
   const cost=shakerCost(); if (nuts<cost) return;
   nuts-=cost; addShakerEntry(); fillField(); refreshTreePanel(); refreshUI();
+}
+// ── Tree 2 panels ──────────────────────────────────────────
+let activeShakerIdx2 = -1;
+function openTreePanel2(cx,cy) {
+  closeAllPanels();
+  const p=document.getElementById('tree2-panel');
+  p.style.display='flex'; positionPanel(p,cx,cy);
+  openPanel='tree2'; refreshTreePanel2();
+}
+function openShakerPanel2(idx,cx,cy) {
+  closeAllPanels(); activeShakerIdx2=idx;
+  const p=document.getElementById('shaker2-panel');
+  p.style.display='flex'; positionPanel(p,cx,cy);
+  openPanel='shaker2'; refreshShakerPanel2();
+}
+function refreshTreePanel2() {
+  const n=shakers2.length;
+  document.getElementById('panel-shaker2-info').textContent=`${n} squirrel${n>1?'s':''} shaking above`;
+  const cost=shakerCost2();
+  document.getElementById('cost-shaker2').textContent=cost;
+  document.getElementById('btn-add-shaker2').classList.toggle('cant', nuts<cost);
+}
+function refreshShakerPanel2() {
+  const i=activeShakerIdx2;
+  if (i<0||i>=shakers2.length) return;
+  const sh=shakers2[i], cost=dropUpgCost(sh.drops-1);
+  document.getElementById('shaker2-panel-title').textContent=`TREE 2 SHAKER #${i+1}`;
+  document.getElementById('shaker2-panel-info').textContent=`Drops ${sh.drops} acorn${sh.drops>1?'s':''} per shake`;
+  const bar=document.getElementById('shaker2-drops-bar');
+  bar.innerHTML='';
+  for (let d=0;d<MAX_DROPS;d++) {
+    const pip=document.createElement('div');
+    pip.className='drop-pip'+(d<sh.drops?'':' empty');
+    bar.appendChild(pip);
+  }
+  const atMax=sh.drops>=MAX_DROPS;
+  document.getElementById('shaker2-upg-val').textContent=atMax?'MAX':`→ ${sh.drops+1} acorns`;
+  document.getElementById('cost-shaker2-upg').textContent=atMax?'—':cost;
+  document.getElementById('btn-shaker2-upg').classList.toggle('cant', atMax||nuts<cost);
+}
+const shakerCost2 = () => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers2.length - 1));
+function addShaker2() {
+  const cost=shakerCost2(); if (nuts<cost) return;
+  nuts-=cost; addShakerEntry2(); fillField2(); refreshTreePanel2(); refreshUI();
+}
+function upgradeShakerDrops2() {
+  const i=activeShakerIdx2; if (i<0||i>=shakers2.length) return;
+  const sh=shakers2[i]; if (sh.drops>=MAX_DROPS) return;
+  const cost=dropUpgCost(sh.drops-1); if (nuts<cost) return;
+  nuts-=cost; sh.drops++; refreshShakerPanel2(); refreshUI();
+}
+function buyTree2() {
+  if (tree2Unlocked || nuts < TREE2_COST) return;
+  nuts -= TREE2_COST;
+  tree2Unlocked = true;
+  addShakerEntry2();
+  fillField2();
+  // Hide the buy card
+  const card = document.getElementById('card-tree2');
+  if (card) card.style.display = 'none';
+  refreshUI();
+}
+// Spawn acorns from tree2 shakers
+function spawnAcornFromShaker2(idx) {
+  const sh = shakers2[idx], a = sh.angle;
+  const sx = T2X + Math.cos(a)*(TR+8), sy = T2Y + Math.sin(a)*(TR+8);
+  const la = a + (Math.random()-.5)*Math.PI*.9;
+  const lr = ACORN_INNER + Math.random()*(ACORN_OUTER - ACORN_INNER);
+  // Clamp to the RIGHT half of the world (VW..VW*2), centred on T2X
+  const lx = Math.max(VW + 20, Math.min(VW * 2 - 20, T2X + Math.cos(la)*lr));
+  const ly = Math.max(20, Math.min(VH - 20, T2Y + Math.sin(la)*lr));
+  const maxAge = Math.floor((25 + Math.random()*15) * 60);
+  acorns.push({ x:sx, y:sy, landX:lx, landY:ly, r:6, carried:false, friendCarried:false, vy:0, falling:true, age:0, maxAge, fromTree2:true });
+}
+function spawnAcornAllShakers2() {
+  shakers2.forEach((sh,i) => {
+    for (let d=0; d<sh.drops; d++) {
+      const onField = acorns.filter(a=>!a.carried&&!a.friendCarried).length + carrying.length;
+      if (onField < maxAcorns() && acorns.length < ACORN_FIELD_CAP)
+        spawnAcornFromShaker2(i);
+    }
+  });
+}
+function fillField2() {
+  if (!tree2Unlocked) return;
+  const need = Math.min(shakers2.reduce((s,sh)=>s+sh.drops*8,0), ACORN_FIELD_CAP) - acorns.filter(a=>a.fromTree2).length;
+  for (let i=0; i<need; i++) spawnAcornFromShaker2(i % shakers2.length);
 }
 function upgradeShakerDrops() {
   const i=activeShakerIdx; if (i<0||i>=shakers.length) return;
@@ -3197,7 +3368,8 @@ function refreshUI() {
   if (friendCard) friendCard.classList.toggle('cant', nuts < friendCost());
   document.getElementById('coinDisplay').textContent   = `${nut} ${nuts}`;
   document.getElementById('carryDisplay').textContent  = `🐿 ${carrying.length}/${maxCarry()}`;
-  document.getElementById('shakerDisplay').textContent = `🌿 ${shakers.length} shaker${shakers.length>1?'s':''}`;
+  const totalShakers = shakers.length + (tree2Unlocked ? shakers2.length : 0);
+  document.getElementById('shakerDisplay').textContent = `🌿 ${totalShakers} shaker${totalShakers>1?'s':''}${tree2Unlocked?' (2 trees)':''}`;
   document.getElementById('friendDisplay').textContent = `🐾 ${friends.length} friend${friends.length!==1?'s':''}`;
   document.getElementById('regen-fill').style.width = Math.min(100,regenTimer/regenFrames()*100)+'%';
   if (currentStage === 1) { document.getElementById('btn-nextstage').classList.toggle('cant', nuts < NEXTSTAGE_COST); document.getElementById('nextstage-card').classList.toggle('cant', nuts < NEXTSTAGE_COST); }
@@ -3218,7 +3390,8 @@ function nutPop(x,y,amount) {
   const scaleY = r.height / canvas.height;
   const nut = currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
-  el.style.cssText=`left:${r.left + x*scaleX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
+  const screenNutX = (x - camX) * scaleX;
+  el.style.cssText=`left:${r.left + screenNutX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
   setTimeout(()=>{ el.style.transition='opacity .8s,transform .8s'; el.style.opacity='0'; el.style.transform='translateY(-36px)'; },40);
 }
 
@@ -3229,7 +3402,7 @@ function nutPop(x,y,amount) {
 function drawGround() {
   if (currentStage === 9) {
     // Atlantis Floor — deep ocean abyss
-    ctx.fillStyle = '#020e18'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#020e18'; ctx.fillRect(0,0,WORLD_W(),VH);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.5);
     gr.addColorStop(0,'rgba(0,0,20,0.75)'); gr.addColorStop(.5,'rgba(0,10,30,0.35)'); gr.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
@@ -3277,7 +3450,7 @@ function drawGround() {
   }
   if (currentStage === 8) {
     // Ice Floor — deep blue frozen tundra
-    ctx.fillStyle = '#060e1e'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#060e1e'; ctx.fillRect(0,0,WORLD_W(),VH);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
     gr.addColorStop(0,'rgba(0,0,0,0.7)'); gr.addColorStop(.5,'rgba(0,10,30,0.3)'); gr.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
@@ -3329,7 +3502,7 @@ function drawGround() {
   }
   if (currentStage === 7) {
     // Ghost Floor — mossy grey haunted ground
-    ctx.fillStyle = '#1e2a1e'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#1e2a1e'; ctx.fillRect(0,0,WORLD_W(),VH);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
     gr.addColorStop(0,'rgba(0,0,0,0.6)'); gr.addColorStop(.5,'rgba(0,0,0,0.2)'); gr.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=gr; ctx.fillRect(0,0,W,H);
@@ -3370,7 +3543,7 @@ function drawGround() {
   }
   if (currentStage === 6) {
     // Candy Forest — soft purple-pink dreamy ground
-    ctx.fillStyle = '#2a1035'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#2a1035'; ctx.fillRect(0,0,WORLD_W(),VH);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
     gr.addColorStop(0,'rgba(0,0,0,0.5)'); gr.addColorStop(.4,'rgba(0,0,0,0.2)');
     gr.addColorStop(1,'rgba(0,0,0,0)');
@@ -3412,7 +3585,7 @@ function drawGround() {
     ctx.globalAlpha=1;
   } else if (currentStage === 5) {
     // Fire Floor — dark ash, scorched earth, embers
-    ctx.fillStyle = '#1a0a04'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = '#1a0a04'; ctx.fillRect(0,0,WORLD_W(),VH);
     const gr=ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
     gr.addColorStop(0,'rgba(0,0,0,0.8)'); gr.addColorStop(.4,'rgba(0,0,0,0.5)');
     gr.addColorStop(.8,'rgba(0,0,0,0.2)'); gr.addColorStop(1,'rgba(0,0,0,0)');
@@ -4297,9 +4470,13 @@ document.addEventListener('touchcancel',joyEnd,   { passive: false });
 
 function getCanvasPos(e) {
   const r = canvas.getBoundingClientRect();
+  // Canvas is always 740x580 CSS-mapped. Convert to canvas pixels then add camera offset.
   const scaleX = canvas.width  / r.width;
   const scaleY = canvas.height / r.height;
-  return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
+  const cx = (e.clientX - r.left) * scaleX;
+  const cy = (e.clientY - r.top)  * scaleY;
+  // Add camX to convert screen coords → world coords
+  return { x: cx + camX, y: cy };
 }
 
 // Extract position from either a mouse event or the first touch
@@ -4313,9 +4490,17 @@ function hitsUI(mx, my) {
   for (let i=0;i<shakers.length;i++) {
     const sh=shakers[i];
     const sx=CX+Math.cos(sh.angle)*(TR+2), sy=CY+Math.sin(sh.angle)*(TR+2);
-    if (dist(mx,my,sx,sy)<=SHAKER_HIT_R) return { type:'shaker', idx:i };
+    if (dist(mx,my,sx,sy)<=SHAKER_HIT_R) return { type:'shaker', idx:i, tree:1 };
   }
-  if (dist(mx,my,CX,CY)<=TR+8) return { type:'trunk' };
+  if (dist(mx,my,CX,CY)<=TR+8) return { type:'trunk', tree:1 };
+  if (tree2Unlocked) {
+    for (let i=0;i<shakers2.length;i++) {
+      const sh=shakers2[i];
+      const sx=T2X+Math.cos(sh.angle)*(TR+2), sy=T2Y+Math.sin(sh.angle)*(TR+2);
+      if (dist(mx,my,sx,sy)<=SHAKER_HIT_R) return { type:'shaker', idx:i, tree:2 };
+    }
+    if (dist(mx,my,T2X,T2Y)<=TR+8) return { type:'trunk', tree:2 };
+  }
   return null;
 }
 
@@ -4352,14 +4537,20 @@ function onPointerTap(e) {
   const {x:mx, y:my} = pos;
   const hit = hitsUI(mx, my);
   if (hit) {
+    const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
     if (hit.type === 'shaker') {
-      const cx = e.touches ? e.touches[0]?.clientX ?? e.changedTouches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0]?.clientY ?? e.changedTouches[0].clientY : e.clientY;
-      openPanel==='shaker'&&activeShakerIdx===hit.idx ? closeAllPanels() : openShakerPanel(hit.idx, cx, cy);
+      if (hit.tree === 2) {
+        openPanel==='shaker2'&&activeShakerIdx===hit.idx ? closeAllPanels() : openShakerPanel2(hit.idx, cx, cy);
+      } else {
+        openPanel==='shaker'&&activeShakerIdx===hit.idx ? closeAllPanels() : openShakerPanel(hit.idx, cx, cy);
+      }
     } else if (hit.type === 'trunk') {
-      const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-      const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-      openPanel==='tree' ? closeAllPanels() : openTreePanel(cx, cy);
+      if (hit.tree === 2) {
+        openPanel==='tree2' ? closeAllPanels() : openTreePanel2(cx, cy);
+      } else {
+        openPanel==='tree' ? closeAllPanels() : openTreePanel(cx, cy);
+      }
     }
     return;
   }
@@ -4413,8 +4604,8 @@ function update() {
     if(dx&&dy){dx*=.707;dy*=.707;}
     squirrel.targetAngle=Math.atan2(dy,dx);
     squirrel.angle+=angleDiff(squirrel.angle,squirrel.targetAngle)*.12;
-    squirrel.x=Math.max(sqW()/2,Math.min(W-sqW()/2,squirrel.x+dx*playerSpeed()));
-    squirrel.y=Math.max(sqH()/2,Math.min(H-sqH()/2,squirrel.y+dy*playerSpeed()));
+    squirrel.x=Math.max(sqW()/2,Math.min(WORLD_W()-sqW()/2,squirrel.x+dx*playerSpeed()));
+    squirrel.y=Math.max(sqH()/2,Math.min(VH-sqH()/2,squirrel.y+dy*playerSpeed()));
 
   } else if (joy.active && (Math.abs(joy.dx) > 0.08 || Math.abs(joy.dy) > 0.08)) {
     // Joystick input — direct velocity control, feels snappy on mobile
@@ -4424,8 +4615,8 @@ function update() {
     if (jLen > 1) { dx /= jLen; dy /= jLen; }
     squirrel.targetAngle = Math.atan2(dy, dx);
     squirrel.angle += angleDiff(squirrel.angle, squirrel.targetAngle) * .15;
-    squirrel.x = Math.max(sqW()/2, Math.min(W-sqW()/2, squirrel.x + dx*playerSpeed()));
-    squirrel.y = Math.max(sqH()/2, Math.min(H-sqH()/2, squirrel.y + dy*playerSpeed()));
+    squirrel.x = Math.max(sqW()/2, Math.min(WORLD_W()-sqW()/2, squirrel.x + dx*playerSpeed()));
+    squirrel.y = Math.max(sqH()/2, Math.min(VH-sqH()/2, squirrel.y + dy*playerSpeed()));
 
   } else if (mouseTarget) {
     const tdx = mouseTarget.x - squirrel.x;
@@ -4436,8 +4627,8 @@ function update() {
       squirrel.targetAngle = Math.atan2(tdy, tdx);
       squirrel.angle += angleDiff(squirrel.angle, squirrel.targetAngle) * .12;
       const step = Math.min(spd, td);
-      squirrel.x = Math.max(sqW()/2, Math.min(W-sqW()/2, squirrel.x + tdx/td*step));
-      squirrel.y = Math.max(sqH()/2, Math.min(H-sqH()/2, squirrel.y + tdy/td*step));
+      squirrel.x = Math.max(sqW()/2, Math.min(WORLD_W()-sqW()/2, squirrel.x + tdx/td*step));
+      squirrel.y = Math.max(sqH()/2, Math.min(VH-sqH()/2, squirrel.y + tdy/td*step));
     } else {
       // Arrived at target — stop unless still dragging
       if (!mouseDown) mouseTarget = null;
@@ -4445,6 +4636,15 @@ function update() {
   } else {
     // Idle — still lerp angle smoothly
     squirrel.angle += angleDiff(squirrel.angle, squirrel.targetAngle) * .06;
+  }
+
+  // Camera follow squirrel
+  if (tree2Unlocked) {
+    const targetCamX = squirrel.x - VW / 2;
+    camX += (targetCamX - camX) * 0.10;
+    camX = Math.max(0, Math.min(VW, camX)); // world is 2*VW wide, so max camX = VW
+  } else {
+    camX = 0;
   }
 
   // Age click marker
@@ -4596,54 +4796,71 @@ function update() {
 
 // ── Draw ──────────────────────────────────────────────────
 function draw() {
-  ctx.clearRect(0,0,W,H);
+  const worldW = tree2Unlocked ? VW * 2 : VW;
+
+  // When tree2 is active, draw entire world onto offscreen canvas, then blit slice to screen
+  if (tree2Unlocked) {
+    // Swap ctx to world canvas
+    const screenCtx = ctx;
+    // We reassign the module-level ctx temporarily
+    window._savedCtx = ctx;
+    // Draw world onto wctx
+    wctx.clearRect(0, 0, worldW, VH);
+    _drawWorld(wctx, worldW);
+    // Blit the camera slice to screen
+    screenCtx.clearRect(0, 0, VW, VH);
+    screenCtx.drawImage(worldCanvas, camX, 0, VW, VH, 0, 0, VW, VH);
+  } else {
+    ctx.clearRect(0, 0, VW, VH);
+    _drawWorld(ctx, VW);
+  }
+
+  // Click marker always in screen space
+  if (clickMarker) {
+    const screenX = tree2Unlocked ? clickMarker.x - camX : clickMarker.x;
+    const p = clickMarker.age / 40;
+    const r = 6 + p * 18;
+    ctx.beginPath(); ctx.arc(screenX, clickMarker.y, r, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(245,200,66,${(1-p)*0.7})`;
+    ctx.lineWidth = 2 - p*1.5;
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(screenX, clickMarker.y, 3*(1-p), 0, Math.PI*2);
+    ctx.fillStyle = `rgba(245,200,66,${(1-p)*0.5})`;
+    ctx.fill();
+  }
+}
+
+function _drawWorld(dc, worldW) {
+  // All draw calls use whichever context is passed in
+  // We temporarily rebind the global ctx used by all draw functions
+  const orig = ctx;
+  // eslint-disable-next-line no-global-assign
+  ctx = dc;
   drawGround();
+  drawGround2();
   drawRoots();
-  // Stage 9 Atlantis: seagrass behind acorns, temple behind trunk, fish in front
+  if (tree2Unlocked) drawRoots2();
   if (currentStage === 9) drawAtlantisFloorExtras();
-  // Acorns behind trunk
   acorns.forEach(a=>{if(!a.carried)drawAcorn(a);});
   carrying.forEach(a=>drawAcorn(a));
-  // Fire sprites behind trunk
   if (currentStage === 5) fireSprites.forEach(f => drawFireSprite(f));
-  // Lollipop trees and candy sheep for stage 6
   if (currentStage === 6) {
     lollipopTrees.forEach(t => drawLollipopTree(t));
     candySheep.forEach(s => drawCandySheep(s));
   }
-  // Gravestones and skeletons for stage 7
-  if (currentStage === 7) {
-    drawGravestones();
-    skeletons.forEach(s => drawSkeleton(s));
-  }
-  // Ice pillars for stage 8
+  if (currentStage === 7) { drawGravestones(); skeletons.forEach(s => drawSkeleton(s)); }
   if (currentStage === 8) icePillars.forEach(p => drawIcePillar(p));
-  // Atlantis temple columns (around trunk, drawn before trunk)
   if (currentStage === 9) drawAtlantisTemple();
   drawTrunkPillar();
   drawNest();
+  if (tree2Unlocked) { drawTrunkPillar2(); drawShakerSquirrels2(); }
   drawShakerSquirrels();
   drawTalkingTrees();
-  // Friends drawn before player (player on top)
   friends.forEach(f=>drawFriendSquirrel(f));
   drawSquirrel();
-  // Ghost pops for stage 7
   if (currentStage === 7) drawGhostPops();
-  // Atlantis fish swim in front of everything
   if (currentStage === 9) drawAtlantisFish();
-  // Click marker — small ripple ring where player clicked
-  if (clickMarker) {
-    const p = clickMarker.age / 40;
-    const r = 6 + p * 18;
-    ctx.beginPath(); ctx.arc(clickMarker.x, clickMarker.y, r, 0, Math.PI*2);
-    ctx.strokeStyle = `rgba(245,200,66,${(1-p)*0.7})`;
-    ctx.lineWidth = 2 - p*1.5;
-    ctx.stroke();
-    // Small inner dot
-    ctx.beginPath(); ctx.arc(clickMarker.x, clickMarker.y, 3*(1-p), 0, Math.PI*2);
-    ctx.fillStyle = `rgba(245,200,66,${(1-p)*0.5})`;
-    ctx.fill();
-  }
+  ctx = orig;
 }
 
 function loop(){update();draw();requestAnimationFrame(loop);}
@@ -4915,6 +5132,252 @@ function drawAtlantisFish() {
   });
 }
 
+
+
+function drawGround2() {
+  if (!tree2Unlocked) return;
+
+  // Subtle dashed divider
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.strokeStyle = '#f5c842';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([10, 8]);
+  ctx.beginPath(); ctx.moveTo(VW, 0); ctx.lineTo(VW, VH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // ── Stage-matching ground texture for right half ──
+  const rx = VW; // right half starts here
+
+  // Rocks and concrete rubble scattered around Tree 2 (always present)
+  // These are pre-seeded so they don't move
+  const RUBBLE = [
+    {x:0.08,y:0.22,w:22,h:14,a:0.3},  {x:0.92,y:0.18,w:18,h:12,a:-0.2},
+    {x:0.15,y:0.75,w:26,h:16,a:0.5},  {x:0.85,y:0.72,w:20,h:13,a:-0.4},
+    {x:0.30,y:0.12,w:14,h:10,a:0.8},  {x:0.70,y:0.88,w:16,h:11,a:-0.6},
+    {x:0.05,y:0.50,w:12,h: 8,a:0.1},  {x:0.94,y:0.50,w:14,h: 9,a:-0.3},
+    {x:0.22,y:0.40,w:10,h: 7,a:0.9},  {x:0.78,y:0.60,w:12,h: 8,a:-0.7},
+    {x:0.40,y:0.08,w: 8,h: 6,a:0.4},  {x:0.60,y:0.92,w:10,h: 7,a:-0.5},
+    // Concrete shards (thinner, more angular)
+    {x:0.12,y:0.35,w:30,h: 6,a:0.6,shard:true},
+    {x:0.88,y:0.40,w:28,h: 5,a:-0.8,shard:true},
+    {x:0.25,y:0.65,w:24,h: 5,a:1.1,shard:true},
+    {x:0.75,y:0.30,w:26,h: 6,a:-0.9,shard:true},
+    {x:0.50,y:0.05,w:20,h: 4,a:0.3,shard:true},
+    {x:0.50,y:0.95,w:22,h: 5,a:-0.4,shard:true},
+  ];
+
+  RUBBLE.forEach(r => {
+    const wx = rx + r.x * VW;
+    const wy = r.y * VH;
+    // Skip if too close to T2X trunk
+    if (Math.hypot(wx - T2X, wy - T2Y) < TR + 55) return;
+    ctx.save();
+    ctx.translate(wx, wy);
+    ctx.rotate(r.a);
+    if (r.shard) {
+      // Concrete shard — angular, pale grey
+      const shimmer = 0.7 + Math.sin(frame/120 + wx*0.01)*0.05;
+      const cg = ctx.createLinearGradient(-r.w/2, 0, r.w/2, r.h);
+      cg.addColorStop(0, '#5a5a60');
+      cg.addColorStop(0.5, '#7a7a82');
+      cg.addColorStop(1, '#3a3a40');
+      ctx.globalAlpha = 0.75 * shimmer;
+      ctx.beginPath();
+      // Irregular polygon for concrete shard
+      ctx.moveTo(-r.w/2,  r.h*0.3);
+      ctx.lineTo(-r.w/2 + r.w*0.15, -r.h/2);
+      ctx.lineTo( r.w/2 - r.w*0.1,  -r.h/2);
+      ctx.lineTo( r.w/2,  r.h*0.4);
+      ctx.lineTo( r.w/2 - r.w*0.2,  r.h/2);
+      ctx.lineTo(-r.w/2 + r.w*0.1,  r.h/2);
+      ctx.closePath();
+      ctx.fillStyle = cg; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 0.8; ctx.stroke();
+      // Rebar hint
+      ctx.strokeStyle = 'rgba(140,80,40,0.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(-r.w*0.3, 0); ctx.lineTo(r.w*0.4, 0); ctx.stroke();
+    } else {
+      // Rock — rounded, natural
+      const rg = ctx.createRadialGradient(-r.w*0.2, -r.h*0.2, 0, 0, 0, r.w*0.7);
+      // Rock colour varies by stage
+      const rockLight = currentStage === 9 ? '#4a6070' : currentStage === 8 ? '#5a7080' : '#6a6a70';
+      const rockDark  = currentStage === 9 ? '#1a2838' : currentStage === 8 ? '#2a3848' : '#2a2a30';
+      rg.addColorStop(0, rockLight);
+      rg.addColorStop(0.6, rockDark);
+      rg.addColorStop(1, 'rgba(0,0,0,0.6)');
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.ellipse(0, 0, r.w/2, r.h/2, 0, 0, Math.PI*2);
+      ctx.fillStyle = rg; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 0.8; ctx.stroke();
+      // Crack detail
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.moveTo(-r.w*0.2, -r.h*0.1); ctx.lineTo(r.w*0.1, r.h*0.2); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+
+  // Seagrass also extends to right half in stage 9
+  if (currentStage === 9) {
+    const RIGHT_GRASS = [
+      {x:0.10,y:0.22},{x:0.88,y:0.18},{x:0.80,y:0.78},{x:0.12,y:0.72},
+      {x:0.28,y:0.38},{x:0.72,y:0.62},{x:0.18,y:0.55},{x:0.80,y:0.42},
+      {x:0.45,y:0.08},{x:0.55,y:0.90},{x:0.05,y:0.50},{x:0.94,y:0.50},
+    ];
+    RIGHT_GRASS.forEach((p, i) => {
+      const px = VW + p.x * VW;
+      const py = p.y * VH;
+      if (Math.hypot(px - T2X, py - T2Y) < TR + 55) return;
+      // 5-8 blades per patch
+      const bladeCount = 5 + (i % 4);
+      for (let b = 0; b < bladeCount; b++) {
+        const ox = (((i*7+b*13)%28) - 14);
+        const height = 18 + (i*5+b*8)%22;
+        const sway_phase = (i + b) * 0.9;
+        const sway = Math.sin(frame/40 + sway_phase) * 6;
+        const sway2 = Math.sin(frame/55 + sway_phase + 1) * 3;
+        const col = b%2===0 ? '#20c878' : '#18a060';
+        ctx.save();
+        ctx.translate(px + ox, py);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(sway*0.3, -height*0.33, sway*0.7+sway2, -height*0.66, sway+sway2, -height);
+        ctx.lineWidth = 2 + (b%3)*0.5;
+        ctx.strokeStyle = col;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = 0.82;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    });
+  }
+}
+
+function drawRoots2() {
+  [{a:-.4,len:200,w:11},{a:.4,len:180,w:10},{a:-1.3,len:190,w:9},{a:1.2,len:185,w:9},
+   {a:-2.2,len:170,w:8},{a:2.3,len:165,w:8},{a:Math.PI,len:155,w:7},{a:0,len:160,w:7},
+   {a:-Math.PI/2,len:145,w:6},{a:Math.PI*1.5,len:150,w:6}].forEach(({a,len,w},i)=>{
+    const wob=i%2===0?.25:-.25;
+    const sx=T2X+Math.cos(a)*TR*.85, sy=T2Y+Math.sin(a)*TR*.85;
+    const mx=T2X+Math.cos(a+wob)*len*.5, my=T2Y+Math.sin(a+wob)*len*.5;
+    const ex=T2X+Math.cos(a)*len, ey=T2Y+Math.sin(a)*len;
+    ctx.beginPath(); ctx.moveTo(sx+2,sy+2); ctx.quadraticCurveTo(mx+2,my+2,ex+2,ey+2);
+    ctx.lineWidth=w+3; ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineCap='round'; ctx.stroke();
+    const rg=ctx.createLinearGradient(sx,sy,ex,ey);
+    rg.addColorStop(0,COL.rootMid); rg.addColorStop(1,COL.rootDark);
+    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(mx,my,ex,ey);
+    ctx.lineWidth=w; ctx.strokeStyle=rg; ctx.stroke();
+  });
+}
+
+// ── Tree 2 drawing ────────────────────────────────────────
+function drawTrunkPillar2() {
+  // Same as tree1 but centred at T2X,T2Y — slightly different tint (older/more gnarled)
+  ctx.save();
+  ctx.translate(T2X - CX, T2Y - CY); // shift world so T2 is where CX,CY would be
+  ctx.translate(CX, CY);
+  ctx.translate(-CX, -CY);
+  ctx.restore();
+  // Draw directly at T2X,T2Y
+  const s2 = currentStage === 2, s3 = currentStage === 3, s5 = currentStage === 5;
+  const s6 = currentStage === 6, s7 = currentStage === 7, s8 = currentStage === 8, s9 = currentStage === 9;
+  const tOuter = s9?'#0a2838':s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
+  const tMid   = s9?'#102e48':s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
+  const tCore  = s9?'#1a4060':s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
+  const tLight = s9?'#2a6090':s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
+  const shadow=ctx.createRadialGradient(T2X,T2Y+6,TR*.5,T2X,T2Y+4,TR*1.28);
+  shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
+  ctx.beginPath(); ctx.arc(T2X,T2Y,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
+  const tg=ctx.createRadialGradient(T2X-TR*.28,T2Y-TR*.22,TR*.05,T2X,T2Y,TR);
+  tg.addColorStop(0,tLight); tg.addColorStop(.35,tCore); tg.addColorStop(.7,tMid); tg.addColorStop(1,tOuter);
+  ctx.beginPath(); ctx.arc(T2X,T2Y,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
+  [.82,.65,.48].forEach(rf=>{
+    ctx.beginPath(); ctx.arc(T2X,T2Y,TR*rf,0,Math.PI*2);
+    ctx.strokeStyle=s9?'rgba(20,160,180,0.5)':s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':COL.barkRing;
+    ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+  for (let i=0;i<9;i++) {
+    const fa=(i/9)*Math.PI*2+Math.sin(i*1.3)*.15;
+    ctx.beginPath();
+    ctx.moveTo(T2X+Math.cos(fa)*TR*.32, T2Y+Math.sin(fa)*TR*.32);
+    ctx.lineTo(T2X+Math.cos(fa+.08)*TR*(.78+Math.sin(i*2.1)*.12), T2Y+Math.sin(fa+.08)*TR*(.78+Math.sin(i*2.1)*.12));
+    ctx.strokeStyle='rgba(0,0,0,0.28)'; ctx.lineWidth=1; ctx.stroke();
+  }
+  ctx.beginPath(); ctx.arc(T2X,T2Y,TR,0,Math.PI*2);
+  ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
+  // Label
+  ctx.save();
+  ctx.font = 'bold 8px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(200,180,80,0.8)';
+  ctx.fillText('TREE 2', T2X, T2Y - TR - 12);
+  ctx.restore();
+}
+
+function drawNest2() {
+  const nx=T2_NEST_X, ny=T2_NEST_Y, nr=nestRadius();
+  const dNest=dist(squirrel.x,squirrel.y,nx,ny);
+  ctx.beginPath(); ctx.ellipse(nx,ny,nr,nr*.82,T2_NEST_A,0,Math.PI*2);
+  ctx.fillStyle=COL.nestDark; ctx.fill(); ctx.strokeStyle=COL.nestMid; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(nx,ny,nr*.58,nr*.48,T2_NEST_A,0,Math.PI*2);
+  ctx.fillStyle='#040100'; ctx.fill();
+  ctx.strokeStyle=COL.nestLight; ctx.lineWidth=1.1;
+  for (let i=0;i<4;i++) { ctx.beginPath(); ctx.arc(nx+(i-1.5)*4,ny+nr*.25,4.5+i*2,Math.PI*.1,Math.PI*.9); ctx.stroke(); }
+  let glow = dNest < 90 ? (90-dNest)/90 : 0;
+  friends.forEach(f=>{ if (f.state==='returning') glow=Math.max(glow,0.2); });
+  if (glow>0) {
+    ctx.globalAlpha=glow*.5;
+    const ng=ctx.createRadialGradient(nx,ny,0,nx,ny,nr*2.5);
+    ng.addColorStop(0,'rgba(255,190,40,0.9)'); ng.addColorStop(1,'rgba(255,190,40,0)');
+    ctx.beginPath(); ctx.arc(nx,ny,nr*2.5,0,Math.PI*2); ctx.fillStyle=ng; ctx.fill();
+    ctx.globalAlpha=1;
+  }
+}
+
+function drawShakerSquirrels2() {
+  const t=frame/60;
+  const sk = SHAKER_SKINS[equippedShakerSkin] || SHAKER_SKINS.default;
+  shakers2.forEach((sh,i)=>{
+    const shake=Math.sin(t*7.5+sh.phase)*3.5;
+    const sx=T2X+Math.cos(sh.angle)*(TR+2), sy=T2Y+Math.sin(sh.angle)*(TR+2);
+    const isSel=(openPanel==='shaker2'&&activeShakerIdx2===i);
+    ctx.save();
+    ctx.translate(sx+Math.cos(sh.angle+Math.PI/2)*shake*.5, sy+Math.sin(sh.angle+Math.PI/2)*shake*.5);
+    ctx.rotate(sh.angle); ctx.scale(.72,.72);
+    if (isSel) { ctx.beginPath(); ctx.arc(0,-4,22,0,Math.PI*2); ctx.strokeStyle=sk.sel; ctx.lineWidth=2.5; ctx.globalAlpha=.7; ctx.stroke(); ctx.globalAlpha=1; }
+    ctx.beginPath(); ctx.arc(0,-4,20,0,Math.PI*2); ctx.strokeStyle=sk.glow; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-4,0); ctx.quadraticCurveTo(-14,-9+shake,-10,-20);
+    ctx.lineWidth=5; ctx.strokeStyle=sk.body; ctx.stroke();
+    ctx.lineWidth=3; ctx.strokeStyle=sk.belly; ctx.stroke();
+    ctx.beginPath(); ctx.arc(-9,-20,4,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0,0,5,7,0,0,Math.PI*2); ctx.fillStyle=sk.body; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(1,1,3,4.5,0,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-2,7,3,4,.2,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3,7,3,4,-.2,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
+    ctx.beginPath(); ctx.arc(5,-8,5,0,Math.PI*2); ctx.fillStyle=sk.body; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8,-7,3.5,2.5,.2,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.arc(4,-13,2.8,0,Math.PI*2); ctx.fillStyle=sk.dark; ctx.fill();
+    ctx.beginPath(); ctx.arc(4,-13,1.4,0,Math.PI*2); ctx.fillStyle=sk.belly; ctx.fill();
+    ctx.beginPath(); ctx.arc(8,-9,1.5,0,Math.PI*2); ctx.fillStyle='#0e0400'; ctx.fill();
+    ctx.beginPath(); ctx.arc(8.5,-9.4,.55,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(11,-7,1,0,Math.PI*2); ctx.fillStyle='#8B2020'; ctx.fill();
+    const as=shake*.6;
+    ctx.beginPath(); ctx.moveTo(4,-3); ctx.lineTo(12,2+as); ctx.lineWidth=2.5; ctx.strokeStyle=sk.body; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4,-1); ctx.lineTo(12,5+as); ctx.lineWidth=2; ctx.strokeStyle=sk.dark; ctx.stroke();
+    ctx.rotate(-sh.angle);
+    ctx.fillStyle=sh.drops>1?sk.badge:'rgba(200,134,10,0.5)';
+    ctx.font=`bold ${8+sh.drops}px sans-serif`; ctx.textAlign='center';
+    ctx.fillText('x'+sh.drops, 0, -30);
+    ctx.restore();
+  });
+}
+
 // ── Save / Load ───────────────────────────────────────────
 const SAVE_KEY = 'worldTreeSquirrel_save';
 
@@ -4927,6 +5390,9 @@ function saveGame() {
     shakerCount: shakers.length,
     shakerDrops: shakers.map(s => s.drops),
     friendCount: friends.length,
+    tree2Unlocked,
+    shaker2Count: shakers2.length,
+    shaker2Drops: shakers2.map(s => s.drops),
   };
   localStorage.setItem(SAVE_KEY, JSON.stringify(data));
   // Flash the save indicator
@@ -5026,6 +5492,17 @@ function loadGame() {
     friends = [];
     const fCount = d.friendCount || 0;
     for (let i = 0; i < fCount; i++) spawnFriend();
+
+    // Restore tree 2
+    if (d.tree2Unlocked) {
+      tree2Unlocked = true;
+      shakers2 = [];
+      const s2Count = d.shaker2Count || 1;
+      for (let i = 0; i < s2Count; i++) addShakerEntry2();
+      if (d.shaker2Drops) d.shaker2Drops.forEach((drops, i) => { if (shakers2[i]) shakers2[i].drops = drops; });
+      const card = document.getElementById('card-tree2');
+      if (card) card.style.display = 'none';
+    }
 
     applyStageUI(currentStage);
     return true;
