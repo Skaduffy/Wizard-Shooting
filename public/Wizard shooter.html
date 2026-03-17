@@ -420,6 +420,16 @@
   .costume-tab-btn.active { background: #1a3000; border-color: #c8860a; color: #f5c842; }
 
 
+  /* ── Stage 11 — Mushroom Forest ── */
+  body.stage11 { background: #0d0318; }
+  body.stage11 #shop { background: rgba(8,1,16,0.99); border-left-color: #c040e0; }
+  body.stage11 #shop h2 { color: #e890ff; border-bottom-color: #280838; }
+  body.stage11 #gameCanvas { border-color: #3a0848; box-shadow: 0 0 60px rgba(180,40,220,0.7); }
+  body.stage11 .hud-box { border-color: #c040e0; color: #e890ff; }
+  body.stage11 .hud-box.green { border-color: #40a060; color: #90e8b0; }
+  body.stage11 .hud-box.blue  { border-color: #6040a0; color: #c090ff; }
+  body.stage11 #store-btn { border-color: #c040e0; color: #e890ff; box-shadow: 0 0 12px rgba(180,40,220,0.4); }
+
   /* ── Stage 9 — Atlantis Floor ── */
   body.stage9 { background: #020e18; }
   body.stage9 #shop { background: rgba(1,8,18,0.99); border-left-color: #20a8c0; }
@@ -1063,6 +1073,20 @@
     <button class="upg-btn" id="btn-nextstage10" style="display:none"></button>
   </div>
 
+  <div class="upg-card" id="nextstage11-card" style="border-color:#380848;display:none;" onclick="openNextStage11()">
+    <div class="upg-card-inner">
+      <div class="upg-card-left">
+        <div class="upg-title" style="color:#e890ff;">🍄 MUSHROOM FOREST</div>
+        <span class="upg-level" style="color:#a040c0;">ONE-TIME</span>
+      </div>
+      <div class="upg-card-right">
+        <div class="upg-card-desc" style="color:#602080;">Stage 11 — spore nuts 600x. Grow!</div>
+        <div class="upg-card-price" style="color:#e890ff;">🍄 <span id="cost-nextstage11">5000000</span></div>
+      </div>
+    </div>
+    <button class="upg-btn" id="btn-nextstage11" style="display:none"></button>
+  </div>
+
 </div>
 
 
@@ -1092,6 +1116,29 @@
 
 <div id="acorn-pop"></div>
 <div id="acorn-scream"></div>
+<!-- Stage 11 Confirm Modal -->
+<div id="nextstage11-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:60;align-items:center;justify-content:center;">
+  <div style="background:#0a0118;border:2px solid #a030c0;border-radius:14px;padding:26px 28px 24px;width:420px;max-width:96vw;box-shadow:0 0 60px rgba(160,40,200,0.6);font-family:'Press Start 2P',monospace;display:flex;flex-direction:column;gap:16px;align-items:center;">
+    <div style="font-size:48px;">🍄</div>
+    <h2 style="color:#e890ff;font-size:12px;text-align:center;letter-spacing:1px;">ENTER THE<br>MUSHROOM FOREST?</h2>
+    <div style="color:#703090;font-size:6.5px;line-height:2.2;text-align:center;">
+      Stage 11 — The Spore Realm<br><br>
+      🍄 Spore nuts drop from giant mushrooms<br>
+      🍄 Base value: 600 nuts each<br>
+      🍄 Fairy rings, spore clouds, and glowing fungi!
+    </div>
+    <div style="color:#c84040;font-size:6px;text-align:center;line-height:2;border:1px solid #401010;border-radius:6px;padding:8px 12px;background:#0a0202;width:100%;">
+      ⚠ ALL UPGRADES RESET TO ZERO<br>
+      Friends dismissed · Shakers reset<br>
+      Nuts are spent on entry
+    </div>
+    <div style="display:flex;gap:12px;width:100%;">
+      <button onclick="confirmNextStage11()" style="flex:1;background:#3a0858;border:2px solid #a030c0;border-radius:8px;color:#e890ff;font-family:'Press Start 2P',monospace;font-size:8px;padding:12px 8px;cursor:pointer;" onmouseover="this.style.background='#5a10a0'" onmouseout="this.style.background='#3a0858'">✓ ENTER FOREST</button>
+      <button onclick="closeNextStage11()" style="flex:1;background:#0a0202;border:2px solid #401020;border-radius:8px;color:#803050;font-family:'Press Start 2P',monospace;font-size:8px;padding:12px 8px;cursor:pointer;" onmouseover="this.style.background='#180408'" onmouseout="this.style.background='#0a0202'">✕ NOT YET</button>
+    </div>
+  </div>
+</div>
+
 <div class="tree-bubble" id="bubble-0"></div>
 <div class="tree-bubble" id="bubble-1"></div>
 
@@ -1595,7 +1642,7 @@ const upgCost       = id  => Math.floor(UPG[id].baseCost * Math.pow(UPG[id].scal
 const shakerCost    = ()  => Math.floor(SHAKER_BASE_COST * Math.pow(SHAKER_SCALE, shakers.length - 1));
 const friendCost    = ()  => Math.floor(FRIEND_BASE_COST * Math.pow(FRIEND_COST_SCALE, friends.length));
 const maxCarry      = ()  => 3 + UPG.size.level * 2;   // no hard cap — size grows squirrel body up to SQ_MAX_LEVEL but carry keeps scaling
-const nutsPerAcorn  = ()  => (currentStage === 10 ? 300 : currentStage === 9 ? 160 : currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
+const nutsPerAcorn  = ()  => (currentStage === 11 ? 600 : currentStage === 10 ? 300 : currentStage === 9 ? 160 : currentStage === 8 ? 80 : currentStage === 7 ? 40 : currentStage === 6 ? 16 : currentStage === 5 ? 8 : currentStage === 4 ? 6 : currentStage === 3 ? 4 : currentStage === 2 ? 2 : 1) + UPG.coins.level;
 const regenSecs     = ()  => Math.max(0.7, 5.5 - UPG.regen.level * 0.6);
 const regenFrames   = ()  => Math.round(regenSecs() * 60);
 const playerSpeed   = ()  => 2.8 + UPG.speed.level * 0.5;
@@ -2015,6 +2062,7 @@ function resetForNewStage() {
   regenTimer = 0;
   nuts = 0;
   astronauts = [];
+  mushroomCaps = []; fairyRings = []; sporeParticles = []; fairyLights = [];
   squirrel.x = CX + TR + 110; squirrel.y = CY;
   squirrel.angle = Math.PI; squirrel.targetAngle = Math.PI;
 }
@@ -3237,8 +3285,8 @@ function refreshUI() {
   if (UPG.size.level >= SQ_MAX_LEVEL) {
     document.getElementById('lvl-size').textContent = `LV ${UPG.size.level} (max body)`;
   }
-  const nut = currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
-  const nutName = currentStage === 10 ? 'space nut' : currentStage === 9 ? 'seagrass acorn' : currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
+  const nut = currentStage === 11 ? '🍄' : currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nutName = currentStage === 11 ? 'spore nut' : currentStage === 10 ? 'space nut' : currentStage === 9 ? 'seagrass acorn' : currentStage === 8 ? 'frost acorn' : currentStage === 7 ? 'ghost acorn' : currentStage === 6 ? 'gumdrop' : currentStage >= 4 ? 'acorn' : currentStage === 3 ? 'peanut' : currentStage === 2 ? 'walnut' : 'acorn';
   document.getElementById('desc-size').textContent   = UPG.size.level < SQ_MAX_LEVEL ? `Carry ${maxCarry()} · body grows` : `Carry ${maxCarry()} · max size`;
   document.getElementById('desc-speed').textContent  = `Speed: ${playerSpeed().toFixed(1)}`;
   document.getElementById('desc-coins').textContent  = `${nutsPerAcorn()} nut${nutsPerAcorn()>1?'s':''} per ${nutName}`;
@@ -3273,6 +3321,7 @@ function refreshUI() {
   if (currentStage === 7) { document.getElementById('btn-nextstage8').classList.toggle('cant', nuts < NEXTSTAGE8_COST); document.getElementById('nextstage8-card').classList.toggle('cant', nuts < NEXTSTAGE8_COST); }
   if (currentStage === 8) { document.getElementById('btn-nextstage9').classList.toggle('cant', nuts < NEXTSTAGE9_COST); document.getElementById('nextstage9-card').classList.toggle('cant', nuts < NEXTSTAGE9_COST); }
   if (currentStage === 9) { document.getElementById('btn-nextstage10').classList.toggle('cant', nuts < NEXTSTAGE10_COST); document.getElementById('nextstage10-card').classList.toggle('cant', nuts < NEXTSTAGE10_COST); }
+  if (currentStage === 10) { document.getElementById('btn-nextstage11').classList.toggle('cant', nuts < NEXTSTAGE11_COST); document.getElementById('nextstage11-card').classList.toggle('cant', nuts < NEXTSTAGE11_COST); }
   if (openPanel==='tree')   refreshTreePanel();
   if (openPanel==='shaker') refreshShakerPanel();
 }
@@ -3282,7 +3331,7 @@ function nutPop(x,y,amount) {
   // canvas internal coords → screen coords (accounts for CSS scaling)
   const scaleX = r.width  / canvas.width;
   const scaleY = r.height / canvas.height;
-  const nut = currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
+  const nut = currentStage === 11 ? '🍄' : currentStage === 10 ? '🌙' : currentStage === 9 ? '🌿' : currentStage === 8 ? '🧊' : currentStage === 7 ? '👻' : currentStage === 6 ? '🍬' : currentStage >= 2 ? '🥜' : '🌰';
   el.textContent=`+${amount} ${nut}`;
   const screenNutX = x * scaleX;
   el.style.cssText=`left:${r.left + screenNutX}px;top:${r.top + (y-24)*scaleY}px;opacity:1;transition:none;transform:translateY(0)`;
@@ -3294,6 +3343,13 @@ function nutPop(x,y,amount) {
 // ─────────────────────────────────────────────────────────
 
 function drawGround() {
+  if (currentStage === 11) {
+    // Stage 11 background is handled by drawMushroomFloorBackground — just draw the inner ground ring
+    const ig=ctx.createRadialGradient(CX,CY,0,CX,CY,TR+35);
+    ig.addColorStop(0,'#1a0830'); ig.addColorStop(0.6,'#140628'); ig.addColorStop(1,'rgba(13,3,24,0)');
+    ctx.beginPath(); ctx.arc(CX,CY,TR+35,0,Math.PI*2); ctx.fillStyle=ig; ctx.fill();
+    return;
+  }
   if (currentStage === 10) {
     // Space Floor — lunar surface, gray with craters
     ctx.fillStyle = '#0a0810'; ctx.fillRect(0,0,VW,VH);
@@ -3643,6 +3699,7 @@ function drawGround() {
 }
 
 function drawRoots() {
+  const s11 = currentStage === 11;
   [{a:-.4,len:200,w:11},{a:.4,len:180,w:10},{a:-1.3,len:190,w:9},{a:1.2,len:185,w:9},
    {a:-2.2,len:170,w:8},{a:2.3,len:165,w:8},{a:Math.PI,len:155,w:7},{a:0,len:160,w:7},
    {a:-Math.PI/2,len:145,w:6},{a:Math.PI*1.5,len:150,w:6}].forEach(({a,len,w},i)=>{
@@ -3653,7 +3710,11 @@ function drawRoots() {
     ctx.beginPath(); ctx.moveTo(sx+2,sy+2); ctx.quadraticCurveTo(mx+2,my+2,ex+2,ey+2);
     ctx.lineWidth=w+3; ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineCap='round'; ctx.stroke();
     const rg=ctx.createLinearGradient(sx,sy,ex,ey);
-    rg.addColorStop(0,COL.rootMid); rg.addColorStop(1,COL.rootDark);
+    if (s11) {
+      rg.addColorStop(0,'#ffffff'); rg.addColorStop(1,'rgba(220,220,255,0.5)');
+    } else {
+      rg.addColorStop(0,COL.rootMid); rg.addColorStop(1,COL.rootDark);
+    }
     ctx.beginPath(); ctx.moveTo(sx,sy); ctx.quadraticCurveTo(mx,my,ex,ey);
     ctx.lineWidth=w; ctx.strokeStyle=rg; ctx.stroke();
   });
@@ -3668,10 +3729,11 @@ function drawTrunkPillar() {
   const s8 = currentStage === 8;
   const s9 = currentStage === 9;
   const s10 = currentStage === 10;
-  const tOuter = s10?'#2a1840':s9?'#0a2838':s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
-  const tMid   = s10?'#3a2258':s9?'#102e48':s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
-  const tCore  = s10?'#503078':s9?'#1a4060':s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
-  const tLight = s10?'#9060c0':s9?'#2a6090':s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
+  const s11 = currentStage === 11;
+  const tOuter = s11?'#6a0010':s10?'#2a1840':s9?'#0a2838':s8?'#c0d8e8':s7?'#1a3a1a':s6?'#5020a0':s5?'#0e0804':s3?'#2a3008':s2?'#0a1a0e':COL.trunkOuter;
+  const tMid   = s11?'#a01020':s10?'#3a2258':s9?'#102e48':s8?'#ddeeff':s7?'#2a4a2a':s6?'#7030b0':s5?'#1e1008':s3?'#3a4210':s2?'#102a18':COL.trunkMid;
+  const tCore  = s11?'#cc2030':s10?'#503078':s9?'#1a4060':s8?'#f0f8ff':s7?'#3a5a3a':s6?'#9040c0':s5?'#2e1a0c':s3?'#4a5418':s2?'#163a20':COL.trunkCore;
+  const tLight = s11?'#ff5060':s10?'#9060c0':s9?'#2a6090':s8?'#ffffff':s7?'#60a060':s6?'#c060e0':s5?'#3e2010':s3?'#6a7828':s2?'#204a2a':COL.trunkLight;
   const shadow=ctx.createRadialGradient(CX,CY+6,TR*.5,CX,CY+4,TR*1.28);
   shadow.addColorStop(0,'rgba(0,0,0,0)'); shadow.addColorStop(.7,'rgba(0,0,0,0)'); shadow.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.beginPath(); ctx.arc(CX,CY,TR*1.28,0,Math.PI*2); ctx.fillStyle=shadow; ctx.fill();
@@ -3680,7 +3742,7 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2); ctx.fillStyle=tg; ctx.fill();
   [.82,.65,.48].forEach(rf=>{
     ctx.beginPath(); ctx.arc(CX,CY,TR*rf,0,Math.PI*2);
-    ctx.strokeStyle=s10?'rgba(180,100,255,0.5)':s9?'rgba(20,160,180,0.5)':s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
+    ctx.strokeStyle=s11?'rgba(200,40,60,0.6)':s10?'rgba(180,100,255,0.5)':s9?'rgba(20,160,180,0.5)':s8?'rgba(60,140,220,0.5)':s7?'rgba(60,160,70,0.5)':s6?'rgba(180,80,255,0.5)':s5?'rgba(60,20,5,0.5)':s3?'rgba(100,120,10,0.5)':s2?'rgba(10,60,30,0.6)':COL.barkRing; ctx.lineWidth=1.2; ctx.globalAlpha=.4; ctx.stroke();
   });
   ctx.globalAlpha=1;
   for (let i=0;i<9;i++) {
@@ -3693,14 +3755,27 @@ function drawTrunkPillar() {
   ctx.beginPath(); ctx.arc(CX,CY,TR,0,Math.PI*2);
   ctx.strokeStyle=tOuter; ctx.lineWidth=4; ctx.stroke();
   // Stage glow on trunk
-  if (s2 || s3 || s5 || s6 || s7 || s8 || s9 || s10) {
+  if (s2 || s3 || s5 || s6 || s7 || s8 || s9 || s10 || s11) {
     const glowP = Math.sin(frame/80)*0.5+0.5;
     ctx.globalAlpha = 0.12 + glowP*0.08;
-    const glowCol = s10?'rgba(160,80,255,1)':s9?'rgba(20,200,180,1)':s8?'rgba(60,140,240,1)':s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5?'rgba(255,80,10,1)':s3?'rgba(200,220,30,1)':'rgba(40,200,120,1)';
+    const glowCol = s11?'rgba(220,40,60,1)':s10?'rgba(160,80,255,1)':s9?'rgba(20,200,180,1)':s8?'rgba(60,140,240,1)':s7?'rgba(60,200,80,1)':s6?'rgba(200,80,255,1)':s5?'rgba(255,80,10,1)':s3?'rgba(200,220,30,1)':'rgba(40,200,120,1)';
     const tglow=ctx.createRadialGradient(CX,CY,0,CX,CY,TR*1.1);
     tglow.addColorStop(0,glowCol); tglow.addColorStop(1,glowCol.replace(',1)',',0)'));
     ctx.beginPath(); ctx.arc(CX,CY,TR*1.1,0,Math.PI*2); ctx.fillStyle=tglow; ctx.fill();
     ctx.globalAlpha=1;
+    if (s11) {
+      // Purple spore motes orbit trunk
+      for (let i=0;i<10;i++) {
+        const sa=(i/10)*Math.PI*2+frame*0.03;
+        const sr=TR+5+Math.sin(frame/14+i*1.5)*8;
+        const sp=Math.sin(frame/8+i*2.0)*0.5+0.5;
+        ctx.globalAlpha=sp*0.85;
+        const sporeCol=['#e080ff','#ff80e0','#80c0ff','#80ffcc','#ffe080'][i%5];
+        ctx.fillStyle=sporeCol;
+        ctx.beginPath(); ctx.arc(CX+Math.cos(sa)*sr,CY+Math.sin(sa)*sr,2+sp*1.5,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
     if (s5) {
       for (let i=0;i<8;i++) {
         const sa=(i/8)*Math.PI*2+frame*0.05;
@@ -4316,6 +4391,90 @@ function drawAcorn(a) {
     // Shine
     ctx.beginPath(); ctx.ellipse(x-r*.25,y-r*.25,r*.2,r*.3,-.4,0,Math.PI*2);
     ctx.fillStyle='rgba(180,130,60,0.25)'; ctx.fill();
+  } else if (currentStage === 11) {
+    // Spore nut — a glowing mushroom cap collectible
+    const wobble = Math.sin(frame/18 + x*0.05) * 1.5;
+    const pulse  = Math.sin(frame/22 + y*0.04) * 0.07 + 1;
+    const capColors = [['#e03020','#ff8060'],['#c030a0','#ff80e0'],['#3060d0','#80b0ff'],['#8030c0','#d080ff'],['#20a050','#80ffc0']];
+    const cc = capColors[Math.floor((x*3+y*7)%capColors.length)];
+    // Outer spore glow
+    const og = ctx.createRadialGradient(x, y+wobble, 0, x, y+wobble, r*3.5);
+    og.addColorStop(0, cc[1]+'66'); og.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(x, y+wobble, r*3.5, 0, Math.PI*2); ctx.fillStyle=og; ctx.fill();
+    // Stalk
+    ctx.fillStyle='#d8c8a0';
+    ctx.beginPath(); ctx.roundRect(x-r*0.28, y+wobble, r*0.55, r*1.1, r*0.15); ctx.fill();
+    // Stalk ring
+    ctx.fillStyle='rgba(255,240,200,0.7)';
+    ctx.beginPath(); ctx.ellipse(x, y+wobble+r*0.45, r*0.55, r*0.18, 0, 0, Math.PI*2); ctx.fill();
+    // Cap underside (gills)
+    ctx.fillStyle='#f5eedd';
+    ctx.beginPath(); ctx.ellipse(x, y+wobble+r*0.04, r*1.05*pulse, r*0.32, 0, 0, Math.PI*2); ctx.fill();
+    // Cap body
+    const cg2 = ctx.createRadialGradient(x-r*0.3, y+wobble-r*0.4, 0, x, y+wobble, r*1.1);
+    cg2.addColorStop(0,'#ffffff88'); cg2.addColorStop(0.2, cc[0]); cg2.addColorStop(1, cc[0]+'99');
+    ctx.beginPath();
+    ctx.moveTo(x-r*1.05, y+wobble+r*0.05);
+    ctx.quadraticCurveTo(x-r*0.9, y+wobble-r*0.55, x, y+wobble-r*1.0);
+    ctx.quadraticCurveTo(x+r*0.9, y+wobble-r*0.55, x+r*1.05, y+wobble+r*0.05);
+    ctx.closePath(); ctx.fillStyle=cg2; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=0.8; ctx.stroke();
+    // White spots
+    ctx.fillStyle='rgba(255,255,255,0.88)';
+    ctx.beginPath(); ctx.arc(x-r*0.38, y+wobble-r*0.5, r*0.14, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+r*0.32, y+wobble-r*0.42, r*0.10, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y+wobble-r*0.75, r*0.11, 0, Math.PI*2); ctx.fill();
+    // Highlight
+    ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.ellipse(x-r*0.3, y+wobble-r*0.6, r*0.22, r*0.13, -0.5, 0, Math.PI*2); ctx.fill();
+    // Bioluminescent spore sparkles
+    for (let i=0;i<3;i++) {
+      const sa=i*2.1+frame/15;
+      ctx.fillStyle=cc[1];
+      ctx.globalAlpha*=0.7;
+      ctx.beginPath(); ctx.arc(x+Math.cos(sa)*r*0.6, y+wobble+Math.sin(sa)*r*0.3, 1.2, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  } else if (currentStage === 11) {
+    // Spore nut — glowing mushroom-capped orb with bioluminescent sparkles
+    const pulse = Math.sin(frame/22 + x*0.04) * 0.07 + 1;
+    const wobble = Math.sin(frame/18 + y*0.03) * 1.4;
+    const capColor = ['#e03020','#c030a0','#3080e0','#8030c0'][Math.floor((x*3+y*7)%4)];
+    // Outer spore glow
+    const og = ctx.createRadialGradient(x, y+wobble, 0, x, y+wobble, r*3.5);
+    og.addColorStop(0, 'rgba(200,80,255,0.3)'); og.addColorStop(1, 'rgba(100,20,180,0)');
+    ctx.beginPath(); ctx.arc(x, y+wobble, r*3.5, 0, Math.PI*2); ctx.fillStyle=og; ctx.fill();
+    // Body — soft glowing orb
+    ctx.beginPath(); ctx.ellipse(x, y+wobble+r*.1, r*.75*pulse, r*pulse, 0, 0, Math.PI*2);
+    const bg = ctx.createRadialGradient(x-r*.25, y+wobble-r*.3, 0, x, y+wobble, r);
+    bg.addColorStop(0, '#f0c0ff'); bg.addColorStop(0.4,'#c060f0'); bg.addColorStop(1,'#5010a0');
+    ctx.fillStyle=bg; ctx.fill();
+    ctx.strokeStyle='rgba(200,100,255,0.4)'; ctx.lineWidth=0.8; ctx.stroke();
+    // Mini mushroom cap on top
+    ctx.save(); ctx.translate(x, y+wobble-r*.7);
+    ctx.beginPath(); ctx.ellipse(0, 0, r*.9*pulse, r*.42, 0, 0, Math.PI*2);
+    const cg2 = ctx.createRadialGradient(-r*.3, -r*.2, 0, 0, 0, r*.9);
+    cg2.addColorStop(0,'#ffffff80'); cg2.addColorStop(0.2, capColor); cg2.addColorStop(1, capColor+'aa');
+    ctx.fillStyle=cg2; ctx.fill();
+    // White spots on cap
+    for (let i=0;i<3;i++) {
+      const sa = i*1.1 - 0.8;
+      ctx.fillStyle='rgba(255,255,255,0.85)';
+      ctx.beginPath(); ctx.arc(Math.cos(sa)*r*.4, Math.sin(sa)*r*.15-r*.1, r*.11, 0, Math.PI*2); ctx.fill();
+    }
+    // Stalk
+    ctx.fillStyle='#e0d0b0'; ctx.strokeStyle='rgba(180,150,100,0.5)'; ctx.lineWidth=0.7;
+    ctx.beginPath(); ctx.roundRect(-r*.12, 0, r*.24, r*.6, r*.08); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    // Bioluminescent sparkles
+    for (let i=0;i<4;i++) {
+      const sa = i*1.57 + frame/20;
+      const sc = ['#ff80ff','#c080ff','#80ffcc','#fff080'][i];
+      ctx.fillStyle = sc;
+      ctx.globalAlpha *= 0.7;
+      ctx.beginPath(); ctx.arc(x+Math.cos(sa)*r*.55, y+wobble+Math.sin(sa)*r*.4, 1.1, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
   } else {
     const g=ctx.createRadialGradient(x,y,0,x,y,r*2.2);
     g.addColorStop(0,'rgba(200,134,10,0.28)'); g.addColorStop(1,'rgba(0,0,0,0)');
@@ -4734,6 +4893,7 @@ function update() {
   updateIceFloor();
   updateAtlantisFish();
   updateAstronauts();
+  updateMushroomForest();
 }
 
 // ── Draw ──────────────────────────────────────────────────
@@ -4759,9 +4919,11 @@ function _drawWorld(dc, worldW) {
   const orig = ctx;
   // eslint-disable-next-line no-global-assign
   ctx = dc;
+  if (currentStage === 11) drawMushroomFloorBackground();
   drawGround();
   drawRoots();
   if (currentStage === 9) drawAtlantisFloorExtras();
+  if (currentStage === 11) { mushroomCaps.forEach(m => drawGiantMushroom(m)); }
   acorns.forEach(a=>{if(!a.carried)drawAcorn(a);});
   carrying.forEach(a=>drawAcorn(a));
   if (currentStage === 5) fireSprites.forEach(f => drawFireSprite(f));
@@ -4782,6 +4944,7 @@ function _drawWorld(dc, worldW) {
   if (currentStage === 7) drawGhostPops();
   if (currentStage === 9) drawAtlantisFish();
   if (currentStage === 10) drawAstronauts();
+  if (currentStage === 11) { drawSporeParticles(); drawFairyLights(); }
   ctx = orig;
 }
 
@@ -5059,6 +5222,7 @@ function drawAtlantisFish() {
 // ── Stage 10 — Space Floor ────────────────────────────────
 const NEXTSTAGE10_COST = 2000000;
 let astronauts = [];
+let mushroomCaps = [], fairyRings = [], sporeParticles = [], fairyLights = [];
 
 const MOON_TREE_SPOTS = [
   {x:0.10,y:0.18},{x:0.85,y:0.20},{x:0.14,y:0.75},{x:0.82,y:0.76},
@@ -5089,8 +5253,432 @@ function enterStage10() {
   atlantisFish = []; seagrassPatches = [];
   astronauts = [];
   document.getElementById('nextstage10-card').style.display = 'none';
+  document.getElementById('nextstage11-card').style.display = 'block';
   document.getElementById('stageDisplay').textContent = '🌙 STAGE 10';
   fillField(); refreshUI();
+}
+
+// ── Stage 11 — Mushroom Forest ────────────────────────────
+const NEXTSTAGE11_COST = 5000000;
+
+const MUSHROOM_MAX = 4;
+const MUSHROOM_GROW_FRAMES  = 360;
+const MUSHROOM_STAND_FRAMES = 480;
+const MUSHROOM_FADE_FRAMES  = 200;
+const MUSHROOM_COLORS = [
+  '#e03020','#d04020','#c03060','#e06010',
+  '#8030c0','#20a050','#e0b020','#2060d0',
+];
+const MUSHROOM_SPOT_COLORS = [
+  '#f8f0e0','#ffe8c0','#fff0f0','#fff8e0',
+  '#e0c8ff','#c8ffe0','#fff8c0','#c8e8ff',
+];
+
+const FAIRY_RING_SPOTS = [
+  {x:0.22,y:0.20},{x:0.75,y:0.22},{x:0.18,y:0.72},{x:0.78,y:0.70},
+  {x:0.50,y:0.16},{x:0.50,y:0.82},
+];
+
+function spawnMushroomTree() {
+  if (mushroomCaps.length >= MUSHROOM_MAX) return;
+  let px, py, attempts = 0;
+  do {
+    px = 60 + Math.random() * (W - 120);
+    py = 60 + Math.random() * (H - 120);
+    attempts++;
+  } while (attempts < 30 && (
+    dist(px, py, CX, CY) < TR + 90 ||
+    dist(px, py, NEST_X, NEST_Y) < 70 ||
+    mushroomCaps.some(m => dist(px, py, m.x, m.y) < 100)
+  ));
+  const ci = Math.floor(Math.random() * MUSHROOM_COLORS.length);
+  mushroomCaps.push({
+    x: px, y: py,
+    maxSize: 18 + Math.random() * 20,
+    size: 0,
+    color: MUSHROOM_COLORS[ci],
+    spotColor: MUSHROOM_SPOT_COLORS[ci % MUSHROOM_SPOT_COLORS.length],
+    sway: Math.random() * Math.PI * 2,
+    numSpots: 3 + Math.floor(Math.random() * 4),
+    glow: Math.random() * Math.PI * 2,
+    state: 'growing',
+    age: 0,
+    alpha: 1,
+  });
+}
+
+function openNextStage11() {
+  if (currentStage !== 10) return;
+  document.getElementById('nextstage11-overlay').style.display = 'flex';
+}
+function closeNextStage11() {
+  document.getElementById('nextstage11-overlay').style.display = 'none';
+}
+function confirmNextStage11() {
+  if (nuts < NEXTSTAGE11_COST) return;
+  nuts -= NEXTSTAGE11_COST;
+  closeNextStage11();
+  runStageTransition('🍄', 'ENTERING THE<br>MUSHROOM FOREST', 'STAGE 11 · THE SPORES AWAIT', enterStage11);
+}
+function enterStage11() {
+  resetForNewStage();
+  currentStage = 11;
+  document.body.classList.remove('stage10');
+  document.body.classList.add('stage11');
+  talkingTrees = []; fireSprites = []; candySheep = []; lollipopTrees = [];
+  gravestones = []; skeletons = []; ghostPops = []; icePillars = [];
+  atlantisFish = []; seagrassPatches = []; astronauts = [];
+  mushroomCaps = [];
+  fairyRings = FAIRY_RING_SPOTS.map(p => ({
+    x: p.x * W, y: p.y * H,
+    angle: Math.random() * Math.PI * 2,
+    pulse: Math.random() * Math.PI * 2,
+  }));
+  sporeParticles = [];
+  fairyLights = [];
+  // Seed 2 mushrooms right away so the world isn't empty
+  spawnMushroomTree(); spawnMushroomTree();
+  document.getElementById('nextstage11-card').style.display = 'none';
+  document.getElementById('stageDisplay').textContent = '🍄 STAGE 11';
+  fillField(); refreshUI();
+}
+
+function updateMushroomForest() {
+  if (currentStage !== 11) return;
+
+  // Spawn new mushroom trees randomly when below max
+  if (mushroomCaps.length < MUSHROOM_MAX && Math.random() < 0.004) {
+    spawnMushroomTree();
+  }
+
+  // Update each mushroom's lifecycle
+  mushroomCaps.forEach(m => {
+    m.age++;
+    if (m.state === 'growing') {
+      const t = Math.min(1, m.age / MUSHROOM_GROW_FRAMES);
+      // Ease-out elastic grow
+      m.size = m.maxSize * (t < 0.5
+        ? 2 * t * t
+        : 1 - Math.pow(-2 * t + 2, 2) / 2);
+      if (m.age >= MUSHROOM_GROW_FRAMES) {
+        m.state = 'standing';
+        m.age = 0;
+        m.size = m.maxSize;
+      }
+    } else if (m.state === 'standing') {
+      m.size = m.maxSize;
+      if (m.age >= MUSHROOM_STAND_FRAMES) {
+        m.state = 'poofing';
+        m.age = 0;
+        // Blast a big ring of spore particles
+        const count = 40 + Math.floor(Math.random() * 20);
+        for (let i = 0; i < count; i++) {
+          const a = (i / count) * Math.PI * 2 + Math.random() * 0.3;
+          const spd = 1.5 + Math.random() * 3.0;
+          sporeParticles.push({
+            x: m.x, y: m.y - m.maxSize * 2,
+            vx: Math.cos(a) * spd,
+            vy: Math.sin(a) * spd - 2.5,
+            size: 2.5 + Math.random() * 4,
+            age: 0,
+            maxAge: 90 + Math.floor(Math.random() * 120),
+            col: [m.color, m.spotColor, '#ffffff', '#e0c0ff', '#ffd0ff'][Math.floor(Math.random() * 5)],
+          });
+        }
+      }
+    } else if (m.state === 'poofing') {
+      // Shrink rapidly
+      m.size = m.maxSize * Math.max(0, 1 - m.age / 40);
+      if (m.age >= 40) {
+        m.state = 'fading';
+        m.age = 0;
+        m.size = 0;
+      }
+    } else if (m.state === 'fading') {
+      m.alpha = Math.max(0, 1 - m.age / MUSHROOM_FADE_FRAMES);
+    }
+  });
+
+  // Remove fully faded mushrooms
+  mushroomCaps = mushroomCaps.filter(m => !(m.state === 'fading' && m.alpha <= 0));
+
+  // Drifting ambient spore particles
+  if (Math.random() < 0.04) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = ACORN_INNER + Math.random() * (ACORN_OUTER - ACORN_INNER);
+    sporeParticles.push({
+      x: CX + Math.cos(angle) * r,
+      y: CY + Math.sin(angle) * r,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: -0.15 - Math.random() * 0.3,
+      size: 1.2 + Math.random() * 2.5,
+      age: 0,
+      maxAge: 180 + Math.floor(Math.random() * 180),
+      col: ['#d080ff','#ff80e0','#a0c0ff','#80ffc0','#ffe080'][Math.floor(Math.random()*5)],
+    });
+  }
+  sporeParticles.forEach(s => {
+    s.age++;
+    s.x += s.vx + Math.sin(s.age * 0.04) * 0.15;
+    s.y += s.vy;
+    s.vx *= 0.98;
+    s.vy *= 0.98;
+  });
+  sporeParticles = sporeParticles.filter(s => s.age < s.maxAge);
+
+  // Fairy lights
+  if (Math.random() < 0.04 && fairyLights.length < 40 && fairyRings.length > 0) {
+    const ring = fairyRings[Math.floor(Math.random() * fairyRings.length)];
+    fairyLights.push({
+      rx: ring.x, ry: ring.y,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.018 + Math.random() * 0.025,
+      radius: 18 + Math.random() * 28,
+      col: ['#ffe080','#ff80c0','#80ffcc','#c080ff','#80e0ff'][Math.floor(Math.random()*5)],
+      age: 0,
+      maxAge: 240 + Math.floor(Math.random() * 240),
+      size: 2 + Math.random() * 2.5,
+    });
+  }
+  fairyLights.forEach(l => { l.age++; l.angle += l.speed; });
+  fairyLights = fairyLights.filter(l => l.age < l.maxAge);
+}
+
+function drawMushroomFloorBackground() {
+  if (currentStage !== 11) return;
+  // Dark purple-teal forest floor
+  ctx.fillStyle = '#0d0318'; ctx.fillRect(0, 0, VW, VH);
+  const gr = ctx.createRadialGradient(CX,CY,TR*.8,CX,CY,ACORN_OUTER*1.3);
+  gr.addColorStop(0,'rgba(0,0,0,0.7)'); gr.addColorStop(.5,'rgba(10,0,20,0.3)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = gr; ctx.fillRect(0,0,W,H);
+
+  // Ground texture — mossy mycelium
+  ctx.globalAlpha = 0.45;
+  for (let i=0;i<300;i++) {
+    const gx=(i*131+11)%W, gy=(i*97+37)%H;
+    if (dist(gx,gy,CX,CY)<TR+10) continue;
+    const cols=['#1a0830','#250d40','#180a28','#200f38','#140828'];
+    ctx.fillStyle=cols[i%5];
+    ctx.beginPath();
+    if (i%3===0) ctx.ellipse(gx,gy,4+i%3,2,i*0.5,0,Math.PI*2);
+    else ctx.ellipse(gx,gy,2,3+i%2,i*0.3,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Glowing mycelium veins (thin lines)
+  ctx.globalAlpha=0.12;
+  ctx.strokeStyle='#c060ff'; ctx.lineWidth=0.8;
+  for (let i=0;i<18;i++) {
+    const sx=(i*211+frame*0.05)%W, sy=(i*97+frame*0.03+i*35)%H;
+    if (dist(sx,sy,CX,CY)<TR+30) continue;
+    ctx.beginPath(); ctx.moveTo(sx,sy);
+    ctx.quadraticCurveTo(sx+(i%3-1)*30, sy+(i%3-1)*20, sx+(i%3-1)*55, sy+(i%3-1)*40);
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // Mushroom glow halos
+  mushroomCaps.forEach((m, i) => {
+    const gp = Math.sin(frame/80 + m.glow) * 0.05 + 0.13;
+    const mg = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.size*2.5);
+    mg.addColorStop(0, m.color + '44');
+    mg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.size*2.5, 0, Math.PI*2);
+    ctx.globalAlpha = gp * 1.8; ctx.fillStyle = mg; ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawFairyRings() {
+  if (currentStage !== 11) return;
+  fairyRings.forEach((ring, ri) => {
+    const pulse = Math.sin(frame/50 + ring.pulse);
+    const r = 28 + pulse * 3;
+    // Draw tiny mushrooms in a ring
+    const count = 8;
+    for (let i=0;i<count;i++) {
+      const a = ring.angle + (i/count)*Math.PI*2;
+      const mx = ring.x + Math.cos(a)*r;
+      const my = ring.y + Math.sin(a)*r;
+      ctx.save(); ctx.translate(mx, my);
+      // Stem
+      ctx.fillStyle='#c8a870';
+      ctx.beginPath(); ctx.roundRect(-2, 0, 4, 8, 2); ctx.fill();
+      // Cap
+      const miniCol = ['#e03020','#c030a0','#3080e0'][i%3];
+      ctx.fillStyle = miniCol;
+      ctx.beginPath(); ctx.ellipse(0, 0, 6, 4, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.arc(-1.5, -1, 1, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    // Fairy ring ground glow ring
+    ctx.save();
+    ctx.globalAlpha = 0.18 + Math.abs(pulse)*0.08;
+    ctx.strokeStyle = '#d090ff';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.arc(ring.x, ring.y, r, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha=1;
+    ctx.restore();
+  });
+}
+
+function drawGiantMushroom(m) {
+  if (m.size <= 0) return;
+  const alpha = (m.alpha !== undefined) ? m.alpha : 1;
+  const sway = Math.sin(frame/70 + m.sway) * 1.2;
+  ctx.save();
+  ctx.translate(m.x, m.y);
+  ctx.globalAlpha = alpha;
+
+  const sz = m.size;
+  const stalkH = sz * 2.4;
+  const stalkW = sz * 0.38;
+
+  // Ground shadow
+  ctx.fillStyle='rgba(0,0,0,0.22)';
+  ctx.beginPath(); ctx.ellipse(sway*0.3, 4, sz*1.1, sz*0.3, 0, 0, Math.PI*2); ctx.fill();
+
+  // Stalk
+  ctx.save(); ctx.translate(sway*0.5, 0);
+  const sg = ctx.createLinearGradient(-stalkW, 0, stalkW, 0);
+  sg.addColorStop(0,'#c8b090'); sg.addColorStop(0.4,'#f0e0c0'); sg.addColorStop(1,'#a89070');
+  ctx.fillStyle=sg;
+  ctx.beginPath();
+  ctx.moveTo(-stalkW, 4);
+  ctx.quadraticCurveTo(-stalkW*0.8, -stalkH*0.5, -stalkW*0.6, -stalkH);
+  ctx.lineTo(stalkW*0.6, -stalkH);
+  ctx.quadraticCurveTo(stalkW*0.8, -stalkH*0.5, stalkW, 4);
+  ctx.closePath(); ctx.fill();
+
+  // Stalk ring (annulus)
+  const ringY = -stalkH * 0.45;
+  ctx.beginPath(); ctx.ellipse(0, ringY, stalkW*1.8, stalkW*0.55, 0, 0, Math.PI*2);
+  ctx.fillStyle='#f0e8d0'; ctx.fill();
+  ctx.strokeStyle='rgba(180,150,100,0.5)'; ctx.lineWidth=0.8; ctx.stroke();
+  ctx.restore();
+
+  // Cap shadow underside
+  ctx.save(); ctx.translate(sway, -stalkH);
+  const capUG = ctx.createRadialGradient(0, sz*0.3, 0, 0, 0, sz*1.15);
+  capUG.addColorStop(0,'rgba(0,0,0,0.35)'); capUG.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.ellipse(0, sz*0.25, sz*1.1, sz*0.45, 0, 0, Math.PI*2);
+  ctx.fillStyle=capUG; ctx.fill();
+
+  // Gills under cap
+  ctx.save(); ctx.beginPath(); ctx.ellipse(0, sz*0.1, sz*1.0, sz*0.35, 0, 0, Math.PI*2); ctx.clip();
+  ctx.fillStyle='#f5eedd';
+  ctx.beginPath(); ctx.ellipse(0, sz*0.1, sz*1.0, sz*0.35, 0, 0, Math.PI*2); ctx.fill();
+  for (let g=0;g<16;g++) {
+    const ga=(g/16)*Math.PI*2;
+    const gr2=ctx.createLinearGradient(0,sz*0.1,Math.cos(ga)*sz*0.9,sz*0.1+Math.sin(ga)*sz*0.3);
+    gr2.addColorStop(0,'rgba(220,180,130,0.6)'); gr2.addColorStop(1,'rgba(220,180,130,0)');
+    ctx.beginPath(); ctx.moveTo(0,sz*0.1); ctx.lineTo(Math.cos(ga)*sz*0.9, sz*0.1+Math.sin(ga)*sz*0.3);
+    ctx.strokeStyle=gr2; ctx.lineWidth=0.9; ctx.stroke();
+  }
+  ctx.restore();
+
+  // Cap main body
+  const cg = ctx.createRadialGradient(-sz*0.25, -sz*0.4, 0, 0, 0, sz*1.15);
+  cg.addColorStop(0, '#ffffff88');
+  cg.addColorStop(0.15, m.color);
+  cg.addColorStop(0.7, m.color);
+  cg.addColorStop(1, m.color + 'aa');
+  ctx.beginPath();
+  ctx.moveTo(-sz*1.1, sz*0.05);
+  ctx.quadraticCurveTo(-sz*1.0, -sz*0.15, -sz*0.6, -sz*0.6);
+  ctx.quadraticCurveTo(-sz*0.1, -sz*1.05, 0, -sz*1.1);
+  ctx.quadraticCurveTo(sz*0.1, -sz*1.05, sz*0.6, -sz*0.6);
+  ctx.quadraticCurveTo(sz*1.0, -sz*0.15, sz*1.1, sz*0.05);
+  ctx.closePath();
+  ctx.fillStyle=cg; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1; ctx.stroke();
+
+  // White spots on cap
+  const spotsAngles = Array.from({length: m.numSpots}, (_, i) => (i/m.numSpots)*Math.PI*1.6 - Math.PI*0.8);
+  spotsAngles.forEach((sa, si) => {
+    const sr = sz * (0.35 + si*0.18);
+    const sx2 = Math.cos(sa) * sr * 0.7;
+    const sy2 = -sz*0.5 + Math.sin(sa) * sr * 0.5;
+    const sSize = sz * (0.10 + (si%2)*0.07);
+    ctx.beginPath(); ctx.arc(sx2, sy2, sSize, 0, Math.PI*2);
+    ctx.fillStyle = m.spotColor; ctx.fill();
+  });
+
+  // Cap highlight
+  ctx.globalAlpha=0.35;
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.beginPath(); ctx.ellipse(-sz*0.28, -sz*0.65, sz*0.28, sz*0.18, -0.5, 0, Math.PI*2); ctx.fill();
+
+  // Bioluminescent edge glow
+  const glowFrac = Math.sin(frame/90 + m.glow) * 0.15 + 0.25;
+  ctx.globalAlpha = glowFrac;
+  const eg = ctx.createRadialGradient(0, -sz*0.2, sz*0.9, 0, -sz*0.2, sz*1.25);
+  eg.addColorStop(0,'rgba(0,0,0,0)'); eg.addColorStop(0.7, m.color + '55'); eg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(0, -sz*0.2, sz*1.25, 0, Math.PI*2); ctx.fillStyle=eg; ctx.fill();
+  ctx.globalAlpha = alpha;
+  ctx.restore();
+
+  // Poof cloud during poofing state
+  if (m.state === 'poofing') {
+    const pf = Math.min(1, m.age / 40);
+    const cloudR = sz * (1.5 + pf * 3);
+    for (let i = 0; i < 6; i++) {
+      const ca = (i / 6) * Math.PI * 2 + pf * 2;
+      const cr = cloudR * (0.5 + pf * 0.5);
+      const cx2 = Math.cos(ca) * cr;
+      const cy2 = -sz * 2 + Math.sin(ca) * cr * 0.6 - pf * sz * 1.5;
+      const cg = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, cloudR * 0.55);
+      cg.addColorStop(0, m.color + 'cc');
+      cg.addColorStop(0.5, m.spotColor + '88');
+      cg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = alpha * (1 - pf) * 0.8;
+      ctx.beginPath(); ctx.arc(cx2, cy2, cloudR * 0.55, 0, Math.PI * 2);
+      ctx.fillStyle = cg; ctx.fill();
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawSporeParticles() {
+  if (currentStage !== 11) return;
+  sporeParticles.forEach(s => {
+    const frac = s.age / s.maxAge;
+    const alpha = frac < 0.2 ? frac/0.2 : frac > 0.75 ? (1-frac)/0.25 : 1;
+    ctx.globalAlpha = alpha * 0.75;
+    ctx.fillStyle = s.col;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+    // Tiny inner glow
+    ctx.globalAlpha = alpha * 0.35;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(s.x - s.size*0.25, s.y - s.size*0.25, s.size*0.35, 0, Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawFairyLights() {
+  if (currentStage !== 11) return;
+  fairyLights.forEach(l => {
+    const frac = l.age / l.maxAge;
+    const alpha = frac < 0.15 ? frac/0.15 : frac > 0.8 ? (1-frac)/0.2 : 1;
+    const lx = l.rx + Math.cos(l.angle)*l.radius;
+    const ly = l.ry + Math.sin(l.angle)*l.radius;
+    // Glow
+    const lg = ctx.createRadialGradient(lx,ly,0,lx,ly,l.size*3);
+    lg.addColorStop(0, l.col); lg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = alpha * 0.6;
+    ctx.beginPath(); ctx.arc(lx,ly,l.size*3,0,Math.PI*2); ctx.fillStyle=lg; ctx.fill();
+    // Core dot
+    ctx.globalAlpha = alpha * 0.95;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath(); ctx.arc(lx,ly,l.size*0.5,0,Math.PI*2); ctx.fill();
+  });
+  ctx.globalAlpha=1;
 }
 
 function spawnAstronaut() {
@@ -5314,17 +5902,17 @@ function saveGame() {
 
 function applyStageUI(stage) {
   // Body classes
-  ['stage2','stage3','stage4','stage5','stage6','stage7','stage8','stage9','stage10'].forEach(c => document.body.classList.remove(c));
+  ['stage2','stage3','stage4','stage5','stage6','stage7','stage8','stage9','stage10','stage11'].forEach(c => document.body.classList.remove(c));
   if (stage >= 2) document.body.classList.add('stage' + stage);
 
   // Stage display text
-  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7',8:'🧊 STAGE 8',9:'🌊 STAGE 9',10:'🌙 STAGE 10'};
+  const stageLabels = {1:'',2:'🌲 STAGE 2',3:'☀️ STAGE 3',4:'🌳 STAGE 4',5:'🔥 STAGE 5',6:'🍬 STAGE 6',7:'👻 STAGE 7',8:'🧊 STAGE 8',9:'🌊 STAGE 9',10:'🌙 STAGE 10',11:'🍄 STAGE 11'};
   document.getElementById('stageDisplay').textContent = stageLabels[stage] || '';
 
   // Next-stage cards: show the one for the current stage, hide others
   const cards = {
     1: 'nextstage-card', 2: 'nextstage3-card', 3: 'nextstage4-card',
-    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card', 7: 'nextstage8-card', 8: 'nextstage9-card', 9: 'nextstage10-card',
+    4: 'nextstage5-card', 5: 'nextstage6-card', 6: 'nextstage7-card', 7: 'nextstage8-card', 8: 'nextstage9-card', 9: 'nextstage10-card', 10: 'nextstage11-card',
   };
   Object.entries(cards).forEach(([s, id]) => {
     const el = document.getElementById(id);
@@ -5387,6 +5975,18 @@ function applyStageUI(stage) {
   if (stage === 10) {
     astronauts = [];
   }
+  // Stage 11 Mushroom Forest — dynamic mushroom lifecycle
+  if (stage === 11) {
+    mushroomCaps = [];
+    fairyRings = FAIRY_RING_SPOTS.map(p => ({
+      x: p.x * W, y: p.y * H,
+      angle: Math.random() * Math.PI * 2,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+    sporeParticles = [];
+    fairyLights = [];
+    spawnMushroomTree(); spawnMushroomTree();
+  }
 }
 
 function loadGame() {
@@ -5412,6 +6012,19 @@ function loadGame() {
     friends = [];
     const fCount = d.friendCount || 0;
     for (let i = 0; i < fCount; i++) spawnFriend();
+
+    // Restore stage 11 mushroom/fairy ring state
+    if (currentStage === 11) {
+      mushroomCaps = [];
+      fairyRings = FAIRY_RING_SPOTS.map(p => ({
+        x: p.x * W, y: p.y * H,
+        angle: 0,
+        pulse: Math.random()*Math.PI*2,
+      }));
+      sporeParticles = [];
+      fairyLights = [];
+      spawnMushroomTree(); spawnMushroomTree();
+    }
 
     applyStageUI(currentStage);
     return true;
