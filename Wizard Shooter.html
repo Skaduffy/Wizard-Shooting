@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Monster Warlords</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+// Load Socket.io non-blocking — game works fine without it
+(function(){
+  const s=document.createElement('script');
+  s.src='https://cdn.socket.io/4.7.4/socket.io.min.js';
+  s.async=true;
+  document.head.appendChild(s);
+})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#0a0612;font-family:'Cinzel',serif;color:#e8d5b0;overflow:hidden;height:100vh;}
@@ -1949,6 +1957,11 @@ let mpWaitingForSquad = false;
 
 function mpConnect(){
   if(socket && socket.connected) return;
+  if(typeof io === 'undefined'){
+    const statusEl = document.getElementById('lobby-server-status');
+    if(statusEl){ statusEl.textContent = 'Socket.io still loading — try again in a moment'; statusEl.className='lobby-status error'; }
+    return;
+  }
   const statusEl = document.getElementById('lobby-server-status');
   if(statusEl) statusEl.textContent = 'Connecting...';
   socket = io(MP_SERVER_URL, { transports:['websocket'], reconnectionAttempts:3 });
@@ -2175,12 +2188,13 @@ function mpLeave(){
   showScreen('menu');
 }
 
-// ── Patch onCanvasClick to broadcast moves in MP ──
-// Store original and wrap
-(function(){
-  const orig = onCanvasClick;
+// ── Patches applied after all functions are defined ──
+window.addEventListener('load', function(){
+
+  // Patch onCanvasClick to broadcast moves in MP
+  const _origClick = onCanvasClick;
   onCanvasClick = function(e){
-    if(!mpActive){ orig(e); return; }
+    if(!mpActive){ _origClick(e); return; }
     if(dragMoved) return;
     const rect=battleCanvas.getBoundingClientRect();
     const mx=(e.clientX-rect.left-camX)/camZoom;
@@ -2188,20 +2202,14 @@ function mpLeave(){
     let best=null,bestD=Infinity;
     hexes.forEach(h=>{const d=Math.hypot(h.cx-mx,h.cy-my);if(d<HEX_SIZE*.95&&d<bestD){bestD=d;best=h;}});
     if(!best) return;
-
-    // Clicking a friendly to select
     const ci=playerTeam.findIndex(u=>u.alive&&u.hex===best);
     if(ci>=0){
-      activePlayerIdx=ci; playerUnit=playerTeam[ci]; playerHex=playerUnit.hex; unitSelected=true;
-      updateHUD();
-      document.getElementById('battle-status').textContent=`${playerUnit.name} selected`;
-      return;
+      activePlayerIdx=ci;playerUnit=playerTeam[ci];playerHex=playerUnit.hex;unitSelected=true;
+      updateHUD();document.getElementById('battle-status').textContent=`${playerUnit.name} selected`;return;
     }
     if(!unitSelected) return;
     playerUnit=playerTeam[activePlayerIdx];
     if(!playerUnit?.alive) return;
-
-    // Clicking enemy
     const ei=enemyTeam.findIndex(u=>u.alive&&u.hex===best);
     if(ei>=0){
       const target=enemyTeam[ei];
@@ -2211,35 +2219,24 @@ function mpLeave(){
         const nbrs=hexNeighbors(target.hex.q,target.hex.r).filter(h=>h.passable&&!occ.includes(h));
         dest=nbrs.length?nbrs.reduce((b,h)=>hexDist(h,playerUnit.hex)<hexDist(b,playerUnit.hex)?h:b):playerUnit.hex;
       }
-      playerUnit.movePath=findPath(playerUnit.hex,dest);
-      playerUnit.moveProgress=0;
-      mpSendMove(activePlayerIdx, dest.q, dest.r);
-      return;
+      playerUnit.movePath=findPath(playerUnit.hex,dest);playerUnit.moveProgress=0;
+      mpSendMove(activePlayerIdx,dest.q,dest.r);return;
     }
-
-    // Clicking empty hex — move there
-    playerUnit.movePath=findPath(playerUnit.hex,best);
-    playerUnit.moveProgress=0;
-    moveDestination=best; movingToAttack=false;
-    mpSendMove(activePlayerIdx, best.q, best.r);
+    playerUnit.movePath=findPath(playerUnit.hex,best);playerUnit.moveProgress=0;
+    moveDestination=best;movingToAttack=false;
+    mpSendMove(activePlayerIdx,best.q,best.r);
   };
-})();
 
-// ── In MP mode, enemy AI does NOT tick — opponent controls their units ──
-// Patch tickUnit to skip AI for enemies in MP
-(function(){
-  const orig = tickUnit;
-  tickUnit = function(u, myTeam, foes, dt, isPlayer){
+  // Patch tickUnit — skip enemy AI in MP, opponent controls their units
+  const _origTick = tickUnit;
+  tickUnit = function(u,myTeam,foes,dt,isPlayer){
     if(mpActive && !isPlayer){
-      // In MP: only move enemy units along their path (set by opponent_move events)
-      // No AI retargeting
       if(!u.alive) return;
-      if(u.movePath && u.movePath.length>1){
-        u.moveProgress += u.spd*dt*0.35;
+      if(u.movePath&&u.movePath.length>1){
+        u.moveProgress+=u.spd*dt*0.35;
         while(u.moveProgress>=1&&u.movePath.length>1){u.moveProgress-=1;u.movePath.shift();u.hex=u.movePath[0];}
         if(u.movePath.length<=1){u.hex=u.movePath[0]||u.hex;u.movePath=[];u.moveProgress=0;}
       }
-      // Auto-attack still happens locally (deterministic)
       u.atkCooldown=(u.atkCooldown||ATTACK_COOLDOWN)-dt;
       if(u.atkCooldown<=0){
         const inRange=foes.filter(f=>f.alive&&hexDist(u.hex,f.hex)<=u.range);
@@ -2247,27 +2244,26 @@ function mpLeave(){
           const target=inRange.reduce((b,f)=>hexDist(u.hex,f.hex)<hexDist(u.hex,b.hex)?f:b);
           const dmg=doCombat(u,target,target.hex,'enemy');
           addLog(`${u.name} hits ${target.name} for ${dmg}!`,'enemy');
-          shakeTimer=0.12; u.atkCooldown=ATTACK_COOLDOWN;
+          shakeTimer=0.12;u.atkCooldown=ATTACK_COOLDOWN;
           if(target.hp<=0){target.alive=false;addLog(`${target.name} falls!`,'system');}
         }
       }
       return;
     }
-    orig(u, myTeam, foes, dt, isPlayer);
+    _origTick(u,myTeam,foes,dt,isPlayer);
   };
-})();
 
-// ── Broadcast battle result in MP ──
-(function(){
-  const orig = endBattle;
+  // Patch endBattle — broadcast result in MP
+  const _origEnd = endBattle;
   endBattle = function(won){
-    orig(won);
-    if(mpActive && socket && socket.connected && mpRoom){
-      socket.emit('battle_result',{ code:mpRoom, winner: won ? mpRole : (mpRole==='host'?'guest':'host') });
+    _origEnd(won);
+    if(mpActive&&socket&&socket.connected&&mpRoom){
+      socket.emit('battle_result',{code:mpRoom,winner:won?mpRole:(mpRole==='host'?'guest':'host')});
       mpActive=false;
     }
   };
-})();
+
+});
 
 let currentUser = null;
 let authMode = 'login'; // 'login' or 'register'
