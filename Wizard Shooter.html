@@ -664,6 +664,18 @@ let attackAnim = null;
 let shakeTimer = 0;
 let battleCanvas = null, battleCtx = null;
 
+// ── Auth state ──
+let currentUser = null;
+let authMode = 'login';
+
+// ── Multiplayer state ──
+let socket = null;
+let mpRoom = null;
+let mpRole = null;
+let mpOpponentName = null;
+let mpActive = false;
+let mpWaitingForSquad = false;
+
 // ═══════════════════════════════════════════════════
 // STARS
 // ═══════════════════════════════════════════════════
@@ -1948,13 +1960,6 @@ document.addEventListener('keydown', tryStartMenuMusic);
 // !! Replace this URL with your Render server URL once deployed !!
 const MP_SERVER_URL = 'https://YOUR-RENDER-APP.onrender.com';
 
-let socket = null;
-let mpRoom = null;       // room code
-let mpRole = null;       // 'host' or 'guest'
-let mpOpponentName = null;
-let mpActive = false;    // are we in a multiplayer battle?
-let mpWaitingForSquad = false;
-
 function mpConnect(){
   if(socket && socket.connected) return;
   if(typeof io === 'undefined'){
@@ -2264,9 +2269,6 @@ window.addEventListener('load', function(){
   };
 
 });
-
-let currentUser = null;
-let authMode = 'login'; // 'login' or 'register'
 
 function hashPass(p){ return btoa(unescape(encodeURIComponent(p+'_mw_salt_9x'))); }
 
