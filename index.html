@@ -506,6 +506,12 @@ body{background:#0a0612;font-family:'Cinzel',serif;color:#e8d5b0;overflow:hidden
     <!-- Waiting room — shown once matched -->
     <div class="lobby-panel" id="lobby-waiting-panel" style="display:none;">
       <div class="lobby-panel-title">War Party Assembled</div>
+      <!-- Room code shown here so host can share it while waiting -->
+      <div id="lobby-waiting-code-row" style="display:none;text-align:center;margin-bottom:4px;">
+        <div style="font-size:9px;letter-spacing:3px;color:#7a6a4a;text-transform:uppercase;margin-bottom:4px;">Your Room Code</div>
+        <div class="lobby-code" id="lobby-room-code-waiting" style="font-size:26px;letter-spacing:6px;">—</div>
+        <div style="font-size:8px;letter-spacing:2px;color:#5a4a2a;text-transform:uppercase;">Share this with your opponent</div>
+      </div>
       <div class="player-slot">
         <div class="player-dot" style="background:#c8a96e;"></div>
         <div><div class="player-slot-label">You</div><div class="player-slot-name" id="lobby-you-name">—</div></div>
@@ -1958,7 +1964,7 @@ document.addEventListener('keydown', tryStartMenuMusic);
 // ═══════════════════════════════════════════════════
 
 // !! Replace this URL with your Render server URL once deployed !!
-const MP_SERVER_URL = 'https://wizard-shooting.onrender.com';
+const MP_SERVER_URL = 'https://YOUR-RENDER-APP.onrender.com';
 
 function mpConnect(){
   if(socket && socket.connected) return;
@@ -1987,6 +1993,9 @@ function mpConnect(){
     document.getElementById('lobby-room-code').textContent = code;
     document.getElementById('lobby-host-status').textContent = 'Share this code with your opponent';
     document.getElementById('lobby-host-btn').disabled = true;
+    // Also populate the waiting panel code display
+    document.getElementById('lobby-room-code-waiting').textContent = code;
+    document.getElementById('lobby-waiting-code-row').style.display = '';
     showLobbyWaiting();
   });
 
@@ -2002,6 +2011,9 @@ function mpConnect(){
     mpOpponentName = opponentName;
     document.getElementById('lobby-opp-name').textContent = opponentName;
     document.getElementById('lobby-opp-dot').style.background = '#e74c3c';
+    // Hide the room code once opponent is in — no longer needed
+    const codeRow = document.getElementById('lobby-waiting-code-row');
+    if(codeRow) codeRow.style.display = 'none';
     const ws = document.getElementById('lobby-waiting-status');
     if(ws) ws.textContent = 'Opponent found! Select your squad.';
     const rb = document.getElementById('lobby-ready-btn');
